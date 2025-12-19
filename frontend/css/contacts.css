@@ -1,0 +1,217 @@
+:root {
+    --accent-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #34495e;
+    --btn-hover: #c0392b;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+    background-color: #f5f7fa;
+    color: var(--dark-color);
+    line-height: 1.6;
+}
+.contacts-container {
+    max-width: 1500px;
+    margin: 120px auto 30px auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+.contacts-header {
+    background: var(--dark-color);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+}
+.contacts-header h1 {
+    font-size: 45px;
+    margin-bottom: 10px;
+}
+.contacts-content {
+    display: flex;
+    flex-wrap: wrap;
+}
+.contact-info {
+    flex: 1;
+    max-width: 360px;
+    padding: 20px 30px;
+    background: var(--light-color);
+}
+.contact-info h2 {
+    font-size: 24px;
+    margin-bottom: 25px;
+    color: var(--dark-color);
+}
+.contact-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.contact-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.contact-icon img {
+    filter: invert(1);
+    width: 25px;
+    height: 25px;
+}
+.contact-text h3 {
+    color: var(--dark-color);
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+.contact-text p {
+    font-size: 16px;
+    color: #666;
+}
+
+.contact-map {
+    padding: 20px;
+    flex: 1;
+    min-width: 500px;
+    min-height: 650px;
+    position: relative;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.ymaps-2-1-79-islets_map-lang-ru {
+    height: 600px !important;
+}
+
+.contact-form {
+    flex: 1;
+    max-width: 400px;
+    padding-left: 0 !important;
+    padding: 20px 30px;
+    background: white;
+}
+.contact-form h2 {
+    font-size: 24px;
+    margin-bottom: 25px;
+    color: var(--dark-color);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+.form-group textarea {
+    height: 120px;
+    resize: vertical;
+}
+
+.phone {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.phone div {
+    color: black;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-right: 1px solid #ddd;
+}
+
+.phone input {
+    border: none;
+    padding: 10px;
+    outline: none;
+    flex: 1;
+}
+
+.form-group {
+    position: relative;
+}
+
+.submit-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+.submit-btn:hover {
+    background: var(--btn-hover);
+}
+.working-hours {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+.working-hours h3 {
+    margin-bottom: 10px;
+    color: var(--dark-color);
+}
+.hours-list {
+    list-style: none;
+}
+.hours-list li {
+    padding: 5px 0;
+    display: flex;
+    justify-content: space-between;
+}
+@media (max-width: 768px) {
+    .contacts-content {
+        flex-direction: column;
+    }
+    .contact-map {
+        height: 400px;
+    }
+    .contacts-container {
+        margin: 100px auto 20px auto;
+    }
+}
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+}
+.success-message {
+    color: #27ae60;
+    text-align: center;
+    padding: 15px;
+    margin-top: 15px;
+    background: #e8f5e9;
+    border-radius: 4px;
+}

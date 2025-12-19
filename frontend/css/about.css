@@ -1,0 +1,562 @@
+/* about.css */
+.about-page {
+    padding-top: 100px;
+}
+
+/* Хлебные крошки */
+.breadcrumbs {
+    background: #f8f9fa;
+    padding: 15px 0;
+    margin-bottom: 40px;
+}
+
+.breadcrumbs__nav {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.breadcrumbs__link {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.breadcrumbs__link:hover {
+    color: #2c5aa0;
+}
+
+.breadcrumbs__separator {
+    margin: 0 10px;
+    color: #999;
+}
+
+.breadcrumbs__current {
+    color: #2c5aa0;
+    font-weight: 500;
+}
+
+/* Заголовок страницы */
+.page-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* История компании */
+.history {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.history__content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+}
+
+.history__text h2 {
+    font-size: 2rem;
+    margin-bottom: 40px;
+    color: #333;
+}
+
+.timeline__item {
+    display: flex;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.timeline__item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 60px;
+    top: 40px;
+    bottom: -40px;
+    width: 2px;
+    background: var(--secondary);
+    opacity: 0.3;
+}
+
+.timeline__year {
+    background: var(--secondary);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 25px;
+    font-weight: bold;
+    min-width: 80px;
+    text-align: center;
+    margin-right: 30px;
+    height: fit-content;
+}
+
+.timeline__content h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.timeline__content p {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Галерея */
+.gallery {
+    padding: 80px 0;
+}
+
+.gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.gallery__item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.gallery__item img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.gallery__item:hover img {
+    transform: scale(1.05);
+}
+
+.gallery__caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+/* Преимущества и гарантии */
+.advantages-guarantees {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.advantages-guarantees__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+}
+
+.advantages h2,
+.guarantees h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.advantage-item,
+.guarantee-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.advantage__icon,
+.guarantee__icon {
+    font-size: 2rem;
+    margin-right: 20px;
+    min-width: 60px;
+}
+
+.guarantee__icon img, .advantage__icon img {
+    width: 60px;
+    height: 60px;
+}
+
+
+
+.advantage__content h3,
+.guarantee__content h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.advantage__content p,
+.guarantee__content p {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Команда */
+.team {
+    padding: 80px 0;
+}
+
+.team__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.team-member {
+    text-align: center;
+    padding: 30px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+}
+
+.team-member:hover {
+    transform: translateY(-5px);
+}
+
+.member__photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 20px;
+    border: 5px solid #f8f9fa;
+}
+
+.member__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.member__name {
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.member__position {
+    color: #2c5aa0;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.member__bio {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Отзывы */
+.reviews {
+    position: relative;
+    overflow: hidden;
+    padding: 80px 0;
+    background: #f8f9fa;
+    width: 100%;
+}
+
+.reviews::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 100%;
+    background: #f8f9fa;
+    z-index: -1;
+}
+
+.reviews__wrapper {
+    width: 100%;
+    overflow: hidden;
+}
+
+.reviews__header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 0 20px;
+}
+
+.reviews .container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.reviews-slider {
+    position: relative;
+    width: 100%;
+}
+
+.reviews-slider:hover .slider__controls {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.slider__container {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+}
+
+.slider__viewport {
+    width: 100%;
+    overflow: hidden;
+}
+
+.slider__track {
+    display: flex;
+    gap: 30px;
+    width: max-content;
+    animation: scrollReviews 50s linear infinite;
+    padding: 10px 0;
+}
+
+.slider__track::before {
+    content: '';
+    display: flex;
+    gap: 30px;
+    width: max-content;
+    animation: scrollReviews 120s linear infinite;
+}
+
+.history__image {
+    margin-left: 100px;
+}
+
+.history__image_box {
+    border-radius: 10px;
+    display: flex;
+    width: 102%;
+    height: 150%;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+}
+
+.history__image_box iframe {
+    margin-left: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.slider__slide {
+    flex: 0 0 auto;
+    width: 400px;
+}
+
+.slider__track::before,
+.slider__track::after {
+    content: '';
+    flex: 0 0 20px;
+}
+
+.slider__track:hover {
+    animation-play-state: paused;
+}
+
+.reviews-slider:hover .slider__controls {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.slider__controls {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.review-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    height: 100%;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.review-card:hover {
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    transform: translateY(-5px);
+}
+
+.review__author {
+    font-weight: bold;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.review__rating {
+    color: #ffc107;
+    font-size: 1.2rem;
+    white-space: nowrap;
+}
+
+.review__text {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-style: italic;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.review__date {
+    color: #999;
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+.slider__btn {
+    background: white;
+    border: 2px solid #2c5aa0;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    font-size: 20px;
+    color: #2c5aa0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    pointer-events: all;
+}
+
+.slider__btn:hover {
+    background: #2c5aa0;
+    color: white;
+    transform: scale(1.1);
+}
+
+.slider__btn:disabled {
+    background: #ccc;
+    border-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.slider__dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.slider__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.slider__dot.active {
+    background: #2c5aa0;
+    transform: scale(1.2);
+}
+
+.slider__dot:hover {
+    background: #2c5aa0;
+}
+
+@keyframes scrollReviews {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-400px * 6 - 30px * 5)); /* Дублируем половину отзывов */
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .history__content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .advantages-guarantees__grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .timeline__item {
+        flex-direction: column;
+    }
+    
+    .timeline__year {
+        margin-right: 0;
+        margin-bottom: 15px;
+        width: fit-content;
+    }
+    
+    .timeline__item:not(:last-child)::after {
+        left: 25px;
+        top: 70px;
+    }
+    
+    .cta__buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+
+    @keyframes scrollReviews {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(calc(-300px * 6 - 30px * 5));
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    @keyframes scrollReviews {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(calc(-280px * 6 - 30px * 5));
+        }
+    }
+}

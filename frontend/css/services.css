@@ -1,0 +1,434 @@
+/* Стили для страницы услуг */
+.breadcrumbs {
+    padding: 20px 0;
+    background: #f8f9fa;
+}
+
+.breadcrumbs__nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.breadcrumbs__link {
+    color: #666;
+    text-decoration: none;
+}
+
+.breadcrumbs__link:hover {
+    color: #333;
+}
+
+.breadcrumbs__separator {
+    color: #999;
+}
+
+.breadcrumbs__current {
+    color: #333;
+    font-weight: 500;
+}
+
+.page-header {
+    padding: 60px 0 40px;
+    text-align: center;
+}
+
+.page-header__title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.page-header__subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Стили для списка услуг */
+.services {
+    padding: 80px 0;
+}
+
+.service {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 40px;
+    margin-bottom: 80px;
+    align-items: start;
+}
+
+.service:last-child {
+    margin-bottom: 0;
+}
+
+.service__icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+}
+
+.service__icon-img {
+    filter: invert(1);
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.service__content {
+    flex: 1;
+}
+
+.service__title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.service__text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 24px;
+}
+
+.service__features {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.service__features li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+.service__features li:before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.service__pricing {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.service__pricing h4 {
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.service__pricing ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.service__pricing li {
+    padding: 4px 0;
+    color: #555;
+}
+
+.service__details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin: 20px 0;
+}
+
+.service__detail-category h4 {
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.service__note {
+    background: #e3f2fd;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid #2196F3;
+    margin: 20px 0;
+}
+
+.service__actions {
+    margin-top: 30px;
+}
+
+/* Стили для преимуществ */
+.services-advantages {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.advantages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.advantage-card {
+    background: white;
+    padding: 40px 30px;
+    display: table;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.advantage-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.advantage-card__background {
+    width: 90px;
+    height: 90px;
+    border-radius: 20px;
+    left: 50%;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+    margin: 0 0 20px 60px;
+
+}
+
+.advantage-card__icon {
+    filter: invert(1);
+    width: 80px;
+    height: 80px;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.advantage-card__title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.advantage-card__text {
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Стили для CTA секции */
+.cta-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.cta-text {
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn--large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+}
+
+.btn--primary, .btn--large {
+    border: none;
+}
+
+.btn--full {
+    width: 100%;
+}
+
+/* Стили для модального окна */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+.modal.active {
+    display: block;
+}
+
+.modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal__content {
+    position: relative;
+    background: white;
+    margin: 50px auto;
+    max-width: 500px;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal__close:hover {
+    color: #333;
+}
+
+.modal__title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: #333;
+    text-align: center;
+}
+
+/* Стили формы */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Анимации */
+.service,
+.advantage-card {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.service.animated,
+.advantage-card.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.service:nth-child(even) {
+    transition-delay: 0.1s;
+}
+
+.service:nth-child(odd) {
+    transition-delay: 0.2s;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .service {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .service__icon {
+        margin: 0 auto;
+    }
+    
+    .service__details {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal__content {
+        margin: 20px;
+        padding: 30px 20px;
+    }
+    
+    .cta-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn--large {
+        width: 100%;
+        max-width: 300px;
+    }
+}

@@ -1,0 +1,147 @@
+<!-- ./PocketBase serve -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПолиАрт - Двери и ламинат в Новгородской области</title>
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/loader.css">
+</head>
+<body>
+    <!-- Страница-загрузчик -->
+    <div class="loader-page" id="loaderPage">
+        <!-- Чёрный фон -->
+        <div class="loader-background"></div>
+        
+        <!-- Лампа на потолке -->
+        <div class="lamp-container">
+            <!-- Чёткий жёлтый свет (конус) -->
+            <div class="lamp-light-cone" id="lampLight"></div>
+
+            <!-- Цоколь -->
+            <div class="lamp-socket">
+                <div class="socket-base"></div>
+                <div class="socket-threads"></div>
+            </div>
+
+            <!-- Колба лампы -->
+            <div class="lamp-bulb" id="lampBulb"></div>
+        </div>
+        
+        <!-- Дверь на полу -->
+        <div class="door-wrapper" id="doorWrapper">
+            <!-- Белый свет за дверью -->
+            <div class="door-backlight" id="doorBacklight"></div>
+            <div class="door" id="door">
+                <img src="image/Close_Door.png" alt="Закрытая дверь" class="door-image door-closed">
+                <img src="image/Open_the_Door.png" alt="Открытая дверь" class="door-image door-opened">
+            </div>
+        </div>
+    </div>
+
+    <!-- Основная страница (скрыта до загрузки) -->
+    <div class="main-content" id="mainContent" style="display: none;">
+
+        <header class="header"></header>
+
+        <main>
+            <!-- Главный экран (Hero Section) -->
+            <section class="hero">
+                <div class="container">
+                    <div class="hero__content">
+                        <h1 class="hero__title">Двери для вашего уюта и комфорта</h1>
+                        <p class="hero__subtitle">Широкий выбор межкомнатных и входных дверей, ламината и комплектующих в Новгородской области</p>
+                        <a href="catalog.html" class="btn btn--primary">Перейти в каталог</a>
+                    </div>
+                </div>
+                <div class="hero__bg">
+                    <img src="image/fons.jpeg" alt="Фон">
+                </div>
+            </section>
+
+            <!-- Блок "Преимущества" -->
+            <section class="advantages">
+                <div class="container">
+                    <h2 class="section-title">Почему выбирают нас</h2>
+                    <div class="advantages__list">
+                        <div class="advantage">
+                            <div class="advantage__icon">
+                                <img style="width: 75px; height: 75px;" class="advantages_picture" src="image/icon/assurance.png" alt="Гарантия качества">
+                            </div>
+                            <h3 class="advantage__title">Гарантия качества</h3>
+                            <p class="advantage__text">Все изделия проходят строгий контроль качества и имеют сертификаты соответствия</p>
+                        </div>
+                        <div class="advantage">
+                            <div class="advantage__icon">
+                                <img class="advantages_picture" src="image/icon/measure_index.png" alt="Бесплатный замер">
+                            </div>
+                            <h3 class="advantage__title">Бесплатный замер</h3>
+                            <p class="advantage__text">Наш специалист бесплатно приедет для замера и консультации в удобное для вас время</p>
+                        </div>
+                        <div class="advantage">
+                            <div class="advantage__icon">
+                                <img class="advantages_picture" src="image/icon/inventory.png" alt="Доставка и установка">
+                            </div>
+                            <h3 class="advantage__title">Доставка и установка</h3>
+                            <p class="advantage__text">Осуществляем доставку и профессиональную установку дверей по всей Новгородской области</p>
+                        </div>
+                        <div class="advantage">
+                            <div class="advantage__icon">
+                                <img class="advantages_picture" src="image/icon/best-price.png" alt="Лучшая цена">
+                            </div>
+                            <h3 class="advantage__title">Доступные цены</h3>
+                            <p class="advantage__text">Прямые поставки от производителей позволяют предлагать конкурентные цены без посредников</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Блок "Популярные категории" -->
+            <section class="categories">
+                <div class="container">
+                    <h2 class="section-title">Популярные категории</h2>
+                    <div class="categories__list">
+                        <a href="catalog/interior.html" class="category">
+                            <div class="category__image">
+                                <img src="image/Mexom.jpg" alt="Межкомнатные двери">
+                            </div>
+                            <h3 class="category__title">Межкомнатные</h3>
+                        </a>
+                        <a href="catalog/entrance.html" class="category">
+                            <div class="category__image">
+                                <img src="image/Exet.jpg" alt="Входные двери">
+                            </div>
+                            <h3 class="category__title">Входные</h3>
+                        </a>
+                        <a href="catalog/sliding.html" class="category">
+                            <div class="category__image">
+                                <img src="image/Dvix.jpg" alt="Раздвижные двери">
+                            </div>
+                            <h3 class="category__title">Раздвижные</h3>
+                        </a>
+                        <a href="catalog/laminate.html" class="category">
+                            <div class="category__image">
+                                <img src="image/laminat.jpg" alt="Ламинат">
+                            </div>
+                            <h3 class="category__title">Ламинат</h3>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Футер -->
+        <footer class="footer"></footer>
+    </div>
+
+    <!-- Подключение JS файлов -->
+    <script src="js/loader.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/footer.js"></script>
+    
+    <!-- Подключение Яндекс.Карт (для футера) -->
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+</body>
+</html>
