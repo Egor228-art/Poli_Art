@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Товар - ПолиАрт</title>
+    <link rel="stylesheet" href="css/HeaderAndFooter.css">
+    <link rel="stylesheet" href="css/product.css">
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header"></header>
+
+    <main class="product-page">
+        <div class="background-block">
+            <!-- Основная информация о товаре -->
+            <section class="product-main">
+                <div class="container">
+                    <div class="product-main__inner">
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Детальное описание и характеристики -->
+            <section class="product-details">
+                <div class="container">
+                    <div class="tabs">
+                        <div class="tabs-nav">
+                            <button class="tab-btn active" data-tab="description">Описание</button>
+                            <button class="tab-btn" data-tab="specifications">Характеристики</button>
+                            <button class="tab-btn" data-tab="reviews">Отзывы</button>
+                            <button class="tab-btn" data-tab="delivery">Доставка и установка</button>
+                        </div>
+
+                        <div class="tabs-content" id="tabsContent">
+                        <!-- Вкладка с описанием -->
+                        <div class="tab-pane active" id="description">
+                            <!-- Описание будет добавлено JavaScript -->
+                        </div>
+
+                        <!-- Вкладка с характеристиками -->
+                        <div class="tab-pane" id="specifications">
+                            <div class="specs-table">
+                                <!-- Характеристики будут добавлены JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Вкладка с отзывами -->
+                        <div class="tab-pane" id="reviews">
+                            <div class="reviews-header">
+                                <div class="reviews-stats">
+                                    <div class="rating-overall">
+                                        <span class="rating-value">0.0</span>
+                                        <div class="rating-stars">
+                                            ★★★★★
+                                        </div>
+                                        <span class="rating-count">на основе 0 отзывов</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn--primary open-review-modal">Написать отзыв</button>
+                            </div>
+                            <div class="reviews-list" id="reviewsList">
+                                <!-- Отзывы загрузятся JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Вкладка с доставкой -->
+                        <div class="tab-pane" id="delivery">
+                            <h2>Доставка и установка в Новгородской области</h2>
+                            <div class="delivery-options">
+                                <div class="delivery-option">
+                                    <div class="box-line">
+                                        <img src="image/icon/thuislevering.png" alt="Грузовик">
+                                        <h3>Бесплатная доставка</h3>
+                                    </div>
+                                    <p>При заказе от 15 000 ₽ в пределах Великого Новгорода</p>
+                                </div>
+                                <div class="delivery-option">
+                                    <div class="box-line">
+                                        <img src="image/icon/flash.png" alt="Молния">
+                                        <h3>Быстрая установка</h3>
+                                    </div>
+                                    <p>Монтаж двери опытными специалистами за 1-2 часа</p>
+                                </div>
+                                <div class="delivery-option">
+                                    <div class="box-line">
+                                        <img src="image/icon/installation.png" alt="Гаячный ключ">
+                                        <h3>Вынос старой двери</h3>
+                                    </div>
+                                    <p>Бесплатный демонтаж и вынос старой конструкции</p>
+                                </div>
+                            </div>
+                            <div class="delivery-terms">
+                                <h3>Сроки доставки:</h3>
+                                <ul>
+                                    <li>Великий Новгород - 1-2 дня</li>
+                                    <li>Область - 3-5 дней</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+            </section>
+        </div>
+
+        <!-- Похожие товары -->
+        <section class="recommended-products">
+            <div class="container">
+                <h2>Вам также может понравиться</h2>
+                
+                <!-- Загрузчик -->
+                <div id="similarLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Загрузка похожих товаров...</p>
+                </div>
+                
+                <!-- Сетка товаров -->
+                <div class="products-grid" id="similarProductsGrid">
+                    <!-- Товары загружаются динамически -->
+                </div>
+                
+                <!-- Сообщение при отсутствии товаров -->
+                <div id="noSimilarProducts" class="no-results" style="display: none;">
+                    <h3>Похожие товары не найдены</h3>
+                    <p>Возможно, вас заинтересуют другие товары из нашего каталога</p>
+                    <a href="catalog.html" class="btn btn--primary">Перейти в каталог</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer"></footer>
+
+    <!-- Модальные окна -->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="modal" id="measureModal">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <h2>Вызвать замерщика</h2>
+            <!-- Форма будет добавлена JavaScript -->
+        </div>
+    </div>
+
+    <!-- Подключение PocketBase SDK -->
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <!-- Подключение JS файлов -->
+    <script src="js/header.js"></script>
+    <script src="js/product.js"></script>
+    <script src="js/footer.js"></script>
+</body>
+</html>

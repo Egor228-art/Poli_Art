@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты - ПолиАрт</title>
+    <link rel="stylesheet" href="css/HeaderAndFooter.css">
+    <link rel="stylesheet" href="css/contacts.css">
+</head>
+<body>
+    <header class="header"></header>
+    <div class="contacts-container">
+        <div class="contacts-header">
+            <h1>Контакты</h1>
+            <p>Свяжитесь с нами удобным для вас способом</p>
+        </div>
+        <div class="contacts-content">
+            <div class="contact-info">
+                <h2>Контактная информация</h2>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <img src="image/icon/adres.png" alt="Адрес">
+                    </div>
+                    <div class="contact-text">
+                        <h3>Адрес</h3>
+                        <p>г. Великий Новгород, ул. Псковская, д. 29</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <img src="image/icon/telephone.png" alt="Телефон">
+                    </div>
+                    <div class="contact-text">
+                        <h3>Телефоны</h3>
+                        <p>+7 (8162) 77-55-33</p>
+                        <p>+7 (921) 723-45-67</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <img src="image/icon/mail.png" alt="Почта">
+                    </div>
+                    <div class="contact-text">
+                        <h3>Email</h3>
+                        <p>info@polyart.ru</p>
+                        <p>sales@polyart.ru</p>
+                    </div>
+                </div>
+                <div class="working-hours">
+                    <h3>График работы</h3>
+                    <ul class="hours-list">
+                        <li><span>Понедельник-Пятница</span> <span>9:00 - 19:00</span></li>
+                        <li><span>Суббота</span> <span>10:00 - 17:00</span></li>
+                        <li><span>Воскресенье</span> <span>11:00 - 16:00</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="contact-map">
+                <div id="map" style="width: 100%; height: 400px;"></div>
+            </div>
+            <div class="contact-form">
+                <h2>Форма обратной связи</h2>
+                <form id="feedback-form">
+                    <div class="form-group">
+                        <label for="name">Ваше имя</label>
+                        <input type="text" id="name" name="name" required>
+                        <div class="error-message" id="name-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Телефон</label>
+                        <div class="phone">
+                            <div>+7</div>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        <div class="error-message" id="phone-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email">
+                        <div class="error-message" id="email-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Сообщение</label>
+                        <textarea id="message" name="message" placeholder="Ваше сообщение..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Отправить</button>
+                </form>
+                <div id="success-message" class="success-message" style="display: none;">
+                    Спасибо! Ваше сообщение отправлено.
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer"></footer>
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            ymaps.ready(function() {
+                var map = new ymaps.Map('map', {
+                    center: [58.508541, 31.233501],
+                    zoom: 16,
+                    controls: ['zoomControl', 'fullscreenControl']
+                });
+
+                var placemark = new ymaps.Placemark(
+                    [58.508541, 31.233501], // координаты
+                    {
+                        hintContent: 'Мы на Псковской 29',
+                    },
+                    {
+                        // Кастомная иконка с текстом "Мы"
+                        iconLayout: 'default#imageWithContent',
+                        iconImageHref: '', // пустой, т.к. используем только текст
+                        iconContentSize: [60, 30], // размер области с текстом
+                        iconContentOffset: [-30, -15], // смещение текста относительно центра
+                        iconContentLayout: ymaps.templateLayoutFactory.createClass(
+                            '<div style="background-color: #e74c3c; color: white; padding: 5px 10px; border-radius: 15px; width: 60px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; text-align: center;">Мы</div>'
+                        )
+                    }
+                );
+
+                map.geoObjects.add(placemark);
+            });
+        });
+        </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('feedback-form');
+            const nameInput = document.getElementById('name');
+            const phoneInput = document.getElementById('phone');
+            const emailInput = document.getElementById('email');
+            const successMessage = document.getElementById('success-message');
+
+            let emailTouched = false;
+
+            // Обработчик для отслеживания изменения email
+            emailInput.addEventListener('input', function() {
+                emailTouched = true;
+            });
+
+            // Валидация имени
+            nameInput.addEventListener('blur', function() {
+                const name = this.value.trim();
+                const errorElement = document.getElementById('name-error');
+                if (name.length < 2) {
+                    errorElement.textContent = 'Имя должно содержать не менее 2 символов';
+                    this.classList.add('error');
+                } else {
+                    errorElement.textContent = '';
+                    this.classList.remove('error');
+                }
+            });
+
+            // Валидация телефона
+            phoneInput.addEventListener('input', function() {
+                let value = this.value.replace(/\D/g, ''); // Убираем все нецифры
+                let formattedValue = '';
+
+                if (value.length > 0) {
+                    if (value.length >= 1) {
+                        formattedValue += value.substring(0, 3);
+                    }
+                    if (value.length >= 4) {
+                        formattedValue += ') ' + value.substring(3, 6);
+                    }
+                    if (value.length >= 7) {
+                        formattedValue += '-' + value.substring(6, 8);
+                    }
+                    if (value.length >= 9) {
+                        formattedValue += '-' + value.substring(8, 10);
+                    }
+                }
+
+                if (formattedValue.length > 0) {
+                    formattedValue = '(' + formattedValue;
+                }
+
+                this.value = formattedValue;
+            });
+
+            // Обновляем валидацию телефона
+            phoneInput.addEventListener('blur', function() {
+                const phone = this.value.trim();
+                const errorElement = document.getElementById('phone-error');
+                const phoneRegex = /^\(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+                if (!phoneRegex.test(phone)) {
+                    errorElement.textContent = 'Введите корректный номер телефона';
+                    this.classList.add('error');
+                } else {
+                    errorElement.textContent = '';
+                    this.classList.remove('error');
+                }
+            });
+
+            // Обновляем проверку валидации при отправке формы
+            const phoneRegex = /^\(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+            if (!phoneRegex.test(phone)) {
+                phoneInput.classList.add('error');
+                isValid = false;
+            }
+
+            // Убираем валидацию email при потере фокуса
+            // Убираем начальную проверку email из валидации при потере фокуса
+            emailInput.addEventListener('blur', function() {
+                const email = this.value.trim();
+                const errorElement = document.getElementById('email-error');
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    errorElement.textContent = 'Введите корректный email';
+                    this.classList.add('error');
+                } else {
+                    errorElement.textContent = '';
+                    this.classList.remove('error');
+                }
+            });
+
+            // Проверка email при отправке формы
+            const email = emailInput.value.trim();
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInput.classList.add('error');
+                isValid = false;
+            } else if (!email) {
+                emailInput.classList.add('error');
+                isValid = false;
+            }
+
+            // Отправка формы
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Проверяем валидность формы
+                let isValid = true;
+                
+                // Проверка имени
+                const name = nameInput.value.trim();
+                if (name.length < 2) {
+                    document.getElementById('name-error').textContent = 'Имя должно содержать не менее 2 символов';
+                    nameInput.classList.add('error');
+                    isValid = false;
+                }
+                
+                // Проверка телефона
+                const phone = phoneInput.value.trim();
+                const phoneRegex = /^\(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+                if (!phoneRegex.test(phone)) {
+                    document.getElementById('phone-error').textContent = 'Введите корректный номер телефона';
+                    phoneInput.classList.add('error');
+                    isValid = false;
+                }
+                
+                // Проверка email - только при отправке
+                const email = emailInput.value.trim();
+                if (!email) {
+                    document.getElementById('email-error').textContent = 'Поле email обязательно для заполнения';
+                    emailInput.classList.add('error');
+                    isValid = false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    document.getElementById('email-error').textContent = 'Введите корректный email';
+                    emailInput.classList.add('error');
+                    isValid = false;
+                }
+                
+                if (isValid) {
+                    // Здесь можно отправить данные на сервер
+                    console.log('Форма отправлена');
+                    console.log({
+                        name: nameInput.value,
+                        phone: phoneInput.value,
+                        email: emailInput.value,
+                        message: document.getElementById('message').value
+                    });
+                    
+                    // Показываем сообщение об успехе
+                    successMessage.style.display = 'block';
+                    form.reset();
+                    
+                    // Скрываем сообщение через 5 секунд
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 5000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
