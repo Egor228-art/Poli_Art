@@ -222,7 +222,7 @@ body {
 }
 
 .btn-primary {
-    border: none;
+    border: none !important;
     background: var(--secondary-color);
     color: white;
 }
@@ -233,7 +233,7 @@ body {
 }
 
 .btn-accent {
-    border: none;
+    border: none !important;
     background: var(--accent-color);
     color: white;
 }

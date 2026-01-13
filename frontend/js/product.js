@@ -833,38 +833,73 @@ function setupModalHandlers() {
     }
 }
 
-// Заполнение описания и характеристик
+// Функция для проверки, темный ли цвет
+function isColorDark(hexColor) {
+    // Конвертируем HEX в RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    // Формула для определения яркости
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // Возвращаем true если цвет темный
+    return brightness < 128;
+}
+
+// Обновленная функция fillDescriptionAndSpecs
 function fillDescriptionAndSpecs(product, isLaminate) {
     console.log('Заполнение описания и характеристик...');
+    console.log('Данные товара:', {
+        name: product.name,
+        color: product.color,
+        type: typeof product.color
+    });
     
-    // Описание
+    // Получаем HTML для цветовых чипов
+    const colorsHTML = getColorChipsHTML(product.color);
+    console.log('Сгенерированный HTML цветов:', colorsHTML);
+    
+    // 1. ОБНОВЛЯЕМ ВКЛАДКУ "ОПИСАНИЕ"
     const descriptionTab = document.getElementById('description');
     if (descriptionTab) {
-        descriptionTab.innerHTML = `
+        let descriptionContent = `
             <h2>${product.name || 'Описание товара'}</h2>
             <div class="product-description-content">
-                ${product.description ? `
-                    <div class="description-text">
-                        ${product.description.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>')}
-                    </div>
-                ` : '<p>Описание отсутствует</p>'}
-                
-                ${product.color ? `
+        `;
+        
+        if (product.description) {
+            descriptionContent += `
+                <div class="description-text">
+                    ${product.description.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>')}
+                </div>
+            `;
+        } else {
+            descriptionContent += '<p>Описание отсутствует</p>';
+        }
+        
+        // Добавляем секцию с цветами если они есть
+        if (colorsHTML) {
+            descriptionContent += `
                 <div class="colors-section">
                     <h3>Доступные цвета:</h3>
                     <div class="color-chips">
-                        ${getColorChipsHTML(product.color)}
+                        ${colorsHTML}
                     </div>
                 </div>
-                ` : ''}
-            </div>
-        `;
-        console.log('Описание заполнено');
+            `;
+        }
+        
+        descriptionContent += `</div>`;
+        descriptionTab.innerHTML = descriptionContent;
     }
     
-    // Характеристики
+    // 2. ОБНОВЛЯЕМ ВКЛАДКУ "ХАРАКТЕРИСТИКИ"
     const specsTable = document.querySelector('#specifications .specs-table');
     if (specsTable) {
+        // Получаем текстовое представление цветов
+        const colorsText = getFormattedColors(product.color);
+        
         let specsHTML = '';
         
         if (isLaminate) {
@@ -873,22 +908,36 @@ function fillDescriptionAndSpecs(product, isLaminate) {
                     <div class="spec-name">Название</div>
                     <div class="spec-value">${product.name || 'Не указано'}</div>
                 </div>
+                ${product.type ? `
                 <div class="spec-row">
                     <div class="spec-name">Тип</div>
-                    <div class="spec-value">${product.type || 'Не указан'}</div>
+                    <div class="spec-value">${product.type}</div>
                 </div>
+                ` : ''}
+                ${product.thickness ? `
                 <div class="spec-row">
                     <div class="spec-name">Толщина</div>
-                    <div class="spec-value">${product.thickness || 'Не указана'}</div>
+                    <div class="spec-value">${product.thickness}</div>
                 </div>
+                ` : ''}
+                ${product.wear_class ? `
                 <div class="spec-row">
                     <div class="spec-name">Класс износостойкости</div>
-                    <div class="spec-value">${product.wear_class || 'Не указан'}</div>
+                    <div class="spec-value">${product.wear_class}</div>
                 </div>
+                ` : ''}
+                ${colorsText !== 'Не указан' ? `
                 <div class="spec-row">
                     <div class="spec-name">Цвета</div>
-                    <div class="spec-value">${getFormattedColors(product.color)}</div>
+                    <div class="spec-value">${colorsText}</div>
                 </div>
+                ` : ''}
+                ${product.number_id ? `
+                <div class="spec-row">
+                    <div class="spec-name">Артикул</div>
+                    <div class="spec-value">${product.number_id}</div>
+                </div>
+                ` : ''}
             `;
         } else {
             specsHTML = `
@@ -896,61 +945,235 @@ function fillDescriptionAndSpecs(product, isLaminate) {
                     <div class="spec-name">Название</div>
                     <div class="spec-value">${product.name || 'Не указано'}</div>
                 </div>
+                ${product.type ? `
                 <div class="spec-row">
                     <div class="spec-name">Тип двери</div>
-                    <div class="spec-value">${product.type || 'Не указан'}</div>
+                    <div class="spec-value">${product.type}</div>
                 </div>
+                ` : ''}
+                ${product.material ? `
                 <div class="spec-row">
                     <div class="spec-name">Материал</div>
-                    <div class="spec-value">${product.material || 'Не указан'}</div>
+                    <div class="spec-value">${product.material}</div>
                 </div>
+                ` : ''}
+                ${product.style ? `
                 <div class="spec-row">
                     <div class="spec-name">Стиль</div>
-                    <div class="spec-value">${product.style || 'Не указан'}</div>
+                    <div class="spec-value">${product.style}</div>
                 </div>
+                ` : ''}
+                ${colorsText !== 'Не указан' ? `
                 <div class="spec-row">
                     <div class="spec-name">Цвета</div>
-                    <div class="spec-value">${getFormattedColors(product.color)}</div>
+                    <div class="spec-value">${colorsText}</div>
                 </div>
+                ` : ''}
+                ${product.number_id ? `
+                <div class="spec-row">
+                    <div class="spec-name">Артикул</div>
+                    <div class="spec-value">${product.number_id}</div>
+                </div>
+                ` : ''}
             `;
         }
         
         specsTable.innerHTML = specsHTML;
-        console.log('Характеристики заполнены');
     }
+    
+    // 3. ОБНОВЛЯЕМ ВКЛАДКУ "ОТЗЫВЫ" (если есть отзывы)
+    // Этот код уже должен быть в loadProductReviews
+    
+    console.log('Описание и характеристики заполнены');
 }
 
-// Форматирование цветов для отображения
+// Функция для отображения цветов в текстовом виде
 function getFormattedColors(colorData) {
     if (!colorData) return 'Не указан';
     
-    if (Array.isArray(colorData)) {
-        return colorData.join(', ');
-    } else if (typeof colorData === 'string') {
-        return colorData;
+    let colors = [];
+    
+    if (typeof colorData === 'string') {
+        try {
+            const parsed = JSON.parse(colorData);
+            if (Array.isArray(parsed)) {
+                colors = parsed;
+            } else {
+                colors = [colorData];
+            }
+        } catch (e) {
+            colors = [colorData];
+        }
+    } else if (Array.isArray(colorData)) {
+        colors = colorData;
     }
     
-    return 'Не указан';
+    colors = colors.filter(c => c);
+    return colors.length > 0 ? colors.join(', ') : 'Не указан';
 }
 
-// Генерация HTML для цветовых чипов
+function getColorHex(russianName) {
+    // Приводим к нижнему регистру и убираем пробелы
+    const lowerName = russianName.toString().toLowerCase().trim();
+    
+    // Карта соответствия русских названий цветов HEX кодам
+    const colorMap = {
+        // Основные цвета
+        'белый': '#FFFFFF',
+        'черный': '#000000',
+        'серый': '#808080',
+        'серебристый': '#C0C0C0',
+        'серебро': '#C0C0C0',
+        
+        // Красные оттенки
+        'красный': '#FF0000',
+        'красное': '#FF0000',
+        'бордовый': '#800000',
+        'бордо': '#800000',
+        'вишневый': '#911E42',
+        'вишня': '#911E42',
+        
+        // Коричневые оттенки (дерево)
+        'коричневый': '#8B4513',
+        'коричневое': '#8B4513',
+        'дуб': '#C19A6B',
+        'дубовый': '#C19A6B',
+        'дуб беленый': '#E8DCC6',
+        'дуб мореный': '#4A3728',
+        'орех': '#773F1A',
+        'ореховый': '#773F1A',
+        'ясень': '#F5EBDC',
+        'ясеневый': '#F5EBDC',
+        'бук': '#F5E1C8',
+        'сосна': '#FFD39B',
+        'сосновый': '#FFD39B',
+        'венге': '#645452',
+        
+        // Бежевые оттенки
+        'бежевый': '#F5F5DC',
+        'бежевое': '#F5F5DC',
+        
+        // Зеленые оттенки
+        'зеленый': '#008000',
+        'зеленое': '#008000',
+        'оливковый': '#808000',
+        
+        // Синие оттенки
+        'синий': '#0000FF',
+        'синее': '#0000FF',
+        'голубой': '#87CEEB',
+        'голубое': '#87CEEB',
+        'темно-синий': '#00008B',
+        
+        // Фиолетовые
+        'фиолетовый': '#800080',
+        'фиолетовое': '#800080',
+        
+        // Металлические
+        'золотой': '#FFD700',
+        'золото': '#FFD700',
+        'бронза': '#CD7F32',
+        'бронзовый': '#CD7F32',
+        'хром': '#A8A9AD',
+        'хромированный': '#A8A9AD',
+        'сталь': '#B0B0B0',
+        'стальной': '#B0B0B0',
+        'никель': '#727272',
+        
+        // Каменные
+        'мрамор': '#E5E4E2',
+        'мраморный': '#E5E4E2',
+        'гранит': '#696969',
+        'гранитный': '#696969'
+    };
+    
+    // Ищем точное совпадение
+    if (colorMap[lowerName]) {
+        return colorMap[lowerName];
+    }
+    
+    // Если точного совпадения нет, ищем частичное
+    for (const [colorName, hexValue] of Object.entries(colorMap)) {
+        if (lowerName.includes(colorName) || colorName.includes(lowerName)) {
+            return hexValue;
+        }
+    }
+    
+    // Если цвет не найден, генерируем случайный но контрастный
+    console.log(`Цвет "${russianName}" не найден в карте, генерируем...`);
+    return generateColorFromName(russianName);
+}
+
+// Функция для генерации цвета из имени (если цвет не найден в карте)
+function generateColorFromName(name) {
+    // Создаем хеш из строки для детерминированного цвета
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Генерируем цвет в теплой палитре (коричневые, бежевые оттенки)
+    // что подходит для дверей и ламината
+    const hue = (hash % 30) + 20; // 20-50 - оранжево-коричневые оттенки
+    const saturation = (hash % 30) + 40; // 40-70% насыщенность
+    const lightness = (hash % 40) + 40; // 40-80% светлота
+    
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+// Упрощенная функция для создания цветовых чипов
 function getColorChipsHTML(colorData) {
-    if (!colorData) return '';
+    console.log('Данные цвета из БД:', colorData);
+    
+    if (!colorData) {
+        return '';
+    }
     
     let colors = [];
     
-    if (Array.isArray(colorData)) {
+    // Обрабатываем разные форматы данных
+    if (typeof colorData === 'string') {
+        // Проверяем, не JSON ли это
+        if (colorData.startsWith('[') || colorData.startsWith('"')) {
+            try {
+                const parsed = JSON.parse(colorData);
+                colors = Array.isArray(parsed) ? parsed : [parsed];
+            } catch (e) {
+                colors = [colorData];
+            }
+        } else {
+            // Разделяем строку по запятым если их несколько
+            colors = colorData.split(',').map(c => c.trim()).filter(c => c);
+        }
+    } else if (Array.isArray(colorData)) {
         colors = colorData;
-    } else if (typeof colorData === 'string') {
-        colors = [colorData];
     }
     
-    return colors.map(color => `
-        <div class="color-chip">
-            <div class="color-sample"></div>
-            <span class="color-name">${color}</span>
-        </div>
-    `).join('');
+    // Фильтруем пустые значения
+    colors = colors.filter(color => color && color.toString().trim());
+    
+    if (colors.length === 0) {
+        return '';
+    }
+    
+    console.log('Обработанные цвета:', colors);
+    
+    // Создаем HTML
+    return colors.map(color => {
+        const colorName = color.toString().trim();
+        const hexColor = getColorHex(colorName);
+        
+        // Определяем, темный ли цвет для выбора цвета текста
+        const isDarkColor = isColorDark(hexColor);
+        const textColor = isDarkColor ? '#FFFFFF' : '#000000';
+        
+        return `
+            <div class="color-chip" title="${colorName}">
+                <div class="color-sample" style="background-color: ${hexColor};"></div>
+                <span class="color-name">${colorName}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 // Инициализация табов

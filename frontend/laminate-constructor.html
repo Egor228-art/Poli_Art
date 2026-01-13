@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="css/HeaderAndFooter.css">
     <link rel="stylesheet" href="css/laminate-constructor.css">
     <title>Конструктор комнаты - ПолиАрт</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="auth-state.js"></script>
     <style>
        /* Стили для цветовых кругляшков */
 .color-groups-container {
@@ -125,11 +127,6 @@
                 Загрузка цветов...
             </div>
         </div>
-        
-        <!-- Скрытый select для работы с цветом -->
-        <select id="laminate-color-select" style="display: none;">
-            <option value="">-- Выберите цвет --</option>
-        </select>
     </div>
     
     <div class="panel-section">
@@ -2176,14 +2173,50 @@ async function initializeConstructorFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('product_id');
     const colorFromURL = urlParams.get('color');
+    const allColorsParam = urlParams.get('all_colors');
     
     let colorToApply = '';
     let productNameToShow = '';
+    let allColorsFromProduct = [];
+    
+    // Если есть productId, загружаем точные цвета из БД
+    if (productId) {
+        try {
+            const productColors = await getProductColorsFromDB(productId);
+            if (productColors.length > 0) {
+                allColorsFromProduct = productColors;
+                console.log('Точные цвета из БД:', allColorsFromProduct);
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки цветов из БД:', e);
+        }
+    }
+    
+    // Если не удалось получить из БД, пробуем из параметра URL
+    if (allColorsFromProduct.length === 0 && allColorsParam) {
+        try {
+            allColorsFromProduct = JSON.parse(decodeURIComponent(allColorsParam));
+            console.log('Цвета из параметра URL:', allColorsFromProduct);
+        } catch (e) {
+            console.error('Ошибка парсинга цветов из URL:', e);
+        }
+    }
+    
+    // Обновляем кругляшки с цветами продукта
+    if (allColorsFromProduct.length > 0) {
+        setTimeout(() => {
+            updateColorCirclesWithProductColors(allColorsFromProduct);
+        }, 800);
+    }
     
     // Если есть цвет в URL, применяем его
     if (colorFromURL) {
         colorToApply = decodeURIComponent(colorFromURL);
         console.log('Цвет из URL:', colorToApply);
+    } else if (allColorsFromProduct.length > 0) {
+        // Иначе берем первый цвет из продукта
+        colorToApply = allColorsFromProduct[0];
+        console.log('Первый цвет продукта:', colorToApply);
     }
     
     // Если есть название продукта в URL, показываем его
@@ -2217,25 +2250,61 @@ async function initializeConstructorFromURL() {
         productNameElement.textContent = `Выбранный продукт: ${productNameToShow}`;
     }
     
-    // Применяем цвет (с увеличенной задержкой для гарантированной загрузки кругляшков)
+    // Применяем цвет с несколькими попытками
     if (colorToApply) {
         console.log('Применяем цвет к конструктору:', colorToApply);
         
-        // Первая попытка через 800мс
+        // Первая попытка через 1 секунду
         setTimeout(() => {
-            applyColorToConstructor(colorToApply, true);
-        }, 800);
-        
-        // Вторая попытка через 1.5 секунды на случай если кругляшки еще грузятся
-        setTimeout(() => {
-            // Проверяем, отметился ли цвет
-            const selectedCircles = document.querySelectorAll('.color-circle-option.selected');
-            if (selectedCircles.length === 0) {
-                console.log('Повторная попытка применить цвет');
-                applyColorToConstructor(colorToApply, true);
+            const applied = applyColorToConstructor(colorToApply, true);
+            if (!applied) {
+                // Вторая попытка через 2 секунды
+                setTimeout(() => {
+                    applyColorToConstructor(colorToApply, true);
+                }, 2000);
             }
-        }, 1500);
+        }, 1000);
     }
+}
+
+// Новая функция для обновления кругляшков с цветами продукта
+function updateColorCirclesWithProductColors(productColors) {
+    if (!productColors || !Array.isArray(productColors) || productColors.length === 0) {
+        return;
+    }
+    
+    const container = document.getElementById('textures-container');
+    if (!container) return;
+    
+    // Находим контейнер с цветами
+    let colorsContainer = container.querySelector('.colors-container');
+    if (!colorsContainer) {
+        // Создаем контейнер если его нет
+        colorsContainer = document.createElement('div');
+        colorsContainer.className = 'colors-container';
+        container.innerHTML = '';
+        container.appendChild(colorsContainer);
+    }
+    
+    // Добавляем цвета продукта
+    productColors.forEach(colorText => {
+        if (!colorText || typeof colorText !== 'string') return;
+        
+        const trimmedColor = colorText.trim();
+        if (!trimmedColor) return;
+        
+        // Проверяем, есть ли уже такой цвет
+        const existingCircle = Array.from(colorsContainer.querySelectorAll('.color-circle-option'))
+            .find(circle => circle.dataset.color.toLowerCase() === trimmedColor.toLowerCase());
+        
+        if (!existingCircle) {
+            // Добавляем новый кругляшок
+            const colorCircle = createSingleColorCircle(trimmedColor);
+            colorsContainer.appendChild(colorCircle);
+        }
+    });
+    
+    console.log('Кругляшки обновлены с цветами продукта');
 }
 
 // Функция для создания кругляшков с цветами из БД
@@ -2367,11 +2436,11 @@ function createSingleColorCircle(colorText) {
 }
 function applyColorToConstructor(color, skipEventTrigger = false) {
     if (!color || typeof color !== 'string') {
-        return;
+        return false;
     }
     
     const normalizedColor = color.trim();
-    if (!normalizedColor) return;
+    if (!normalizedColor) return false;
     
     console.log('Применение цвета к конструктору:', normalizedColor);
     
@@ -2409,12 +2478,12 @@ function applyColorToConstructor(color, skipEventTrigger = false) {
     });
     
     if (!found) {
-        console.log('Цвет не найден в кругляшках, возможно кругляшки еще не загрузились');
-        // Сохраняем цвет для применения после загрузки кругляшков
-        setTimeout(() => {
-            applyColorToConstructor(normalizedColor, skipEventTrigger);
-        }, 500);
-        return;
+        console.log('Цвет не найден в кругляшках:', normalizedColor);
+        
+        // Показываем все доступные цвета для отладки
+        console.log('Доступные цвета:', Array.from(colorCircles).map(c => c.dataset.color));
+        
+        return false;
     }
     
     // 2. Обновляем отображение текущего материала
@@ -2429,6 +2498,8 @@ function applyColorToConstructor(color, skipEventTrigger = false) {
     
     // 4. Обновляем плинтусы (даже если пол еще не создан)
     updateBaseboardsColor();
+    
+    return true;
 }
 
 // Функция для прокрутки к выбранному цвету

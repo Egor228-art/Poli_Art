@@ -1,0 +1,1313 @@
+/* auth.css - Оптимизированная версия */
+
+/* ============ ОСНОВНЫЕ СТИЛИ СТРАНИЦЫ ============ */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 20px 60px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* ============ КОНТЕЙНЕР ФОРМЫ ============ */
+.auth-container {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 
+        0 25px 70px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    z-index: 10;
+    border: 1px solid rgba(255,255,255,0.4);
+    margin: 20px;
+}
+
+.auth-container h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.auth-container h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(to right, #eabb66, #e74c3c);
+    border-radius: 2px;
+}
+
+/* ============ ФОРМА ============ */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+}
+
+.form-group label {
+    color: #333;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.form-group label::before {
+    content: '•';
+    color: #e74c3c;
+    font-size: 18px;
+}
+
+.form-group input {
+    padding: 14px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s;
+    background: rgba(248, 249, 250, 0.9);
+    font-family: inherit;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #eabb66;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(234, 187, 102, 0.1);
+}
+
+.form-group input:valid:not(:placeholder-shown) {
+    border-color: #28a745;
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+    border-color: #e74c3c;
+}
+
+/* ============ ОПЦИИ ФОРМЫ ============ */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #e74c3c;
+}
+
+.forgot-password {
+    color: #e74c3c;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.forgot-password:hover {
+    color: #c0392b;
+    text-decoration: underline;
+}
+
+/* ============ КНОПКИ ============ */
+.btn-block {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.btn-block:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+}
+
+.btn-block:hover::before {
+    left: 100%;
+}
+
+.btn-block:active {
+    transform: translateY(0);
+}
+
+/* ============ ССЫЛКИ ============ */
+.auth-links {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.auth-links p {
+    margin: 10px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.auth-links a {
+    color: #e74c3c;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    position: relative;
+    padding-bottom: 2px;
+}
+
+.auth-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #eabb66;
+    transition: width 0.3s;
+}
+
+.auth-links a:hover {
+    color: #c0392b;
+}
+
+.auth-links a:hover::after {
+    width: 100%;
+}
+
+/* ============ ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (УЛУЧШЕННЫЙ) ============ */
+.header-user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 
+        0 8px 32px rgba(0,0,0,0.1),
+        0 2px 8px rgba(0,0,0,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-width: 280px;
+}
+
+.header-user-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #eabb66 0%, #e74c3c 50%, #eabb66 100%);
+    background-size: 200% 100%;
+    animation: gradientFlow 3s ease infinite;
+}
+
+.header-user-info:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        0 15px 45px rgba(0,0,0,0.15),
+        0 4px 15px rgba(0,0,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+    border-color: rgba(234, 187, 102, 0.6);
+}
+
+/* Аватар пользователя */
+.user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: 
+        0 4px 15px rgba(234, 187, 102, 0.4),
+        inset 0 1px 1px rgba(255,255,255,0.3);
+    border: 3px solid white;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 
+        0 6px 20px rgba(234, 187, 102, 0.6),
+        inset 0 1px 1px rgba(255,255,255,0.5);
+}
+
+/* Информация о пользователе */
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    color: #2c3e50;
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    padding-left: 26px;
+    line-height: 1.3;
+}
+
+.user-name::before {
+    content: '👤';
+    position: absolute;
+    left: 0;
+    opacity: 0.9;
+    font-size: 14px;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.user-email {
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 26px;
+    line-height: 1.2;
+}
+
+/* Кнопка выхода */
+.logout-btn {
+    padding: 8px 18px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 
+        0 4px 12px rgba(231, 76, 60, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.2) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.logout-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 
+        0 8px 25px rgba(231, 76, 60, 0.4),
+        inset 0 1px 0 rgba(255,255,255,0.3) !important;
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%) !important;
+}
+
+.logout-btn:hover::before {
+    left: 100%;
+}
+
+.logout-btn:active {
+    transform: translateY(0) !important;
+}
+
+/* Индикатор статуса */
+.user-status-indicator {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border: 2px solid white;
+    box-shadow: 
+        0 0 0 2px rgba(46, 204, 113, 0.3),
+        0 2px 4px rgba(0,0,0,0.1);
+    animation: pulseStatus 2s infinite;
+}
+
+/* Бейдж администратора */
+.user-role-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 
+        0 3px 8px rgba(0,0,0,0.2),
+        0 1px 0 rgba(255,255,255,0.3);
+    z-index: 3;
+    border: 1px solid rgba(255,255,255,0.4);
+}
+
+/* ============ СТИЛИ ДЛЯ ГОСТЕЙ ============ */
+.auth-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.btn-auth {
+    padding: 12px 24px !important;
+    font-size: 14px !important;
+    border-radius: 12px !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 2px solid #e9af61 !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    min-width: 110px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.btn-auth::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent) !important;
+    transition: 0.6s !important;
+}
+
+.btn--secondary.btn-auth {
+    background: white !important;
+    color: #e74c3c !important;
+    border-color: #e74c3c !important;
+}
+
+.btn--secondary.btn-auth:hover {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), rgba(234, 187, 102, 0.05)) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.25) !important;
+}
+
+.btn--primary.btn-auth {
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%) !important;
+    color: white !important;
+}
+
+.btn--primary.btn-auth:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 30px rgba(231, 76, 60, 0.35) !important;
+}
+
+.btn-auth:hover::before {
+    left: 100% !important;
+}
+
+/* ============ УВЕДОМЛЕНИЯ ============ */
+.auth-notification {
+    position: fixed !important;
+    top: 100px !important;
+    right: 20px !important;
+    padding: 18px 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 
+        0 12px 40px rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.2) !important;
+    z-index: 10000 !important;
+    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    max-width: 380px !important;
+    font-size: 15px !important;
+}
+
+.auth-notification--success {
+    background: linear-gradient(135deg, #28a745, #20c997, #28a745) !important;
+    background-size: 200% 100% !important;
+    animation: gradientFlow 3s ease infinite, slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.auth-notification--error {
+    background: linear-gradient(135deg, #e74c3c, #c0392b, #e74c3c) !important;
+    background-size: 200% 100% !important;
+    animation: gradientFlow 3s ease infinite, slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ============ АНИМАЦИИ ============ */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pulseStatus {
+    0% {
+        box-shadow: 
+            0 0 0 0 rgba(46, 204, 113, 0.7),
+            0 2px 4px rgba(0,0,0,0.1);
+    }
+    70% {
+        box-shadow: 
+            0 0 0 8px rgba(46, 204, 113, 0),
+            0 2px 4px rgba(0,0,0,0.1);
+    }
+    100% {
+        box-shadow: 
+            0 0 0 0 rgba(46, 204, 113, 0),
+            0 2px 4px rgba(0,0,0,0.1);
+    }
+}
+
+@keyframes slideInUser {
+    from {
+        opacity: 0;
+        transform: translateY(-15px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ============ АДАПТИВНОСТЬ ============ */
+@media (max-width: 768px) {
+    .auth-page {
+        padding: 100px 15px 40px;
+    }
+    
+    .auth-container {
+        padding: 30px 20px;
+        margin: 15px;
+        backdrop-filter: blur(20px);
+    }
+    
+    .auth-container h1 {
+        font-size: 24px;
+    }
+    
+    .form-group input {
+        padding: 12px 14px;
+        font-size: 15px;
+    }
+    
+    .btn-block {
+        padding: 14px;
+        font-size: 15px;
+    }
+    
+    .form-options {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .forgot-password {
+        align-self: flex-end;
+    }
+    
+    .auth-notification {
+        top: 80px !important;
+        right: 15px !important;
+        left: 15px !important;
+        max-width: none !important;
+        text-align: center !important;
+    }
+    
+    /* Профиль пользователя */
+    .header-user-info {
+        min-width: 240px;
+        padding: 8px 16px;
+        gap: 12px;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .user-name {
+        font-size: 15px;
+        padding-left: 24px;
+    }
+    
+    .user-email {
+        font-size: 11px;
+    }
+    
+    .logout-btn {
+        padding: 7px 15px !important;
+        font-size: 12px !important;
+    }
+    
+    .auth-buttons {
+        gap: 10px;
+    }
+    
+    .btn-auth {
+        padding: 10px 18px !important;
+        font-size: 13px !important;
+        min-width: 90px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 25px 15px;
+        border-radius: 15px;
+        margin: 10px;
+    }
+    
+    .auth-container h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        font-size: 13px;
+    }
+    
+    .auth-form {
+        gap: 15px;
+    }
+    
+    .btn-block {
+        padding: 13px;
+        font-size: 14px;
+    }
+    
+    .auth-links p {
+        font-size: 13px;
+    }
+    
+    .auth-links a {
+        font-size: 13px;
+    }
+    
+    /* Профиль пользователя */
+    .header-user-info {
+        min-width: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    .user-details {
+        align-items: center;
+        text-align: center;
+    }
+    
+    .user-name {
+        padding-left: 0;
+        padding-top: 24px;
+    }
+    
+    .user-name::before {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 0;
+    }
+    
+    .user-email {
+        padding-left: 0;
+        padding-top: 4px;
+    }
+    
+    .logout-btn {
+        width: 100%;
+        justify-content: center !important;
+    }
+    
+    .auth-buttons {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .btn-auth {
+        width: 100% !important;
+        padding: 12px !important;
+    }
+}
+
+.laminate-animation-container .laminate-card {
+    width: 250px !important;
+    height: 250px !important;
+    pointer-events: auto !important; /* Разрешаем наведение */
+    cursor: pointer !important;
+    will-change: transform, opacity, filter !important;
+    transform-style: preserve-3d !important;
+    backface-visibility: hidden !important;
+    z-index: 2 !important;
+    position: absolute !important;
+}
+
+/* ============ МОДАЛЬНОЕ ОКНО ОТЗЫВА ============ */
+.review-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.review-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.review-modal__content {
+    position: relative;
+    background: white;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.review-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 30px;
+    border-bottom: 1px solid #eee;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 20px 20px 0 0;
+}
+
+.review-modal__title {
+    color: #2c3e50;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.review-modal__close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #666;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+.review-modal__close:hover {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    transform: rotate(90deg);
+    padding-bottom: 4px;
+    padding-left: 3px;
+}
+
+.review-modal__body {
+    padding: 15px 30px;
+}
+
+.review-rating {
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #eee;
+}
+
+.review-rating__title {
+    color: #333;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.review-rating__stars {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.star {
+    font-size: 38px;
+    color: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+    user-select: none;
+}
+
+.star:hover {
+    color: #ffd700;
+    transform: scale(1.1);
+}
+
+.star.active {
+    color: #ffc107;
+    text-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+}
+
+.star.active:hover {
+    color: #ffd700;
+}
+
+.review-rating__value {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.review-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.review-comment {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s ease;
+    background: rgba(248, 249, 250, 0.9);
+}
+
+.review-comment:focus {
+    outline: none;
+    border-color: #eabb66;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(234, 187, 102, 0.1);
+}
+
+.review-comment-counter {
+    text-align: right;
+    color: #666;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.review-form__actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.review-form__cancel,
+.review-form__submit {
+    min-width: 130px;
+    padding: 12px 24px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+}
+
+.review-form__cancel {
+    background: white !important;
+    color: #666 !important;
+    border: 2px solid #ddd !important;
+}
+
+.review-form__cancel:hover {
+    background: #f8f9fa !important;
+    border-color: #bbb !important;
+    transform: translateY(-2px) !important;
+}
+
+.review-form__submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+.review-form__submit:disabled:hover {
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.btn-icon {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.review-form__submit:hover .btn-icon {
+    transform: translateX(3px);
+}
+
+.review-modal__footer {
+    padding: 20px 30px;
+    border-top: 1px solid #eee;
+    background: #f8f9fa;
+    border-radius: 0 0 20px 20px;
+}
+
+.review-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #666;
+    font-size: 13px;
+    padding: 12px 16px;
+    background: rgba(231, 76, 60, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #e74c3c;
+}
+
+.review-notice__icon {
+    font-size: 16px;
+}
+
+/* ============ КОНТЕЙНЕР ДЛЯ ОТЗЫВОВ ============ */
+.reviews-container {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #eee;
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.reviews-title {
+    color: #2c3e50;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.reviews-title::before {
+    content: '💬';
+    font-size: 20px;
+}
+
+.reviews-stats {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+.reviews-average {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.reviews-count {
+    background: #e74c3c;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.review-add-btn {
+    margin-bottom: 10px;
+    padding: 12px 30px !important;
+    font-size: 15px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%) !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.25) !important;
+}
+
+.review-add-btn:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.35) !important;
+}
+
+.review-add-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+.review-add-btn:disabled:hover {
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.25) !important;
+}
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-item {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    border: 1px solid #eee;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideIn 0.4s ease;
+}
+
+.review-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.review-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.review-item__author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-item__avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.review-item__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.review-item__name {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.review-item__date {
+    color: #888;
+    font-size: 13px;
+}
+
+.review-item__rating {
+    display: flex;
+    gap: 3px;
+}
+
+.review-item__star {
+    font-size: 18px;
+    color: #ffc107;
+}
+
+.review-item__content {
+    color: #333;
+    line-height: 1.6;
+    font-size: 15px;
+    white-space: pre-wrap;
+}
+
+.review-item__footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.review-item__status {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.review-item__status--pending {
+    background: rgba(255, 193, 7, 0.1);
+    color: #e67e22;
+    border: 1px solid rgba(230, 126, 34, 0.2);
+}
+
+.review-item__status--approved {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(39, 174, 96, 0.2);
+}
+
+.no-reviews {
+    text-align: center;
+    padding: 50px 20px;
+    color: #666;
+    font-size: 16px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    border: 2px dashed #ddd;
+}
+
+.no-reviews__icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.no-reviews__text {
+    margin-bottom: 20px;
+}
+
+.no-reviews__btn {
+    margin-top: 15px;
+}
+
+/* ============ АНИМАЦИИ ============ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============ АДАПТИВНОСТЬ ============ */
+@media (max-width: 768px) {
+    .review-modal__content {
+        max-width: 90%;
+        max-height: 85vh;
+    }
+    
+    .review-modal__header {
+        padding: 20px;
+    }
+    
+    .review-modal__body {
+        padding: 5px 20px;
+    }
+    
+    .review-modal__footer {
+        padding: 15px 20px;
+    }
+    
+    .review-rating__stars {
+        gap: 6px;
+    }
+    
+    .star {
+        font-size: 32px;
+    }
+    
+    .review-form__actions {
+        flex-direction: column;
+    }
+    
+    .review-form__cancel,
+    .review-form__submit {
+        width: 100%;
+    }
+    
+    .reviews-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+    }
+    
+    .review-add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .review-modal {
+        padding: 10px;
+    }
+    
+    .review-modal__content {
+        max-width: 100%;
+        max-height: 95vh;
+    }
+    
+    .review-item {
+        padding: 20px;
+    }
+    
+    .review-item__header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+}

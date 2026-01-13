@@ -105,7 +105,7 @@ body {
     font-size: 17px;
     background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
     color: white;
-    border: none;
+    border: none !important;
 }
 .btn-secondary {
     background: #f1f1f1;
@@ -405,8 +405,10 @@ body {
 .load-more-btn:active {
     transform: translateY(0);
 }
+.load-more-btn:hover .load-more-count {
+    color: white !important;
+}
 .load-more-count {
-    background: white;
     color: #e74c3c;
     padding: 2px 8px;
     border-radius: 12px;

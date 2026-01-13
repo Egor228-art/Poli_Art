@@ -98,7 +98,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Показываем сложный белый свет за дверью
         setTimeout(() => {
             doorBacklight.classList.add('visible');
-        }, 300);
+        }, -1000);
+
+        if (isDoorOpen || isTransitioning) return;
+        
+        // ОБНОВЛЯЕМ ПОДСКАЗКУ
+        if (loaderHint) {
+            loaderHint.innerHTML = '<p>Подсказка: Нажмите на дверь чтобы попасть на сайт.</p>';
+            loaderHint.style.animation = 'fadeInHint 0.5s ease forwards'; // Быстрое появление
+        }
     }
     
     // Закрытие двери
@@ -108,6 +116,14 @@ document.addEventListener('DOMContentLoaded', function() {
         isDoorOpen = false;
         door.classList.remove('open');
         doorBacklight.classList.remove('visible');
+
+        if (!isDoorOpen || isTransitioning) return;
+    
+        // ВОЗВРАЩАЕМ ПОДСКАЗКУ
+        if (loaderHint) {
+            loaderHint.innerHTML = '<p>Подсказка: Нажмите на дверь чтобы попасть на сайт.</p>';
+            loaderHint.style.animation = 'fadeInHint 0.5s ease forwards';
+        }
     }
     
     // Увеличение двери и переход на сайт
@@ -115,6 +131,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isTransitioning || !isDoorOpen) return;
         
         isTransitioning = true;
+
+        // ПРЯЧЕМ ПОДСКАЗКУ ПРИ ПЕРЕХОДЕ
+        if (loaderHint) {
+            loaderHint.style.opacity = '0';
+            loaderHint.style.transition = 'opacity 0.3s ease';
+        }
         
         // Сохраняем состояние до перехода
         localStorage.setItem('polyartLoaderSeen', 'true');
@@ -174,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Проверяем, не идёт ли переход
         const isTransitioningStorage = localStorage.getItem('polyartTransitioning');
         const hasSeenLoader = localStorage.getItem('polyartLoaderSeen');
+        const loaderHint = document.getElementById('loaderHint');
         
         // Если прерванный переход - сразу показываем основную страницу
         if (isTransitioningStorage) {
@@ -220,6 +243,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 resetIdleTimer();
                 enterThroughDoor();
             });
+
+            setTimeout(() => {
+                if (loaderHint && !isDoorOpen && !isTransitioning) {
+                    loaderHint.style.animation = 'fadeInHint 1s ease forwards';
+                }
+            }, 3000);
         }
         
         // Отслеживание активности пользователя
