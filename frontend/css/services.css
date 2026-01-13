@@ -263,7 +263,7 @@
 }
 
 .btn--primary, .btn--large {
-    border: none;
+    border: none !important;
 }
 
 .btn--full {

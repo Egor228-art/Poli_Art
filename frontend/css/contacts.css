@@ -135,7 +135,6 @@ body {
 .phone {
     display: flex;
     align-items: center;
-    border: 1px solid #ddd;
     border-radius: 4px;
     overflow: hidden;
 }

@@ -7,6 +7,8 @@
     <title>ПолиАрт - Двери и ламинат в Новгородской области</title>
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/loader.css">
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="auth-state.js"></script>
 </head>
 <body>
     <!-- Страница-загрузчик -->
@@ -15,19 +17,16 @@
         <div class="loader-background"></div>
         
         <!-- Лампа на потолке -->
-        <div class="lamp-container">
-            <!-- Чёткий жёлтый свет (конус) -->
+        <!--<div class="lamp-container">
             <div class="lamp-light-cone" id="lampLight"></div>
 
-            <!-- Цоколь -->
             <div class="lamp-socket">
                 <div class="socket-base"></div>
                 <div class="socket-threads"></div>
             </div>
 
-            <!-- Колба лампы -->
             <div class="lamp-bulb" id="lampBulb"></div>
-        </div>
+        </div>-->
         
         <!-- Дверь на полу -->
         <div class="door-wrapper" id="doorWrapper">
@@ -37,6 +36,11 @@
                 <img src="image/Close_Door.png" alt="Закрытая дверь" class="door-image door-closed">
                 <img src="image/Open_the_Door.png" alt="Открытая дверь" class="door-image door-opened">
             </div>
+        </div>
+
+        <!-- Подсказка -->
+        <div class="loader-hint" id="loaderHint">
+            <p>Подсказка: Нажмите на дверь чтобы попасть на сайт.</p>
         </div>
     </div>
 

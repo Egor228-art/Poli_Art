@@ -49,6 +49,7 @@ body {
 .btn--primary {
     background-color: var(--secondary);
     color: white;
+    border: 2px solid var(--secondary) !important;
 }
 
 .btn--primary:hover {

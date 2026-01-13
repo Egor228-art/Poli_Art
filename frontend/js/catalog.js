@@ -330,6 +330,16 @@ async function loadLaminate() {
         allLaminate = result.items || [];
         console.log('✅ Ламинат загружен:', allLaminate.length, 'записей');
         
+        // Логируем данные первого продукта для отладки
+        if (allLaminate.length > 0) {
+            console.log('Пример данных ламината:', {
+                id: allLaminate[0].id,
+                name: allLaminate[0].name,
+                color: allLaminate[0].color,
+                picture: allLaminate[0].picture
+            });
+        }
+        
     } catch (error) {
         console.error('❌ Ошибка загрузки ламината:', error);
         allLaminate = [];
@@ -361,6 +371,13 @@ async function toggleMode() {
         currentProducts = isLaminateMode ? allLaminate : allDoors;
         
         console.log(`Товаров доступно: ${currentProducts.length}`);
+        if (isLaminateMode && currentProducts.length > 0) {
+            console.log('Первые 3 продукта ламината:', currentProducts.slice(0, 3).map(p => ({
+                id: p.id,
+                name: p.name,
+                hasColor: !!p.color
+            })));
+        }
         
         // Сбрасываем фильтры при переключении
         resetAllFilters();
@@ -700,6 +717,7 @@ function performSearch() {
 function createProductCard(product) {
     const card = document.createElement('div');
     card.className = 'product-card';
+    card.setAttribute('data-product-id', product.id); // Добавляем data-атрибут
     
     const collectionName = isLaminateMode ? 'laminate' : 'doors';
     
@@ -761,19 +779,21 @@ function createProductCard(product) {
         productLink = `product.html?id=${product.id}`;
     }
     
-    // Получаем первый цвет из массива цветов для передачи в конструктор
+    // Получаем первый цвет из массива цветов
     let firstColor = '';
     if (isLaminateMode && product.color) {
         if (Array.isArray(product.color) && product.color.length > 0) {
-            firstColor = product.color[0];
+            firstColor = escapeHtml(product.color[0]);
         } else if (typeof product.color === 'string') {
-            firstColor = product.color;
+            firstColor = escapeHtml(product.color);
         }
     }
     
-    // Кнопка конструктора только для ламината - ОБНОВЛЕНО
+    // Кнопка конструктора только для ламината
     const constructorButton = isLaminateMode ? 
-    `<button class="btn-constructor" onclick="window.addToConstructor('${product.id}', '${escapeHtml(product.name || '')}', '${escapeHtml(firstColor)}')">
+    `<button class="btn-constructor" data-product-id="${product.id}" 
+            data-product-name="${escapeHtml(product.name || '')}" 
+            data-product-colors='${JSON.stringify(product.color || [])}'>
         В конструктор
     </button>` : '';
     
@@ -802,7 +822,6 @@ function createProductCard(product) {
     
     return card;
 }
-
 // Кнопка "Загрузить еще"
 function renderLoadMoreButton(totalFiltered) {
     pagination.innerHTML = '';
@@ -908,9 +927,17 @@ function showErrorMessage(message) {
 
 function escapeHtml(text) {
     if (!text) return '';
+    
     const div = document.createElement('div');
     div.textContent = text;
-    return div.innerHTML;
+    
+    // Для использования в data-атрибутах также экранируем кавычки
+    const escaped = div.innerHTML
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/`/g, '&#96;');
+    
+    return escaped;
 }
 
 // Рендеринг продуктов
@@ -932,6 +959,36 @@ function renderProducts(products) {
         const productCard = createProductCard(product);
         productsGrid.appendChild(productCard);
     });
+    
+    // После рендеринга добавляем обработчики для кнопок конструктора
+    addConstructorButtonListeners();
+}
+
+function addConstructorButtonListeners() {
+    const constructorButtons = document.querySelectorAll('.btn-constructor');
+    
+    constructorButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.getAttribute('data-product-id');
+            const productName = this.getAttribute('data-product-name');
+            const productColor = this.getAttribute('data-product-color');
+            
+            console.log('Клик по кнопке конструктора:', {
+                productId,
+                productName,
+                productColor
+            });
+            
+            if (isLaminateMode) {
+                window.addToConstructor(productId, productName, productColor);
+            } else {
+                alert('Конструктор доступен только для ламината');
+            }
+        });
+    });
 }
 
 // Глобальные функции
@@ -941,61 +998,61 @@ window.showProductDetails = function(productId) {
 };
 
 // Глобальные функции - ДОБАВЛЕНА НОВАЯ ФУНКЦИЯ
-window.addToConstructor = function(productId, productName, colors) {
+window.addToConstructor = function(productId, productName, color) {
     if (isLaminateMode) {
-        console.log(`Добавление в конструктор: ${productId} - ${productName}`, colors);
+        console.log(`Переход в конструктор: ${productId} - ${productName} - Цвет: ${color}`);
         
-        // Получаем выбранный цвет из карточки (первый из массива или строку)
-        let selectedColor = '';
-        if (Array.isArray(colors) && colors.length > 0) {
-            // Если массив цветов, берем первый
-            selectedColor = colors[0];
-        } else if (typeof colors === 'string' && colors) {
-            // Если строка, используем ее
-            selectedColor = colors;
-        } else {
-            // Если цвет не указан, пробуем получить из DOM элемента
-            const cardElement = document.querySelector(`[data-product-id="${productId}"]`);
-            if (cardElement) {
-                const colorElement = cardElement.querySelector('.product-color');
-                if (colorElement) {
-                    selectedColor = colorElement.textContent || colorElement.dataset.color || '';
-                }
+        // Находим полный объект продукта
+        const product = currentProducts.find(p => p.id === productId);
+        
+        // Получаем массив цветов из продукта
+        let colorsArray = [];
+        if (product && product.color) {
+            if (Array.isArray(product.color)) {
+                colorsArray = product.color;
+            } else if (typeof product.color === 'string') {
+                colorsArray = [product.color];
             }
         }
         
-        console.log('Выбранный цвет:', selectedColor);
+        // Берем переданный цвет или первый из массива
+        const selectedColor = color || (colorsArray.length > 0 ? colorsArray[0] : '');
         
-        // Создаем URL с параметрами
-        const url = new URL('laminate-constructor.html', window.location.origin);
+        // Создаем объект с данными продукта
+        const productData = {
+            id: productId,
+            name: productName || '',
+            colors: colorsArray, // Сохраняем весь массив цветов
+            selectedColor: selectedColor,
+            productData: product // Сохраняем полный объект для отладки
+        };
         
-        // Добавляем обязательные параметры
-        url.searchParams.append('product_id', productId);
-        if (productName) {
-            url.searchParams.append('product_name', encodeURIComponent(productName));
-        }
-        
-        // Добавляем цвет если он есть
-        if (selectedColor) {
-            url.searchParams.append('color', encodeURIComponent(selectedColor));
-        }
-        
-        // Сохраняем данные в sessionStorage для конструктора
+        // Сохраняем в sessionStorage
         try {
-            const productData = {
-                id: productId,
-                name: productName,
-                colors: Array.isArray(colors) ? colors : (colors ? [colors] : []),
-                selectedColor: selectedColor
-            };
             sessionStorage.setItem('constructor_product', JSON.stringify(productData));
             console.log('Данные сохранены в sessionStorage:', productData);
         } catch (e) {
             console.error('Ошибка сохранения в sessionStorage:', e);
         }
         
-        // Переходим на страницу конструктора
-        console.log('Переход на страницу конструктора:', url.toString());
+        // Формируем URL с параметрами
+        const url = new URL('laminate-constructor.html', window.location.origin);
+        url.searchParams.append('product_id', productId);
+        
+        if (productName) {
+            url.searchParams.append('product_name', encodeURIComponent(productName));
+        }
+        
+        if (selectedColor) {
+            url.searchParams.append('color', encodeURIComponent(selectedColor));
+        }
+        
+        // Добавляем все цвета как параметр
+        if (colorsArray.length > 0) {
+            url.searchParams.append('all_colors', encodeURIComponent(JSON.stringify(colorsArray)));
+        }
+        
+        console.log('Переход на конструктор:', url.toString());
         window.location.href = url.toString();
         
     } else {
@@ -1131,6 +1188,20 @@ window.addToConstructor = function(productId, productName, color) {
         
         // Переходим на страницу конструктора
         window.location.href = fullUrl;
+        
+    } else {
+        alert('Конструктор доступен только для ламината');
+    }
+};
+
+window.addToConstructor = function(productId, productName) {
+    if (isLaminateMode) {
+        console.log(`Переход в конструктор: ${productId} - ${productName}`);
+        
+        // Просто передаем ID и имя, цвет выберется в конструкторе
+        const url = `laminate-constructor.html?product_id=${productId}&product_name=${encodeURIComponent(productName)}`;
+        console.log('URL конструктора:', url);
+        window.location.href = url;
         
     } else {
         alert('Конструктор доступен только для ламината');

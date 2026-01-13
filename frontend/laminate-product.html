@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Товар - ПолиАрт</title>
+    <title>Товар ламината - ПолиАрт</title>
     <link rel="stylesheet" href="css/HeaderAndFooter.css">
     <link rel="stylesheet" href="css/product.css">
-    <!-- Подключим стили отзывов -->
     <link rel="stylesheet" href="css/auth.css">
+    <style>
+        
+    </style>
 </head>
 <body>
     <!-- Хедер -->
@@ -90,7 +92,7 @@
                                     </div>
                                     <div class="delivery-option">
                                         <div class="box-line">
-                                            <img src="image/icon/installation.png" alt="Гаячный ключ">
+                                            <img src="image/icon/installation.png" alt="Гаечный ключ">
                                             <h3>Вынос старой двери</h3>
                                         </div>
                                         <p>Бесплатный демонтаж и вынос старой конструкции</p>
@@ -110,8 +112,8 @@
             </section>
         </div>
 
-        <!-- Модальное окно для отзыва (исправленное) -->
-        <div id="reviewModal" class="review-modal" style="display: none;">
+        <!-- Модальное окно для отзыва (ВНЕ вкладки) -->
+        <div id="reviewModal" class="review-modal">
             <div class="review-modal__overlay"></div>
             <div class="review-modal__content">
                 <div class="review-modal__header">
@@ -201,7 +203,7 @@
     <!-- Футер -->
     <footer class="footer"></footer>
 
-    <!-- Модальные окна -->
+    <!-- Модальное окно замерщика -->
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
         <div class="modal" id="measureModal">
             <button class="modal-close" id="modalClose">&times;</button>
@@ -213,30 +215,44 @@
     <!-- Подключение JS файлов -->
     <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
     <script src="js/header.js"></script>
-    <script src="js/product.js"></script>
+    <script src="js/laminate-product.js"></script> <!-- ОТДЕЛЬНЫЙ ФАЙЛ ДЛЯ ЛАМИНАТА -->
     <script src="js/auth-state.js"></script>
     <script src="js/reviews.js"></script>
     <script src="js/footer.js"></script>
     
     <script>
-        // Убедимся что отзывы загружаются после загрузки товара
         document.addEventListener('DOMContentLoaded', function() {
-            // Подождем немного чтобы product.js успел загрузить товар
-            setTimeout(() => {
-                if (window.reviewSystem) {
-                    console.log('✅ Система отзывов инициализирована');
-                } else {
-                    console.log('🔄 Ручная инициализация системы отзывов');
-                    // Создаем глобальную переменную для productId если её нет
-                    if (!window.currentProductId && window.location.search.includes('id=')) {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        window.currentProductId = urlParams.get('id');
-                    }
-                    
-                    // Инициализируем систему отзывов
-                    window.reviewSystem = new ReviewSystem();
-                }
-            }, 1000);
+            console.log('laminate-product.html загружен');
+            
+            // Устанавливаем глобальную переменную для отзывов
+            window.isLaminateProduct = true;
+            
+            // Создаем контейнер для отзывов
+            const reviewsTab = document.getElementById('reviews');
+            if (reviewsTab) {
+                reviewsTab.innerHTML = `
+                    <div id="reviewsContainer">
+                        <div class="reviews-header">
+                            <h2 class="reviews-title">Отзывы покупателей</h2>
+                            <div class="reviews-stats">
+                                <div class="reviews-average">0.0 ★</div>
+                                <div class="reviews-count">0 отзывов</div>
+                            </div>
+                        </div>
+                        <div class="reviews-actions">
+                            <button class="review-add-btn" id="addReviewBtn">
+                                <span>💬 Оставить отзыв</span>
+                            </button>
+                        </div>
+                        <div class="reviews-list" id="reviewsList">
+                            <div class="no-reviews">
+                                <div class="no-reviews__icon">💬</div>
+                                <div class="no-reviews__text">Пока нет отзывов. Будьте первым!</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         });
     </script>
 </body>
