@@ -188,7 +188,7 @@ body {
 }
 
 .feature-icon {
-    font-size: 20px;
+    font-size: 25px;
 }
 .feature-icon img {
     width: 40px;
@@ -197,7 +197,7 @@ body {
 
 .feature-text {
     color: #666;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .product-quick-specs {
@@ -793,6 +793,7 @@ body {
 
 /* Кнопки действий для похожих товаров */
 #similarProductsGrid .product-actions {
+    height: 40px;
     display: flex;
     gap: 10px;
     margin-top: 15px;
@@ -800,6 +801,7 @@ body {
 }
 
 #similarProductsGrid .btn-details {
+    height: 40px;
     flex: 1;
     background: #e74c3c;
     color: white;
@@ -821,6 +823,7 @@ body {
 }
 
 #similarProductsGrid .btn-constructor {
+    height: 40px;
     flex: 1;
     padding: 10px;
     background: #2c3e50;
@@ -989,4 +992,202 @@ body {
 .color-chip:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+
+
+
+
+
+/* Новая структура страницы товара */
+.product-main__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.product-gallery-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.product-info-section {
+    position: static;
+    top: 20px;
+}
+
+.product-price-block {
+    margin: 20px 0;
+}
+
+.product-features {
+    padding-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .product-main__inner {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .product-info-section {
+        position: static;
+    }
+}
+
+/* Улучшение галереи */
+.gallery-main {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gallery-main__image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.gallery-thumbs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.thumb {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.thumb:hover {
+    border-color: #ddd;
+}
+
+.thumb.active {
+    border-color: #e74c3c;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Улучшение характеристик под галереей */
+.product-quick-specs {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #eabb66;
+}
+
+.product-quick-specs .spec {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.product-quick-specs .spec:last-child {
+    border-bottom: none;
+}
+
+.product-quick-specs .spec-name {
+    color: #666;
+    font-weight: 500;
+}
+
+.product-quick-specs .spec-value {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Улучшение кнопок */
+.product-actions {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.product-actions .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 200px;
+}
+
+.product-actions .btn--primary {
+    background: linear-gradient(135deg, #eabb66 0%, #e74c3c 100%);
+    color: white;
+    border: none;
+}
+
+.product-actions .btn--primary:hover {
+    background: linear-gradient(135deg, #deb262 0%, #d74636 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.product-actions .btn--secondary {
+    background: transparent;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+}
+
+.product-actions .btn--secondary:hover {
+    background: #e74c3c;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-icon {
+    margin-right: 8px;
+}
+
+.btn-icon img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Адаптивность кнопок */
+@media (max-width: 768px) {
+    .product-actions {
+        flex-direction: column;
+    }
+    
+    .product-actions .btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .gallery-main {
+        height: 300px;
+    }
+    
+    .thumb {
+        width: 60px;
+        height: 60px;
+    }
 }

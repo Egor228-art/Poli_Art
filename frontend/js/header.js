@@ -166,6 +166,7 @@ function loadHeader() {
     gap: 8px;
     transition: color 0.3s ease;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .user-name::before {
@@ -571,7 +572,7 @@ function updateHeaderForLoggedInUser(user) {
     
     headerActions.innerHTML = `
         <div class="user-profile">
-            <span class="user-name">${userName}</span>
+            <a href="personal.html" class="user-name">${userName}</a>
             <button class="btn btn--secondary" onclick="logout()">Выйти</button>
         </div>
     `;

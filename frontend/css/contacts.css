@@ -147,7 +147,6 @@ body {
 }
 
 .phone input {
-    border: none;
     padding: 10px;
     outline: none;
     flex: 1;

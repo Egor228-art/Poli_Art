@@ -7,11 +7,15 @@ class ReviewSystem {
         this.currentUser = null;
         this.selectedRating = 0;
         this.isSubmitting = false;
+        this.isLaminate = false; // Определяем тип товара
         
         // Инициализируем если PocketBase доступен
         if (typeof PocketBase !== 'undefined') {
             this.pb = new PocketBase('http://127.0.0.1:8090');
         }
+        
+        // Получаем текущего пользователя
+        this.getCurrentUser();
         
         this.init();
     }
@@ -19,8 +23,8 @@ class ReviewSystem {
     init() {
         console.log('💬 Инициализация системы отзывов...');
         
-        // Получаем информацию о текущем пользователе
-        this.getCurrentUser();
+        // Определяем тип товара
+        this.detectProductType();
         
         // Ищем кнопку "Оставить отзыв"
         this.setupEventListeners();
@@ -29,41 +33,61 @@ class ReviewSystem {
         this.loadProductReviews();
     }
 
+    detectProductType() {
+        // Определяем по URL или другим признакам
+        const currentUrl = window.location.href;
+        this.isLaminate = currentUrl.includes('laminate-product.html') || 
+                         currentUrl.includes('laminate') ||
+                         (typeof window.isLaminateProduct !== 'undefined' && window.isLaminateProduct === true);
+        
+        console.log('📋 Тип товара для отзывов:', this.isLaminate ? 'Ламинат' : 'Двери');
+    }
+
     getCurrentUser() {
-        try {
-            if (this.pb && this.pb.authStore.isValid) {
-                this.currentUser = this.pb.authStore.model;
-                console.log('👤 Пользователь для отзывов:', this.currentUser?.name);
-                return this.currentUser;
-            }
-        } catch (error) {
-            console.error('❌ Ошибка получения пользователя:', error);
+        // Проверяем глобальный authManager
+        if (window.authManager && window.authManager.currentUser) {
+            this.currentUser = window.authManager.currentUser;
+        } else if (window.pb && window.pb.authStore && window.pb.authStore.isValid) {
+            this.currentUser = window.pb.authStore.model;
         }
-        return null;
+        
+        return this.currentUser;
     }
 
     getCurrentProductId() {
-        // Пытаемся получить ID товара из URL или других источников
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id') || 
                          document.querySelector('[data-product-id]')?.dataset.productId ||
                          window.currentProductId;
         
-        console.log('📦 ID текущего товара:', productId);
+        // Сохраняем в глобальную переменную
+        window.currentProductId = productId;
+        window.isLaminateProduct = this.isLaminate;
+        
+        console.log('📦 ID текущего товара:', productId, 'Тип:', this.isLaminate ? 'laminate' : 'doors');
         return productId;
+    }
+
+    getReviewsCollectionName() {
+        return this.isLaminate ? 'reviews_laminate' : 'reviews';
     }
 
     async loadProductReviews() {
         const productId = this.getCurrentProductId();
-        if (!productId || !this.pb) return;
+        if (!productId || !this.pb) {
+            console.log('⚠️ Не удалось загрузить отзывы: отсутствует productId или pb');
+            this.displayReviews([]);
+            return;
+        }
 
+        const collectionName = this.getReviewsCollectionName();
+        
         try {
-            console.log('📥 Загрузка отзывов для товара:', productId);
+            console.log(`📥 Загрузка отзывов из ${collectionName} для товара:`, productId);
             
-            const response = await this.pb.collection('reviews').getList(1, 50, {
+            const response = await this.pb.collection(collectionName).getList(1, 50, {
                 filter: `product = "${productId}"`,
-                sort: '-created',
-                expand: 'author'
+                sort: '-created'
             });
 
             console.log(`✅ Загружено ${response.items.length} отзывов`);
@@ -71,7 +95,14 @@ class ReviewSystem {
             
         } catch (error) {
             console.error('❌ Ошибка загрузки отзывов:', error);
-            this.showMessage('Не удалось загрузить отзывы', 'error');
+            
+            // Если таблицы еще нет, показываем пустой список
+            if (error.status === 404) {
+                console.log('Таблица отзывов не найдена, показываем пустой список');
+                this.displayReviews([]);
+            } else {
+                this.showMessage('Не удалось загрузить отзывы', 'error');
+            }
         }
     }
 
@@ -103,7 +134,7 @@ class ReviewSystem {
         // Фильтруем отзывы - сначала одобренные
         const approvedReviews = reviews.filter(r => r.approved);
         const pendingReviews = reviews.filter(r => !r.approved && 
-            this.currentUser && r.author_name === this.currentUser.name);
+            this.currentUser && r.author_name === (this.currentUser.name || this.currentUser.username));
 
         // Показываем статистику
         this.updateReviewsStats(approvedReviews);
@@ -125,7 +156,8 @@ class ReviewSystem {
             year: 'numeric'
         });
         
-        const authorName = review.expand?.author?.name || review.author_name || 'Аноним';
+        // Используем author_name из записи отзыва
+        const authorName = review.author_name || 'Анонимный пользователь';
         const initials = this.getUserInitials(authorName);
         const ratingStars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
         const statusClass = review.approved ? 'approved' : 'pending';
@@ -304,11 +336,19 @@ class ReviewSystem {
 
         // Сбрасываем форму
         this.selectedRating = 0;
-        document.getElementById('reviewComment').value = '';
+        if (document.getElementById('reviewComment')) {
+            document.getElementById('reviewComment').value = '';
+        }
         document.querySelectorAll('.star').forEach(star => star.classList.remove('active'));
-        document.getElementById('ratingValue').textContent = '0 из 5';
-        document.getElementById('charCount').textContent = '0';
-        document.getElementById('submitReview').disabled = true;
+        if (document.getElementById('ratingValue')) {
+            document.getElementById('ratingValue').textContent = '0 из 5';
+        }
+        if (document.getElementById('charCount')) {
+            document.getElementById('charCount').textContent = '0';
+        }
+        if (document.getElementById('submitReview')) {
+            document.getElementById('submitReview').disabled = true;
+        }
 
         // Показываем модальное окно
         modal.style.display = 'flex';
@@ -332,7 +372,9 @@ class ReviewSystem {
         });
         
         // Обновляем текст
-        document.getElementById('ratingValue').textContent = `${rating} из 5`;
+        if (document.getElementById('ratingValue')) {
+            document.getElementById('ratingValue').textContent = `${rating} из 5`;
+        }
         
         // Валидируем форму
         this.validateForm();
@@ -353,7 +395,7 @@ class ReviewSystem {
     validateForm() {
         const submitBtn = document.getElementById('submitReview');
         if (submitBtn) {
-            const comment = document.getElementById('reviewComment').value.trim();
+            const comment = document.getElementById('reviewComment') ? document.getElementById('reviewComment').value.trim() : '';
             submitBtn.disabled = !(this.selectedRating > 0 && comment.length >= 10 && comment.length <= 1000);
         }
     }
@@ -362,7 +404,8 @@ class ReviewSystem {
         if (this.isSubmitting) return;
         
         const productId = this.getCurrentProductId();
-        const comment = document.getElementById('reviewComment').value.trim();
+        const commentElement = document.getElementById('reviewComment');
+        const comment = commentElement ? commentElement.value.trim() : '';
         
         if (!productId) {
             this.showMessage('Не удалось определить товар', 'error');
@@ -381,23 +424,34 @@ class ReviewSystem {
 
         this.isSubmitting = true;
         const submitBtn = document.getElementById('submitReview');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<span>Отправка...</span><span class="btn-icon">⏳</span>';
-        submitBtn.disabled = true;
+        const originalText = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.innerHTML = '<span>Отправка...</span><span class="btn-icon">⏳</span>';
+            submitBtn.disabled = true;
+        }
 
         try {
+            // Получаем имя пользователя
+            const userName = this.currentUser.name || 
+                           this.currentUser.username || 
+                           'Анонимный пользователь';
+            
+            // Структура данных для PocketBase
             const reviewData = {
-                product: productId,
-                author_name: this.currentUser.name || this.currentUser.username || 'Аноним',
+                product: productId, // ID продукта (строка)
+                author_name: userName,
                 rating: this.selectedRating,
                 text: comment,
-                approved: false, // По умолчанию на модерации
-                author: this.currentUser.id
+                approved: false // На модерации
             };
 
+            const collectionName = this.getReviewsCollectionName();
             console.log('📤 Отправка отзыва:', reviewData);
+            console.log('📋 Коллекция:', collectionName);
             
-            const record = await this.pb.collection('reviews').create(reviewData);
+            // Отправляем в правильную коллекцию
+            const record = await this.pb.collection(collectionName)
+                .create(reviewData);
             
             console.log('✅ Отзыв отправлен:', record);
             
@@ -412,11 +466,25 @@ class ReviewSystem {
             
         } catch (error) {
             console.error('❌ Ошибка отправки отзыва:', error);
-            this.showMessage('Ошибка при отправке отзыва', 'error');
+            console.error('Детали ошибки:', error.data);
+            
+            let errorMessage = 'Ошибка при отправке отзыва';
+            
+            if (error.status === 404) {
+                errorMessage = 'Таблица для отзывов не найдена. Сообщите администратору.';
+            } else if (error.data?.data) {
+                // Показываем первую ошибку из PocketBase
+                const firstError = Object.values(error.data.data)[0];
+                errorMessage = firstError?.message || 'Проверьте введенные данные';
+            }
+            
+            this.showMessage(errorMessage, 'error');
         } finally {
             this.isSubmitting = false;
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+            if (submitBtn) {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         }
     }
 
@@ -462,8 +530,23 @@ let reviewSystem = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 Инициализация системы отзывов...');
-    reviewSystem = new ReviewSystem();
     
-    // Экспортируем для глобального использования
-    window.reviewSystem = reviewSystem;
+    // Ждем немного, чтобы другие скрипты (auth-state.js) успели загрузиться
+    setTimeout(() => {
+        reviewSystem = new ReviewSystem();
+        
+        // Экспортируем для глобального использования
+        window.reviewSystem = reviewSystem;
+        
+        // Также проверяем, есть ли кнопка "отзывы" на вкладке и инициализируем
+        const reviewTabBtn = document.querySelector('[data-tab="reviews"]');
+        if (reviewTabBtn) {
+            reviewTabBtn.addEventListener('click', () => {
+                // Загружаем отзывы при клике на вкладку
+                if (reviewSystem) {
+                    reviewSystem.loadProductReviews();
+                }
+            });
+        }
+    }, 500);
 });

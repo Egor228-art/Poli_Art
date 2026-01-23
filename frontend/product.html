@@ -19,6 +19,11 @@
             <section class="product-main">
                 <div class="container">
                     <div class="product-main__inner">
+                        <div class="product-actions">
+                            <button class="btn btn--primary" id="orderBtn">
+                                <span>🛒 Оформить заказ</span>
+                            </button>
+                        </div>
                         <!-- Содержимое будет загружено JS -->
                     </div>
                 </div>
@@ -210,12 +215,157 @@
         </div>
     </div>
 
+    <!-- Модальное окно оформления заказа -->
+    <div class="modal-overlay" id="orderModal" style="display: none;">
+        <div class="modal modal--order">
+            <button class="modal-close" id="closeOrderModal">&times;</button>
+            
+            <div class="order-modal__content">
+                <!-- Заголовок с переключателем -->
+                <div class="order-type-switch">
+                    <h2>Оформление заказа</h2>
+                    <div class="switch-container">
+                        <label class="switch-label active" data-type="single">
+                            <input type="radio" name="orderType" value="single" checked>
+                            <span class="switch-text">Один товар</span>
+                        </label>
+                        <label class="switch-label" data-type="multiple">
+                            <input type="radio" name="orderType" value="multiple">
+                            <span class="switch-text">Несколько товаров</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Информация о товаре -->
+                <div class="order-product-info" id="orderProductInfo">
+                    <div class="product-summary">
+                        <img id="orderProductImage" src="" alt="Товар">
+                        <div class="product-details">
+                            <h3 id="orderProductName">Название товара</h3>
+                            <div class="product-price" id="orderProductPrice">0 ₽</div>
+                            <div class="product-quantity">
+                                <button class="qty-btn qty-minus">-</button>
+                                <input type="number" id="orderQuantity" value="1" min="1" max="99">
+                                <button class="qty-btn qty-plus">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Опции доставки -->
+                <div class="delivery-options">
+                    <h3>Способ получения</h3>
+                    <div class="option-group">
+                        <label class="option-item">
+                            <input type="radio" name="delivery" value="pickup" checked>
+                            <div class="option-content">
+                                <div class="option-icon">🏪</div>
+                                <div class="option-text">
+                                    <div class="option-title">Самовывоз</div>
+                                    <div class="option-description">Бесплатно • г. Великий Новгород</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="option-item">
+                            <input type="radio" name="delivery" value="delivery">
+                            <div class="option-content">
+                                <div class="option-icon">🚚</div>
+                                <div class="option-text">
+                                    <div class="option-title">Доставка</div>
+                                    <div class="option-description">500 ₽ • 1-2 рабочих дня</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="option-item">
+                            <input type="radio" name="delivery" value="installation">
+                            <div class="option-content">
+                                <div class="option-icon">👷</div>
+                                <div class="option-text">
+                                    <div class="option-title">Доставка и установка</div>
+                                    <div class="option-description" id="installationPrice">от 1 500 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Адрес доставки (скрыт по умолчанию) -->
+                    <div class="delivery-address" id="deliveryAddress" style="display: none;">
+                        <h4>Адрес доставки</h4>
+                        <textarea id="addressInput" placeholder="Введите адрес доставки..." rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Дополнительные услуги -->
+                <div class="additional-services">
+                    <h3>Дополнительные услуги</h3>
+                    <div class="services-list">
+                        <label class="service-item">
+                            <input type="checkbox" id="serviceWarranty">
+                            <div class="service-content">
+                                <div class="service-icon">🛡️</div>
+                                <div class="service-text">
+                                    <div class="service-title">Расширенная гарантия</div>
+                                    <div class="service-price">+ 500 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="service-item">
+                            <input type="checkbox" id="serviceAssembly">
+                            <div class="service-content">
+                                <div class="service-icon">🧰</div>
+                                <div class="service-text">
+                                    <div class="service-title">Дополнительный монтаж</div>
+                                    <div class="service-price">+ 1 000 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Итоговая стоимость -->
+                <div class="order-summary">
+                    <h3>Итоговая стоимость</h3>
+                    <div class="summary-details">
+                        <div class="summary-row">
+                            <span>Товар:</span>
+                            <span id="summaryProduct">0 ₽</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Доставка:</span>
+                            <span id="summaryDelivery">0 ₽</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Услуги:</span>
+                            <span id="summaryServices">0 ₽</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span>К оплате:</span>
+                            <span id="summaryTotal">0 ₽</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопки действия -->
+                <div class="order-actions">
+                    <button class="btn btn--secondary" id="cancelOrder">Отмена</button>
+                    <button class="btn btn--primary" id="submitOrder">Оформить заказ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Подключение JS файлов -->
     <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
     <script src="js/header.js"></script>
     <script src="js/product.js"></script>
     <script src="js/auth-state.js"></script>
     <script src="js/reviews.js"></script>
+    <script src="js/product-manager.js"></script>
+    <script src="js/product-buttons.js"></script>
+    <script src="js/simple-product-buttons.js"></script>
     <script src="js/footer.js"></script>
     
     <script>

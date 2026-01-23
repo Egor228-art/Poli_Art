@@ -8,8 +8,470 @@
     <link rel="stylesheet" href="css/product.css">
     <link rel="stylesheet" href="css/auth.css">
     <style>
+    /* Дополнительные стили для ламината - ОПТИМИЗИРОВАННАЯ ВЕРСТКА */
+    .laminate-features .feature-icon img {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .laminate-image-container {
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        height: fit-content;
+    }
+    
+    .laminate-price {
+        color: #e74c3c;
+        font-size: 32px;
+        font-weight: 700;
+        margin: 15px 0;
+    }
+    
+    .price-unit {
+        font-size: 16px;
+        color: #666;
+        font-weight: 400;
+    }
+    
+    /* НОВАЯ СТРУКТУРА: Галерея + Блоки характеристик */
+    .product-main__inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+    
+    @media (max-width: 992px) {
+        .product-main__inner {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .product-gallery {
+        grid-column: 1;
+    }
+    
+    .product-info {
+        grid-column: 2;
+    }
+    
+    @media (max-width: 992px) {
+        .product-gallery,
+        .product-info {
+            grid-column: 1;
+        }
+    }
+    
+    /* Уменьшаем галерею */
+    .gallery-main {
+        height: 400px;
+        max-width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .gallery-main__image {
+        max-height: 400px;
+        width: auto;
+        max-width: 100%;
+    }
+    
+    .gallery-thumbs {
+        max-width: 400px;
+    }
+    
+    /* Блок характеристик под галереей */
+    .gallery-specs {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #eabb66;
+    }
+    
+    .gallery-specs h3 {
+        margin-top: 0;
+        color: #2c3e50;
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+    
+    .specs-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .spec-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .spec-label {
+        font-size: 14px;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .spec-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    /* Блок справа (технические характеристики) */
+    .tech-specs-sidebar {
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 20px;
+        border: 1px solid #eaeaea;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .tech-specs-sidebar h3 {
+        margin-top: 0;
+        color: #2c3e50;
+        font-size: 20px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eabb66;
+    }
+    
+    .tech-specs-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .tech-spec-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: white;
+        border-radius: 8px;
+        border-left: 4px solid #27ae60;
+        transition: transform 0.2s;
+    }
+    
+    .tech-spec-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .tech-spec-label {
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .tech-spec-value {
+        font-weight: 600;
+        color: #e74c3c;
+        font-size: 16px;
+    }
+    
+    /* Кнопка конструктора */
+    .btn-constructor {
+    flex: 1;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+    
+    .btn-constructor:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 20px rgba(110, 110, 110, 0.247) !important;
+    }
+    
+    /* Улучшенные карточки похожих товаров */
+    .similar-card {
+        border: 1px solid #eaeaea;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .similar-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        border-color: #eabb66;
+    }
+    
+    .similar-card .product-image-container {
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .similar-card .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .similar-card:hover .product-image {
+        transform: scale(1.05);
+    }
+    
+    .similar-card .product-info {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .similar-card .product-title {
+        font-size: 16px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+    
+    .similar-card .product-code {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 10px;
+        font-family: 'Courier New', monospace;
+        background: #f5f5f5;
+        padding: 3px 8px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    
+    /* Сетка похожих товаров */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 25px;
+        margin-top: 30px;
+    }
+    
+    @media (max-width: 1200px) {
+        .products-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .products-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .product-main__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.product-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.product-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (max-width: 992px) {
+    .product-main__inner {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+/* Улучшенная галерея */
+.gallery-main {
+    height: 400px;
+    max-width: 100%;
+    margin-bottom: 15px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gallery-main__image {
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.gallery-thumbs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.gallery-thumbs .thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.gallery-thumbs .thumb:hover {
+    border-color: #ddd;
+    transform: translateY(-2px);
+}
+
+.gallery-thumbs .thumb.active {
+    border-color: #e74c3c;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.gallery-thumbs .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Блок характеристик под галереей */
+.gallery-specs {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #eaeaea;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.specs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 576px) {
+    .specs-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.spec-item {
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid #eabb66;
+}
+
+.spec-label {
+    font-size: 14px;
+    color: #666;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.spec-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    display: block;
+}
+
+/* Технические характеристики справа */
+.tech-specs-sidebar {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #eaeaea;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.tech-specs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tech-spec-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s;
+    border-left: 3px solid #27ae60;
+}
+
+.tech-spec-item:hover {
+    background: white;
+    transform: translateX(5px);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+}
+
+.tech-spec-label {
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+}
+
+.tech-spec-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e74c3c;
+    background: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid #eaeaea;
+}
+
+.product-info-tabel {
+    display: contents;
+}
+
+.laminate-specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
         
-    </style>
+        .laminate-spec-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #eabb66;
+        }
+        
+        .laminate-spec-item h4 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .laminate-spec-item p {
+            margin: 0;
+            color: #666;
+        }
+</style>
 </head>
 <body>
     <!-- Хедер -->
@@ -21,6 +483,14 @@
             <section class="product-main">
                 <div class="container">
                     <div class="product-main__inner">
+                        <div class="product-actions">
+                            <button class="btn btn--primary" id="orderBtn" style="margin-right: 10px;">
+                                <span>🛒 Оформить заказ</span>
+                            </button>
+                            <button class="btn-constructor" id="constructorBtn">
+                                <span>🧮 В конструктор</span>
+                            </button>
+                        </div>
                         <!-- Содержимое будет загружено JS -->
                     </div>
                 </div>
@@ -33,8 +503,9 @@
                         <div class="tabs-nav">
                             <button class="tab-btn active" data-tab="description">Описание</button>
                             <button class="tab-btn" data-tab="specifications">Характеристики</button>
+                            <button class="tab-btn" data-tab="installation">Укладка и уход</button>
                             <button class="tab-btn" data-tab="reviews">Отзывы</button>
-                            <button class="tab-btn" data-tab="delivery">Доставка и установка</button>
+                            <button class="tab-btn" data-tab="delivery">Доставка</button>
                         </div>
 
                         <div class="tabs-content">
@@ -45,12 +516,45 @@
 
                             <!-- Вкладка с характеристиками -->
                             <div class="tab-pane" id="specifications">
-                                <div class="specs-table">
-                                    <!-- Характеристики будут добавлены JavaScript -->
+                                <div class="laminate-specs">
+                                    <h3>Технические характеристики</h3>
+                                    <div class="laminate-specs-grid">
+                                        <!-- Характеристики будут добавлены JavaScript -->
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Вкладка с отзывами -->
+                            <!-- Вкладка с укладкой и уходом -->
+                            <div class="tab-pane" id="installation">
+                                <div class="installation-content">
+                                    <h3>Инструкция по укладке и уходу</h3>
+                                    <div class="installation-steps">
+                                        <div class="step">
+                                            <div class="step-icon">📏</div>
+                                            <div class="step-content">
+                                                <h4>Подготовка основания</h4>
+                                                <p>Поверхность должна быть ровной, чистой и сухой. Допустимый перепад высот - не более 2 мм на 1 м²</p>
+                                            </div>
+                                        </div>
+                                        <div class="step">
+                                            <div class="step-icon">🧩</div>
+                                            <div class="step-content">
+                                                <h4>Укладка ламината</h4>
+                                                <p>Монтаж производится плавающим способом без приклеивания к основанию. Обязателен технологический зазор 8-10 мм у стен</p>
+                                            </div>
+                                        </div>
+                                        <div class="step">
+                                            <div class="step-icon">🧹</div>
+                                            <div class="step-content">
+                                                <h4>Уход за ламинатом</h4>
+                                                <p>Регулярно пылесосьте или подметайте. Для влажной уборки используйте хорошо отжатую тряпку. Избегайте излишней влаги</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Вкладка с отзывами (ОТДЕЛЬНО ОТ МОДАЛЬНОГО ОКНА) -->
                             <div class="tab-pane" id="reviews">
                                 <!-- Контейнер для отзывов -->
                                 <div id="reviewsContainer">
@@ -68,42 +572,50 @@
                                     </div>
                                     <div class="reviews-list" id="reviewsList">
                                         <!-- Отзывы загрузятся JavaScript -->
+                                        <div class="no-reviews">
+                                            <div class="no-reviews__icon">💬</div>
+                                            <div class="no-reviews__text">Пока нет отзывов. Будьте первым!</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Вкладка с доставкой -->
                             <div class="tab-pane" id="delivery">
-                                <h2>Доставка и установка в Новгородской области</h2>
+                                <h2>Доставка и складирование ламината</h2>
                                 <div class="delivery-options">
                                     <div class="delivery-option">
                                         <div class="box-line">
                                             <img src="image/icon/thuislevering.png" alt="Грузовик">
                                             <h3>Бесплатная доставка</h3>
                                         </div>
-                                        <p>При заказе от 15 000 ₽ в пределах Великого Новгорода</p>
+                                        <p>При заказе от 25 000 ₽ в пределах Великого Новгорода</p>
                                     </div>
                                     <div class="delivery-option">
                                         <div class="box-line">
                                             <img src="image/icon/flash.png" alt="Молния">
-                                            <h3>Быстрая установка</h3>
+                                            <h3>Быстрая доставка</h3>
                                         </div>
-                                        <p>Монтаж двери опытными специалистами за 1-2 часа</p>
+                                        <p>Доставка в день заказа при наличии товара на складе</p>
                                     </div>
                                     <div class="delivery-option">
                                         <div class="box-line">
-                                            <img src="image/icon/installation.png" alt="Гаечный ключ">
-                                            <h3>Вынос старой двери</h3>
+                                            <img src="image/icon/installation.png" alt="Грузчики">
+                                            <h3>Подъем на этаж</h3>
                                         </div>
-                                        <p>Бесплатный демонтаж и вынос старой конструкции</p>
+                                        <p>Бесплатный подъем до квартиры при наличии лифта</p>
                                     </div>
                                 </div>
                                 <div class="delivery-terms">
-                                    <h3>Сроки доставки:</h3>
+                                    <h3>Условия доставки:</h3>
                                     <ul>
-                                        <li>Великий Новгород - 1-2 дня</li>
+                                        <li>Великий Новгород - 1-2 дня (при наличии на складе)</li>
                                         <li>Область - 3-5 дней</li>
+                                        <li>Самовывоз со склада - ежедневно с 9:00 до 18:00</li>
                                     </ul>
+                                </div>
+                                <div class="delivery-note">
+                                    <p><strong>Важно:</strong> Ламинат доставляется в заводской упаковке. Рекомендуем хранить в сухом помещении при температуре 15-25°C.</p>
                                 </div>
                             </div>
                         </div>
@@ -112,8 +624,8 @@
             </section>
         </div>
 
-        <!-- Модальное окно для отзыва (ВНЕ вкладки) -->
-        <div id="reviewModal" class="review-modal">
+        <!-- Модальное окно для отзыва (оставляем как было) -->
+        <div id="reviewModal" class="review-modal" style="display: none;">
             <div class="review-modal__overlay"></div>
             <div class="review-modal__content">
                 <div class="review-modal__header">
@@ -207,53 +719,322 @@
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
         <div class="modal" id="measureModal">
             <button class="modal-close" id="modalClose">&times;</button>
-            <h2>Вызвать замерщика</h2>
+            <h2>Вызвать замерщика или рассчитать стоимость</h2>
             <!-- Форма будет добавлена JavaScript -->
+        </div>
+    </div>
+
+    <!-- Модальное окно оформления заказа -->
+    <div class="modal-overlay" id="orderModal" style="display: none;">
+        <div class="modal modal--order">
+            <button class="modal-close" id="closeOrderModal">&times;</button>
+            
+            <div class="order-modal__content">
+                <!-- Заголовок с переключателем -->
+                <div class="order-type-switch">
+                    <h2>Оформление заказа</h2>
+                    <div class="switch-container">
+                        <label class="switch-label active" data-type="single">
+                            <input type="radio" name="orderType" value="single" checked>
+                            <span class="switch-text">Один товар</span>
+                        </label>
+                        <label class="switch-label" data-type="multiple">
+                            <input type="radio" name="orderType" value="multiple">
+                            <span class="switch-text">Несколько товаров</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Информация о товаре -->
+                <div class="order-product-info" id="orderProductInfo">
+                    <div class="product-summary">
+                        <img id="orderProductImage" src="" alt="Товар">
+                        <div class="product-details">
+                            <h3 id="orderProductName">Название товара</h3>
+                            <div class="product-price" id="orderProductPrice">0 ₽</div>
+                            <div class="product-quantity">
+                                <button class="qty-btn qty-minus">-</button>
+                                <input type="number" id="orderQuantity" value="1" min="1" max="99">
+                                <button class="qty-btn qty-plus">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Опции доставки -->
+                <div class="delivery-options">
+                    <h3>Способ получения</h3>
+                    <div class="option-group">
+                        <label class="option-item">
+                            <input type="radio" name="delivery" value="pickup" checked>
+                            <div class="option-content">
+                                <div class="option-icon">🏪</div>
+                                <div class="option-text">
+                                    <div class="option-title">Самовывоз</div>
+                                    <div class="option-description">Бесплатно • г. Великий Новгород</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="option-item">
+                            <input type="radio" name="delivery" value="delivery">
+                            <div class="option-content">
+                                <div class="option-icon">🚚</div>
+                                <div class="option-text">
+                                    <div class="option-title">Доставка</div>
+                                    <div class="option-description">500 ₽ • 1-2 рабочих дня</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="option-item">
+                            <input type="radio" name="delivery" value="installation">
+                            <div class="option-content">
+                                <div class="option-icon">👷</div>
+                                <div class="option-text">
+                                    <div class="option-title">Доставка и установка</div>
+                                    <div class="option-description" id="installationPrice">от 1 500 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Адрес доставки (скрыт по умолчанию) -->
+                    <div class="delivery-address" id="deliveryAddress" style="display: none;">
+                        <h4>Адрес доставки</h4>
+                        <textarea id="addressInput" placeholder="Введите адрес доставки..." rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Дополнительные услуги -->
+                <div class="additional-services">
+                    <h3>Дополнительные услуги</h3>
+                    <div class="services-list">
+                        <label class="service-item">
+                            <input type="checkbox" id="serviceWarranty">
+                            <div class="service-content">
+                                <div class="service-icon">🛡️</div>
+                                <div class="service-text">
+                                    <div class="service-title">Расширенная гарантия</div>
+                                    <div class="service-price">+ 500 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="service-item">
+                            <input type="checkbox" id="serviceAssembly">
+                            <div class="service-content">
+                                <div class="service-icon">🧰</div>
+                                <div class="service-text">
+                                    <div class="service-title">Дополнительный монтаж</div>
+                                    <div class="service-price">+ 1 000 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Итоговая стоимость -->
+                <div class="order-summary">
+                    <h3>Итоговая стоимость</h3>
+                    <div class="summary-details">
+                        <div class="summary-row">
+                            <span>Товар:</span>
+                            <span id="summaryProduct">0 ₽</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Доставка:</span>
+                            <span id="summaryDelivery">0 ₽</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Услуги:</span>
+                            <span id="summaryServices">0 ₽</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span>К оплате:</span>
+                            <span id="summaryTotal">0 ₽</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопки действия -->
+                <div class="order-actions">
+                    <button class="btn btn--secondary" id="cancelOrder">Отмена</button>
+                    <button class="btn btn--primary" id="submitOrder">Оформить заказ</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Подключение JS файлов -->
     <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
     <script src="js/header.js"></script>
-    <script src="js/laminate-product.js"></script> <!-- ОТДЕЛЬНЫЙ ФАЙЛ ДЛЯ ЛАМИНАТА -->
+    <script src="js/laminate-product.js"></script> <!-- ОБНОВЛЕННЫЙ ФАЙЛ -->
     <script src="js/auth-state.js"></script>
     <script src="js/reviews.js"></script>
+    <script src="js/product-manager.js"></script>
     <script src="js/footer.js"></script>
     
     <script>
+        // Инициализация системы отзывов для ламината
         document.addEventListener('DOMContentLoaded', function() {
             console.log('laminate-product.html загружен');
             
-            // Устанавливаем глобальную переменную для отзывов
-            window.isLaminateProduct = true;
+            // Создаем глобальную переменную для productId
+            const urlParams = new URLSearchParams(window.location.search);
+            window.currentProductId = urlParams.get('id');
+            window.isLaminateProduct = true; // Флаг что это ламинат
             
-            // Создаем контейнер для отзывов
-            const reviewsTab = document.getElementById('reviews');
-            if (reviewsTab) {
-                reviewsTab.innerHTML = `
-                    <div id="reviewsContainer">
-                        <div class="reviews-header">
-                            <h2 class="reviews-title">Отзывы покупателей</h2>
-                            <div class="reviews-stats">
-                                <div class="reviews-average">0.0 ★</div>
-                                <div class="reviews-count">0 отзывов</div>
-                            </div>
-                        </div>
-                        <div class="reviews-actions">
-                            <button class="review-add-btn" id="addReviewBtn">
-                                <span>💬 Оставить отзыв</span>
-                            </button>
-                        </div>
-                        <div class="reviews-list" id="reviewsList">
-                            <div class="no-reviews">
-                                <div class="no-reviews__icon">💬</div>
-                                <div class="no-reviews__text">Пока нет отзывов. Будьте первым!</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+            // Добавляем дополнительные стили
+            const style = document.createElement('style');
+            style.textContent = `
+                .installation-steps {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                    margin-top: 20px;
+                }
+                
+                .step {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 15px;
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 10px;
+                    border-left: 4px solid #eabb66;
+                }
+                
+                .step-icon {
+                    font-size: 28px;
+                    flex-shrink: 0;
+                }
+                
+                .step-content h4 {
+                    margin: 0 0 8px 0;
+                    color: #2c3e50;
+                }
+                
+                .step-content p {
+                    margin: 0;
+                    color: #666;
+                    line-height: 1.5;
+                }
+                
+                .delivery-note {
+                    margin-top: 20px;
+                    padding: 15px;
+                    background: rgba(231, 76, 60, 0.05);
+                    border-radius: 8px;
+                    border-left: 4px solid #e74c3c;
+                }
+                
+                .laminate-features {
+                    display: grid;
+                    gap: 15px;
+                }
+                
+                .laminate-feature {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 10px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                }
+                
+                .laminate-feature img {
+                    width: 24px;
+                    height: 24px;
+                }
+            `;
+            document.head.appendChild(style);
         });
     </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('laminate-product.html загружен');
+        
+        // Создаем глобальную переменную для productId
+        const urlParams = new URLSearchParams(window.location.search);
+        window.currentProductId = urlParams.get('id');
+        window.isLaminateProduct = true; // Флаг что это ламинат
+        
+        // Инициализируем систему отзывов после загрузки товара
+        setTimeout(() => {
+            if (window.reviewSystem) {
+                console.log('✅ Система отзывов для ламината инициализирована');
+            } else {
+                console.log('🔄 Ручная инициализация системы отзывов для ламината');
+                if (window.currentProductId) {
+                    window.reviewSystem = new ReviewSystem();
+                }
+            }
+        }, 2000); // Даем время на загрузку товара
+    });
+</script>
+<script>
+    // Функция для обновления счетчика отзывов
+    function updateReviewsCount() {
+        const productId = window.currentProductId;
+        if (!productId || !window.pb) {
+            setTimeout(updateReviewsCount, 500); // Повторяем через 0.5 сек
+            return;
+        }
+
+        // Загружаем количество отзывов
+        window.pb.collection('reviews_laminate').getList(1, 1, {
+            filter: `product = "${productId}" && approved = true`,
+            requestKey: null
+        }).then(reviews => {
+            const reviewsTabBtn = document.querySelector('[data-tab="reviews"]');
+            if (reviewsTabBtn) {
+                // Удаляем старый счетчик
+                const oldCounter = reviewsTabBtn.querySelector('.tab-counter');
+                if (oldCounter) oldCounter.remove();
+                
+                // Добавляем новый счетчик если есть отзывы
+                if (reviews.totalItems > 0) {
+                    const counter = document.createElement('span');
+                    counter.className = 'tab-counter';
+                    counter.textContent = ` (${reviews.totalItems})`;
+                    counter.style.cssText = `
+                        margin-left: 8px;
+                        background: linear-gradient(135deg, #e74c3c, #c0392b);
+                        color: white;
+                        padding: 2px 8px;
+                        border-radius: 12px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    `;
+                    reviewsTabBtn.appendChild(counter);
+                }
+            }
+        }).catch(error => {
+            console.log('Не удалось загрузить счетчик отзывов:', error);
+        });
+    }
+
+    // Инициализация после загрузки страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ждем загрузки PocketBase и productId
+        setTimeout(() => {
+            updateReviewsCount();
+            
+            // Также обновляем счетчик при смене вкладок
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    if (this.dataset.tab === 'reviews') {
+                        // Можно добавить небольшую задержку для обновления
+                        setTimeout(updateReviewsCount, 100);
+                    }
+                });
+            });
+        }, 1000);
+    });
+</script>
 </body>
 </html>

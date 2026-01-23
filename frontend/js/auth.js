@@ -109,8 +109,29 @@ class AuthManager {
                 throw new Error('PocketBase не инициализирован');
             }
             
+            // Преобразуем телефон в числовой формат (убираем все нецифровые символы)
+            let phoneNumber = null;
+            if (data.phone && data.phone.trim() !== '') {
+                // Убираем форматирование, оставляем только цифры
+                phoneNumber = data.phone.replace(/\D/g, '');
+                
+                // Если начинается с +7 или 7, убираем код страны для сохранения
+                if (phoneNumber.startsWith('7')) {
+                    phoneNumber = phoneNumber.substring(1); // Убираем первую 7
+                }
+                
+                // Преобразуем в число
+                phoneNumber = parseInt(phoneNumber, 10);
+                
+                console.log('📱 Номер телефона для сохранения (число):', phoneNumber);
+                
+                // Проверка на валидность номера
+                if (isNaN(phoneNumber) || phoneNumber.toString().length < 10) {
+                    throw new Error('Некорректный номер телефона');
+                }
+            }
+            
             // Подготовка данных для PocketBase
-            // ВАЖНО: роль должна быть 'users' (согласно вашей структуре таблицы)
             const userData = {
                 email: data.email.trim(),
                 emailVisibility: true,
@@ -120,10 +141,16 @@ class AuthManager {
                 roles: 'users' // ← ПРАВИЛЬНАЯ РОЛЬ: 'users' а не 'user'
             };
             
-            // Добавляем телефон только если он заполнен
-            const phone = data.phone ? data.phone.trim() : '';
-            if (phone && phone !== '+7 (' && phone !== '+7') {
-                userData.phone = phone;
+            // Добавляем телефон как ЧИСЛО если он заполнен
+            if (phoneNumber) {
+                userData.phone = phoneNumber;
+                console.log('📱 Телефон (число) для сохранения:', phoneNumber);
+            }
+            
+            // Проверяем и форматируем адрес если нужно
+            const address = data.address ? data.address.trim() : '';
+            if (address) {
+                userData.address = address;
             }
             
             console.log('📤 Отправляемые данные:', userData);
@@ -142,7 +169,15 @@ class AuthManager {
             
             // Перенаправление
             setTimeout(() => {
-                window.location.href = 'index.html';
+                // Если есть параметр redirect в URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect = urlParams.get('redirect');
+                
+                if (redirect) {
+                    window.location.href = redirect;
+                } else {
+                    window.location.href = 'personal.html'; // Или index.html
+                }
             }, 2000);
             
         } catch (error) {
@@ -164,6 +199,8 @@ class AuthManager {
                     errorMessage = `Ошибка роли: ${errors.roles.message || 'Используйте значение users'}`;
                 } else if (errors.name) {
                     errorMessage = 'Некорректное имя';
+                } else if (errors.phone) {
+                    errorMessage = `Ошибка телефона: ${errors.phone.message || 'Некорректный формат телефона (должен быть числом)'}`;
                 } else {
                     // Показываем первую ошибку
                     const firstError = Object.values(errors)[0];

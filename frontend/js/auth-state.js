@@ -4,49 +4,47 @@ class AuthStateManager {
     constructor() {
         this.currentUser = null;
         this.userElementId = 'user-info-header';
+        this.pb = null;
+        
+        // Проверяем, на какой странице мы находимся
+        this.isProfilePage = window.location.pathname.includes('personal.html');
+        
         this.init();
     }
 
     init() {
         console.log('🔐 Инициализация менеджера аутентификации...');
         
-        // Проверяем наличие PocketBase
-        if (typeof PocketBase === 'undefined') {
-            console.warn('⚠️ PocketBase не загружен, проверка состояния невозможна');
-            this.loadFromLocalStorage();
-            return;
+        // Инициализируем PocketBase
+        if (typeof PocketBase !== 'undefined') {
+            this.pb = new PocketBase('http://127.0.0.1:8090');
+            this.pb.autoCancellation(false);
         }
         
-        this.pb = new PocketBase('http://127.0.0.1:8090');
         this.checkAuthState();
-        
-        // Слушаем изменения состояния
         this.setupAuthListeners();
-        
-        // Обработчик для кнопки выхода (будет добавлена динамически)
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('#logout-button')) {
-                e.preventDefault();
-                this.logout();
-            }
-        });
     }
 
     async checkAuthState() {
         try {
-            // Проверяем аутентификацию через PocketBase
-            const isAuthenticated = this.pb.authStore.isValid;
+            const isAuthenticated = this.pb && this.pb.authStore.isValid;
             
             if (isAuthenticated) {
-                this.currentUser = this.pb.authStore.model;
-                console.log('✅ Пользователь авторизован:', this.currentUser);
-                this.saveToLocalStorage();
+                // Загружаем полные данные пользователя
+                try {
+                    this.currentUser = await this.pb.collection('users').getOne(this.pb.authStore.model.id);
+                    this.saveToLocalStorage();
+                } catch (error) {
+                    console.error('❌ Ошибка загрузки данных пользователя:', error);
+                    this.currentUser = this.pb.authStore.model;
+                }
             } else {
                 this.currentUser = null;
                 console.log('🚪 Пользователь не авторизован');
                 this.clearLocalStorage();
             }
             
+            // Обновляем UI только если на странице есть контейнер
             this.updateUI();
             
         } catch (error) {
@@ -56,38 +54,45 @@ class AuthStateManager {
     }
 
     updateUI() {
-        const userContainer = document.getElementById(this.userElementId);
-        if (!userContainer) {
-            console.warn('⚠️ Контейнер для пользователя не найден');
+        // На профильной странице всегда есть контейнер
+        if (this.isProfilePage) {
+            const userContainer = document.getElementById(this.userElementId);
+            if (userContainer) {
+                this.renderProfileUserInfo(userContainer);
+            }
             return;
         }
         
-        // Очищаем контейнер
-        userContainer.innerHTML = '';
+        // На других страницах ищем контейнер в хедере
+        const headerUser = document.querySelector('.header-user-info')?.parentElement ||
+                          document.querySelector('[id*="user"], [class*="user-info"]');
         
-        if (this.currentUser) {
-            // Пользователь авторизован
-            this.renderUserInfo(userContainer);
-        } else {
-            // Пользователь не авторизован - показываем кнопки входа
-            this.renderGuestButtons(userContainer);
+        if (headerUser) {
+            if (this.currentUser) {
+                this.renderHeaderUserInfo(headerUser);
+            } else {
+                this.renderGuestButtons(headerUser);
+            }
         }
     }
 
-    renderUserInfo(container) {
+    // Для профильной страницы
+    renderProfileUserInfo(container) {
         const user = this.currentUser;
-        const firstName = user.name || user.username || 'Пользователь';
+        if (!user) return;
+        
+        const firstName = user.name || 'Пользователь';
         const email = user.email || '';
         const initials = this.getUserInitials(firstName);
+        const avatarUrl = user.avatar ? this.pb.files.getUrl(user, user.avatar, {'thumb': '100x100'}) : null;
         
-        const userInfoHTML = `
+        container.innerHTML = `
             <div class="header-user-info">
-                <a href="profile.html" class="user-profile-link">
-                    <div class="user-avatar" title="${firstName}">
-                        ${initials}
-                        ${user.role === 'admin' ? '<div class="user-role-badge">A</div>' : ''}
-                        <div class="user-status-indicator"></div>
-                    </div>
+                <a href="personal.html" class="user-profile-link">
+                    ${avatarUrl ? 
+                        `<div class="user-avatar" style="background-image: url(${avatarUrl})"></div>` :
+                        `<div class="user-avatar">${initials}</div>`
+                    }
                     <div class="user-details">
                         <div class="user-name">${firstName}</div>
                         <div class="user-email" title="${email}">${email}</div>
@@ -99,19 +104,41 @@ class AuthStateManager {
                 </button>
             </div>
         `;
+    }
+
+    // Для хедера других страниц
+    renderHeaderUserInfo(container) {
+        const user = this.currentUser;
+        if (!user) return;
         
-        container.innerHTML = userInfoHTML;
+        const firstName = user.name || 'Пользователь';
+        const email = user.email || '';
+        const initials = this.getUserInitials(firstName);
+        
+        container.innerHTML = `
+            <div class="header-user-info">
+                <a href="personal.html" class="user-profile-link">
+                    <div class="user-avatar">${initials}</div>
+                    <div class="user-details">
+                        <div class="user-name">${firstName}</div>
+                        <div class="user-email" title="${email}">${email}</div>
+                    </div>
+                </a>
+                <button class="logout-btn" id="logout-button">
+                    <span>Выйти</span>
+                    <span class="logout-btn-icon">🚪</span>
+                </button>
+            </div>
+        `;
     }
 
     renderGuestButtons(container) {
-        const guestButtonsHTML = `
+        container.innerHTML = `
             <div class="auth-buttons">
                 <a href="login.html" class="btn btn--secondary btn-auth">Войти</a>
                 <a href="register.html" class="btn btn--primary btn-auth">Регистрация</a>
             </div>
         `;
-        
-        container.innerHTML = guestButtonsHTML;
     }
 
     getUserInitials(name) {
@@ -271,7 +298,6 @@ window.isUserAuthenticated = () => {
 // Синхронизация между вкладками
 window.addEventListener('storage', (e) => {
     if (e.key === 'pb_auth' && authManager) {
-        console.log('🔄 Синхронизация состояния аутентификации между вкладками');
         authManager.checkAuthState();
     }
 });

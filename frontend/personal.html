@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - ПолиАрт</title>
+    <link rel="stylesheet" href="css/HeaderAndFooter.css">
+    <link rel="stylesheet" href="css/personal.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header"></header>
+
+    <main class="profile-page">
+        <div class="container">
+            <!-- Баннер профиля -->
+            <div class="profile-banner">
+                <div class="profile-banner__content">
+                    <h1>Личный кабинет</h1>
+                    <p>Управление вашими данными, заказами и корзиной</p>
+                </div>
+            </div>
+
+            <div class="profile-layout">
+                <!-- Левая колонка - информация профиля -->
+                <aside class="profile-sidebar">
+                    <!-- Аватар и основная информация -->
+                    <div class="profile-card">
+                        <div class="profile-avatar" id="userAvatar">
+                            <!-- Аватар загрузится через JS -->
+                            <div class="avatar-placeholder">
+                                <span id="avatarInitials">И</span>
+                            </div>
+                            <div class="avatar-overlay" onclick="testAvatarUpload()">
+                                <span class="avatar-change-icon">📷</span>
+                                <span class="avatar-change-text">Изменить</span>
+                            </div>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                        
+                        <div class="profile-info">
+                            <h2 class="profile-name" id="userName">Иван Иванов</h2>
+                            <p class="profile-email" id="userEmail">user@example.com</p>
+                            <p class="profile-role" id="userRole">Покупатель</p>
+                        </div>
+
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <div class="stat-icon">🛒</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="cartCount">0</div>
+                                    <div class="stat-label">в корзине</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-icon">📦</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="ordersCount">0</div>
+                                    <div class="stat-label">заказов</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-icon">⭐</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="reviewsCount">0</div>
+                                    <div class="stat-label">отзывов</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Навигация -->
+                    <nav class="profile-nav">
+                        <button class="nav-btn active" data-tab="personal">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-text">Личные данные</span>
+                        </button>
+                        <button class="nav-btn" data-tab="security">
+                            <span class="nav-icon">🔒</span>
+                            <span class="nav-text">Безопасность</span>
+                        </button>
+                        <button class="nav-btn" data-tab="cart">
+                            <span class="nav-icon">🛒</span>
+                            <span class="nav-text">Корзина</span>
+                            <span class="nav-badge" id="cartBadge">0</span>
+                        </button>
+                        <button class="nav-btn" data-tab="orders">
+                            <span class="nav-icon">📦</span>
+                            <span class="nav-text">Мои заказы</span>
+                        </button>
+                        <button class="nav-btn" data-tab="reviews">
+                            <span class="nav-icon">⭐</span>
+                            <span class="nav-text">Мои отзывы</span>
+                        </button>
+                        
+                        <div class="nav-divider"></div>
+                        
+                        <button class="nav-btn nav-btn--logout" id="logoutBtn">
+                            <span class="nav-icon">🚪</span>
+                            <span class="nav-text">Выйти</span>
+                        </button>
+                    </nav>
+                </aside>
+
+                <!-- Правая колонка - контент -->
+                <div class="profile-content">
+                    <!-- Личные данные -->
+                    <div class="tab-content active" id="personalTab">
+                        <div class="tab-header">
+                            <h2>Личные данные</h2>
+                            <p>Управление основной информацией профиля</p>
+                        </div>
+                        
+                        <form class="profile-form" id="personalForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">Имя</label>
+                                    <input type="text" id="firstName" name="firstName" 
+                                           placeholder="Введите ваше имя" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Фамилия</label>
+                                    <input type="text" id="lastName" name="lastName" 
+                                           placeholder="Введите вашу фамилию" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" 
+                                       placeholder="Введите ваш email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone">Телефон</label>
+                                <input type="tel" id="phone" name="phone" 
+                                    placeholder="+7 (___) ___-__-__"
+                                    pattern="\+7\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}"
+                                    title="Формат: +7 (XXX) XXX-XX-XX">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="address">Адрес доставки</label>
+                                <textarea id="address" name="address" 
+                                          rows="3" placeholder="Введите ваш адрес"></textarea>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn--secondary" id="cancelPersonal">
+                                    Отмена
+                                </button>
+                                <button type="submit" style="border: none !important;" class="btn btn--primary" id="savePersonal">
+                                    Сохранить изменения
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Безопасность -->
+                    <div class="tab-content" id="securityTab">
+                        <div class="tab-header">
+                            <h2>Безопасность</h2>
+                            <p>Изменение пароля и настройки безопасности</p>
+                        </div>
+                        
+                        <form class="profile-form" id="securityForm">
+                            <div class="form-group">
+                                <label for="currentPassword">Текущий пароль</label>
+                                <div class="password-input">
+                                    <input type="password" id="currentPassword" 
+                                           placeholder="Введите текущий пароль" required>
+                                    <button type="button" class="password-toggle" 
+                                            data-target="currentPassword">👁️</button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="newPassword">Новый пароль</label>
+                                <div class="password-input">
+                                    <input type="password" id="newPassword" 
+                                           placeholder="Введите новый пароль" required>
+                                    <button type="button" class="password-toggle" 
+                                            data-target="newPassword">👁️</button>
+                                </div>
+                                <div class="password-strength">
+                                    <div class="strength-bar"></div>
+                                    <div class="strength-text">Надежность пароля: <span>слабый</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="confirmPassword">Подтвердите пароль</label>
+                                <div class="password-input">
+                                    <input type="password" id="confirmPassword" 
+                                           placeholder="Повторите новый пароль" required>
+                                    <button type="button" class="password-toggle" 
+                                            data-target="confirmPassword">👁️</button>
+                                </div>
+                                <div class="password-match" id="passwordMatch"></div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn--secondary" id="cancelSecurity">
+                                    Отмена
+                                </button>
+                                <button type="submit" style="border: none !important;" class="btn btn--primary" id="changePassword">
+                                    Изменить пароль
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Корзина -->
+                    <div class="tab-content" id="cartTab">
+                        <div class="tab-header">
+                            <h2>Корзина</h2>
+                            <p>Товары, которые вы добавили в корзину</p>
+                        </div>
+                        
+                        <div class="cart-container">
+                            <!-- Список товаров в корзине -->
+                            <div class="cart-items" id="cartItems">
+                                <!-- Товары загружаются через JS -->
+                                <div class="cart-empty">
+                                    <div class="empty-icon">🛒</div>
+                                    <h3>Корзина пуста</h3>
+                                    <p>Добавьте товары из каталога</p>
+                                    <a href="catalog.html" style="border: none !important;" class="btn btn--primary">Перейти в каталог</a>
+                                </div>
+                            </div>
+                            
+                            <!-- Итого -->
+                            <div class="cart-summary" id="cartSummary" style="display: none;">
+                                <h3>Итого</h3>
+                                <div class="summary-row">
+                                    <span>Товаров:</span>
+                                    <span id="totalItems">0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Общая стоимость:</span>
+                                    <span class="total-price" id="totalPrice">0 ₽</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Доставка:</span>
+                                    <span id="deliveryCost">Бесплатно</span>
+                                </div>
+                                <div class="summary-row summary-total">
+                                    <span>К оплате:</span>
+                                    <span class="final-price" id="finalPrice">0 ₽</span>
+                                </div>
+                                <button class="btn btn--primary btn--large" id="checkoutBtn">
+                                    Оформить заказ
+                                </button>
+                                <p class="cart-note">
+                                    * Доставка бесплатна при заказе от 15 000 ₽
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Мои заказы -->
+                    <div class="tab-content" id="ordersTab">
+                        <div class="tab-header">
+                            <h2>Мои заказы</h2>
+                            <p>История ваших заказов</p>
+                        </div>
+                        
+                        <div class="orders-container" id="ordersContainer">
+                            <!-- Заказы загружаются через JS -->
+                            <div class="orders-empty">
+                                <div class="empty-icon">📦</div>
+                                <h3>Заказов пока нет</h3>
+                                <p>Совершите свой первый заказ!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Мои отзывы -->
+                    <div class="tab-content" id="reviewsTab">
+                        <div class="tab-header">
+                            <h2>Мои отзывы</h2>
+                            <p>Отзывы, которые вы оставили</p>
+                        </div>
+                        
+                        <div class="reviews-container" id="userReviews">
+                            <!-- Отзывы загружаются через JS -->
+                            <div class="reviews-empty">
+                                <div class="empty-icon">⭐</div>
+                                <h3>Отзывов пока нет</h3>
+                                <p>Оставьте свой первый отзыв на товар!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer"></footer>
+
+    <!-- Подключение JS файлов -->
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/auth-state.js"></script>
+    <script src="js/personal.js"></script>
+    <script src="js/footer.js"></script>
+    
+    <script>
+        // Редирект на страницу входа если пользователь не авторизован
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                if (!window.authManager || !window.authManager.isAuthenticated()) {
+                    window.location.href = 'login.html?redirect=profile.html';
+                }
+            }, 1000);
+        });
+
+        // Тестовые функции
+function testAvatarUpload() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        console.log('🧪 Тестируем загрузку файла:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+        
+        // Создаем FormData
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        try {
+            console.log('📤 Отправляем тестовый запрос...');
+            const response = await fetch(`http://127.0.0.1:8090/api/collections/users/records/${window.userProfile.currentUser.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': window.userProfile.pb.authStore.token
+                },
+                body: formData
+            });
+            
+            const result = await response.json();
+            console.log('📥 Ответ сервера:', result);
+            
+            if (response.ok) {
+                // Обновляем данные
+                window.userProfile.loadUserData();
+            }
+        } catch (error) {
+            console.error('❌ Ошибка теста:', error);
+        }
+    };
+    
+    fileInput.click();
+}
+    </script>
+</body>
+</html>

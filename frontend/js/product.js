@@ -276,49 +276,34 @@ function createPageStructure() {
         }
     }
     
-    // Проверяем есть ли галерея
-    let productGallery = document.querySelector('.product-gallery');
-    
-    if (!productGallery) {
-        console.log('Создание галереи...');
-        
-        productGallery = document.createElement('div');
-        productGallery.className = 'product-gallery';
-        
-        productGallery.innerHTML = `
-            <div class="gallery-thumbs">
-                <!-- Миниатюры загрузятся динамически -->
+    // ИСПРАВЛЕННАЯ СТРУКТУРА: Используем существующие стили из product.css
+    productMainInner.innerHTML = `
+        <div class="product-gallery-section">
+            <div class="product-gallery" id="productGallery">
+                <div class="gallery-thumbs" id="galleryThumbs">
+                    <!-- Миниатюры загрузятся динамически -->
+                </div>
+                <div class="gallery-main">
+                    <img src="" alt="" class="gallery-main__image" id="mainImage">
+                </div>
             </div>
-            <div class="gallery-main">
-                <img src="" alt="" class="gallery-main__image" id="mainImage">
-            </div>
-        `;
+        </div>
         
-        productMainInner.appendChild(productGallery);
-    }
-    
-    // Проверяем есть ли информация о товаре
-    let productInfo = document.querySelector('.product-info');
-    
-    if (!productInfo) {
-        console.log('Создание блока информации...');
-        
-        productInfo = document.createElement('div');
-        productInfo.className = 'product-info';
-        
-        productInfo.innerHTML = `
+        <div class="product-info-section">
             <h1 class="product-title" id="productTitle">Загрузка...</h1>
-            <div class="product-sku" id="productSku">Артикул: ---</div>
+            <div class="product-sku" id="productSku">Код: ---</div>
             
-            <div class="product-price" id="productPrice">
-                <span class="price-current">--- ₽</span>
+            <div class="product-price-block">
+                <div class="product-price" id="productPrice">
+                    <span class="price-current">--- ₽</span>
+                </div>
             </div>
 
             <div class="product-actions" id="productActions">
                 <!-- Кнопки загрузятся динамически -->
             </div>
 
-            <div class="product-features">
+            <div class="product-features" id="productFeatures">
                 <div class="feature">
                     <div class="feature-icon"><img src="image/icon/thuislevering.png" alt="Грузовик"></div>
                     <div class="feature-text">Бесплатная доставка по Новгороду</div>
@@ -332,14 +317,8 @@ function createPageStructure() {
                     <div class="feature-text">Гарантия 3 года</div>
                 </div>
             </div>
-
-            <div class="product-quick-specs" id="productQuickSpecs">
-                <!-- Характеристики загрузятся динамически -->
-            </div>
-        `;
-        
-        productMainInner.appendChild(productInfo);
-    }
+        </div>
+    `;
     
     console.log('Структура страницы создана');
 }
@@ -360,10 +339,14 @@ function fillBasicInfo(product, isLaminate) {
         titleElement.textContent = product.name || 'Без названия';
     }
     
-    // Артикул
+    // Артикул (используем ID из БД)
     if (skuElement) {
-        const sku = product.number_id || product.id.substring(0, 8);
-        skuElement.textContent = `Артикул: ${sku}`;
+        // Используем ID товара из БД (первые 8 символов для читаемости)
+        const productId = product.id;
+        const shortId = productId.substring(0, 8); // Берём первые 8 символов ID
+        skuElement.textContent = `Код товара: ${shortId}`;
+        // Добавляем полный ID в data-атрибут если нужно
+        skuElement.dataset.fullId = productId;
     }
     
     // Цена
@@ -419,14 +402,11 @@ function fillBasicInfo(product, isLaminate) {
     // КНОПКИ ДЕЙСТВИЙ
     if (productActions) {
         productActions.innerHTML = `
-            <button class="btn btn--primary open-measure-modal">
-                <span class="btn-icon"><img src="image/icon/baske.png" alt="Корзина"></span>
-                Оформить заказ
-            </button>
-            <button class="btn btn--primary open-calculator">
-                <span class="btn-icon"><img src="image/icon/calculator.png" alt="Калькулятор"></span>
-                Рассчитать стоимость
-            </button>
+            <div class="product-actions">
+                <button class="btn btn--primary" id="orderBtn">
+                    <span>🛒 Оформить заказ</span>
+                </button>
+            </div>
         `;
         
         // Обработчики для кнопок
@@ -1255,8 +1235,9 @@ async function loadSimilarProducts(currentProduct, collectionName) {
             return;
         }
         
-        // Вычисляем похожесть с приоритетом по материалу
-        const similarProducts = findSimilarProductsByMaterial(currentProduct, allProducts, collectionName);
+        // Вычисляем похожесть и берем только 4 товара
+        const similarProducts = findSimilarProductsByMaterial(currentProduct, allProducts, collectionName)
+            .slice(0, 4); // Берем только 4 товара
         
         console.log('Похожие товары найдены:', similarProducts.length);
         displaySimilarProducts(similarProducts, collectionName);
@@ -1548,26 +1529,25 @@ function displaySimilarProducts(products, collectionName, reset = true) {
     const noResults = document.getElementById('noSimilarProducts');
     const loadMoreBtn = document.getElementById('loadMoreSimilar');
     
+    // Удаляем кнопку "Показать еще" если она есть
+    if (loadMoreBtn) {
+        loadMoreBtn.remove();
+    }
+    
     if (reset) {
-        allSimilarProducts = products;
-        displayedSimilarCount = 0;
         grid.innerHTML = '';
     }
     
     toggleSimilarProductsLoader(false);
     
-    if (!allSimilarProducts || allSimilarProducts.length === 0) {
+    if (!products || products.length === 0) {
         if (grid) grid.style.display = 'none';
         if (noResults) noResults.style.display = 'block';
-        if (loadMoreBtn) loadMoreBtn.style.display = 'none';
         return;
     }
     
-    // Определяем сколько товаров показать
-    const productsToShow = allSimilarProducts.slice(
-        displayedSimilarCount, 
-        displayedSimilarCount + SIMILAR_PER_PAGE
-    );
+    // Добавляем только до 4 товаров
+    const productsToShow = products.slice(0, 4);
     
     // Добавляем товары в сетку
     productsToShow.forEach(product => {
@@ -1575,104 +1555,17 @@ function displaySimilarProducts(products, collectionName, reset = true) {
         grid.appendChild(productCard);
     });
     
-    // Обновляем счетчик
-    displayedSimilarCount += productsToShow.length;
-    
-    // Показываем/скрываем кнопку "Показать еще"
-    if (displayedSimilarCount < allSimilarProducts.length) {
-        if (!loadMoreBtn) {
-            createLoadMoreButton(collectionName);
-        } else {
-            loadMoreBtn.style.display = 'block';
-            loadMoreBtn.textContent = `Показать еще (${allSimilarProducts.length - displayedSimilarCount})`;
-        }
-    } else {
-        if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-    }
-    
     // Скрываем сообщение об отсутствии товаров
     if (noResults) noResults.style.display = 'none';
-}
-
-// Создание кнопки "Показать еще"
-function createLoadMoreButton(collectionName) {
-    const container = document.querySelector('.recommended-products .container');
-    if (!container) return;
-    
-    // Удаляем старую кнопку если есть
-    const oldBtn = document.getElementById('loadMoreSimilar');
-    if (oldBtn) oldBtn.remove();
-    
-    // Создаем новую кнопку
-    const loadMoreBtn = document.createElement('button');
-    loadMoreBtn.id = 'loadMoreSimilar';
-    loadMoreBtn.className = 'load-more-btn';
-    loadMoreBtn.innerHTML = `
-        <span>Загрузить еще</span>
-        <span class="load-more-count">(${Math.min(SIMILAR_PER_PAGE, allSimilarProducts.length - displayedSimilarCount)})</span>
-    `;
-    
-    // Добавляем стили
-    loadMoreBtn.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-        padding: 15px;
-        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin: 20px auto 0;
-        max-width: 300px;
-    `;
-    
-    // Создаем элемент для счетчика
-    const countSpan = document.createElement('span');
-    countSpan.className = 'load-more-count';
-    countSpan.style.cssText = `
-        background: white;
-        color: #e74c3c;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 700;
-    `;
-    
-    // Обновляем текст кнопки
-    const remaining = allSimilarProducts.length - displayedSimilarCount;
-    const toShow = Math.min(SIMILAR_PER_PAGE, remaining);
-    
-    loadMoreBtn.querySelector('span:first-child').textContent = 'Загрузить еще';
-    loadMoreBtn.querySelector('.load-more-count').textContent = `(${toShow})`;
-    
-    // Добавляем обработчик
-    loadMoreBtn.addEventListener('click', () => {
-        displaySimilarProducts(allSimilarProducts, collectionName, false);
-    });
-    
-    loadMoreBtn.addEventListener('mouseenter', () => {
-        loadMoreBtn.style.transform = 'translateY(-2px)';
-        loadMoreBtn.style.boxShadow = '0 4px 15px rgba(231, 76, 60, 0.3)';
-    });
-    
-    loadMoreBtn.addEventListener('mouseleave', () => {
-        loadMoreBtn.style.transform = 'translateY(0)';
-        loadMoreBtn.style.boxShadow = 'none';
-    });
-    
-    container.appendChild(loadMoreBtn);
 }
 
 // Обновленная функция createSimilarProductCard с выделением материала
 function createSimilarProductCard(product, collectionName) {
     const card = document.createElement('div');
     card.className = 'product-card';
+    
+    // Получаем короткий ID
+    const shortId = product.id.substring(0, 8);
     
     // Получаем материал товара
     const productMaterial = getProductMaterial(product, collectionName);
@@ -1763,6 +1656,7 @@ function createSimilarProductCard(product, collectionName) {
     
     return card;
 }
+
 // Добавляем CSS стили для выделения материала
 const materialStyles = `
     .product-spec {
@@ -2590,3 +2484,296 @@ console.log('Product.js загружен и готов к работе!');
 
 // Временная заглушка для отладки
 console.log('Product.js загружен, ожидаем PocketBase...');
+
+
+
+class ProductPage {
+    setupEventListeners() {
+        // Кнопка "Заказать" или "Оформить заказ" на странице товара
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#orderBtn') || 
+                e.target.closest('[data-action="order"]') ||
+                e.target.closest('.btn-order')) {
+                e.preventDefault();
+                this.openOrderModal();
+            }
+        });
+        
+        // Модальное окно заказа
+        this.setupOrderModalListeners();
+    }
+    
+    setupOrderModalListeners() {
+        // Закрытие модального окна
+        document.getElementById('closeOrderModal')?.addEventListener('click', () => {
+            this.closeOrderModal();
+        });
+        
+        document.getElementById('cancelOrder')?.addEventListener('click', () => {
+            this.closeOrderModal();
+        });
+        
+        document.querySelector('#orderModal .modal-overlay')?.addEventListener('click', (e) => {
+            if (e.target === document.querySelector('#orderModal .modal-overlay')) {
+                this.closeOrderModal();
+            }
+        });
+        
+        // Количество товара
+        document.querySelector('.qty-minus')?.addEventListener('click', () => {
+            this.changeQuantity(-1);
+        });
+        
+        document.querySelector('.qty-plus')?.addEventListener('click', () => {
+            this.changeQuantity(1);
+        });
+        
+        document.getElementById('orderQuantity')?.addEventListener('input', (e) => {
+            this.updateOrderSummary();
+        });
+        
+        // Доставка
+        document.querySelectorAll('input[name="delivery"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                this.handleDeliveryChange();
+            });
+        });
+        
+        // Дополнительные услуги
+        document.getElementById('serviceWarranty')?.addEventListener('change', () => {
+            this.updateOrderSummary();
+        });
+        
+        document.getElementById('serviceAssembly')?.addEventListener('change', () => {
+            this.updateOrderSummary();
+        });
+        
+        // Переключение типа заказа
+        document.querySelectorAll('input[name="orderType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.handleOrderTypeChange(e.target.value);
+            });
+        });
+        
+        // Оформление заказа
+        document.getElementById('submitOrder')?.addEventListener('click', () => {
+            this.submitOrder();
+        });
+    }
+    
+    openOrderModal() {
+        if (!window.authManager || !window.authManager.isAuthenticated()) {
+            // Перенаправляем на страницу входа
+            window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+            return;
+        }
+        
+        const modal = document.getElementById('orderModal');
+        if (!modal) return;
+        
+        // Заполняем информацию о товаре
+        this.fillOrderModal();
+        
+        // Сбрасываем значения по умолчанию
+        document.getElementById('orderQuantity').value = 1;
+        document.querySelector('input[name="delivery"][value="pickup"]').checked = true;
+        document.getElementById('serviceWarranty').checked = false;
+        document.getElementById('serviceAssembly').checked = false;
+        document.getElementById('addressInput').value = '';
+        document.getElementById('deliveryAddress').style.display = 'none';
+        
+        // Показываем модальное окно
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Обновляем итоговую стоимость
+        this.updateOrderSummary();
+    }
+    
+    closeOrderModal() {
+        const modal = document.getElementById('orderModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+    
+    fillOrderModal() {
+        // Заполняем информацией о текущем товаре
+        document.getElementById('orderProductName').textContent = this.productData.name || 'Товар';
+        document.getElementById('orderProductPrice').textContent = this.getProductPrice() + ' ₽';
+        
+        // Загружаем изображение
+        const image = this.getProductImage();
+        if (image) {
+            document.getElementById('orderProductImage').src = image;
+        }
+    }
+    
+    getProductPrice() {
+        // Возвращает цену товара
+        return this.productData.price || 0;
+    }
+    
+    getProductImage() {
+        // Возвращает URL изображения товара
+        if (this.productData.images && this.productData.images.length > 0) {
+            return this.pb.files.getUrl(this.productData, this.productData.images[0]);
+        }
+        return '';
+    }
+    
+    changeQuantity(delta) {
+        const input = document.getElementById('orderQuantity');
+        let value = parseInt(input.value) || 1;
+        value += delta;
+        
+        if (value < 1) value = 1;
+        if (value > 99) value = 99;
+        
+        input.value = value;
+        this.updateOrderSummary();
+    }
+    
+    handleDeliveryChange() {
+        const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+        const addressContainer = document.getElementById('deliveryAddress');
+        
+        // Показываем/скрываем поле адреса
+        if (deliveryType === 'delivery' || deliveryType === 'installation') {
+            addressContainer.style.display = 'block';
+        } else {
+            addressContainer.style.display = 'none';
+        }
+        
+        this.updateOrderSummary();
+    }
+    
+    handleOrderTypeChange(type) {
+        // Обновляем UI в зависимости от типа заказа
+        const productInfo = document.querySelector('.order-product-info');
+        const switchLabels = document.querySelectorAll('.switch-label');
+        
+        switchLabels.forEach(label => {
+            label.classList.toggle('active', label.dataset.type === type);
+        });
+        
+        if (type === 'multiple') {
+            // Для нескольких товаров показываем другую форму
+            productInfo.innerHTML = `
+                <div class="multiple-products">
+                    <h3>Выберите товары</h3>
+                    <p>Добавьте несколько товаров из каталога</p>
+                    <a href="catalog.html" class="btn btn--primary">Перейти в каталог</a>
+                </div>
+            `;
+        } else {
+            // Для одного товара показываем информацию о текущем товаре
+            this.fillOrderModal();
+        }
+        
+        this.updateOrderSummary();
+    }
+    
+    updateOrderSummary() {
+        const quantity = parseInt(document.getElementById('orderQuantity').value) || 1;
+        const productPrice = this.getProductPrice();
+        const productTotal = productPrice * quantity;
+        
+        // Стоимость доставки
+        let deliveryCost = 0;
+        const deliveryType = document.querySelector('input[name="delivery"]:checked')?.value;
+        
+        switch(deliveryType) {
+            case 'delivery':
+                deliveryCost = 500;
+                break;
+            case 'installation':
+                deliveryCost = 1500;
+                break;
+            default:
+                deliveryCost = 0;
+        }
+        
+        // Дополнительные услуги
+        let servicesCost = 0;
+        if (document.getElementById('serviceWarranty')?.checked) servicesCost += 500;
+        if (document.getElementById('serviceAssembly')?.checked) servicesCost += 1000;
+        
+        // Общая стоимость
+        const totalCost = productTotal + deliveryCost + servicesCost;
+        
+        // Обновляем отображение
+        document.getElementById('summaryProduct').textContent = productTotal.toLocaleString() + ' ₽';
+        document.getElementById('summaryDelivery').textContent = 
+            deliveryCost === 0 ? 'Бесплатно' : deliveryCost.toLocaleString() + ' ₽';
+        document.getElementById('summaryServices').textContent = 
+            servicesCost === 0 ? '—' : servicesCost.toLocaleString() + ' ₽';
+        document.getElementById('summaryTotal').textContent = totalCost.toLocaleString() + ' ₽';
+    }
+    
+    async submitOrder() {
+        const orderType = document.querySelector('input[name="orderType"]:checked').value;
+        
+        if (orderType === 'multiple') {
+            // Для нескольких товаров перенаправляем в корзину
+            window.location.href = 'profile.html#cart';
+            return;
+        }
+        
+        // Для одного товара создаем заказ
+        const quantity = parseInt(document.getElementById('orderQuantity').value) || 1;
+        const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+        const address = document.getElementById('addressInput').value;
+        const warranty = document.getElementById('serviceWarranty').checked;
+        const assembly = document.getElementById('serviceAssembly').checked;
+        
+        // Проверяем адрес для доставки
+        if ((deliveryType === 'delivery' || deliveryType === 'installation') && !address.trim()) {
+            alert('Пожалуйста, укажите адрес доставки');
+            return;
+        }
+        
+        try {
+            // Создаем данные заказа
+            const orderData = {
+                product: this.productData.id,
+                product_name: this.productData.name,
+                quantity: quantity,
+                unit_price: this.getProductPrice(),
+                delivery_type: deliveryType,
+                delivery_address: address,
+                warranty_service: warranty,
+                assembly_service: assembly,
+                status: 'pending',
+                user: window.authManager.currentUser.id
+            };
+            
+            // Отправляем заказ в базу данных
+            const order = await this.pb.collection('orders').create(orderData);
+            
+            // Закрываем модальное окно
+            this.closeOrderModal();
+            
+            // Показываем уведомление
+            this.showNotification(`Заказ оформлен! Номер заказа: #${order.id.slice(0, 8)}`, 'success');
+            
+            // Перенаправляем в профиль на вкладку заказов
+            setTimeout(() => {
+                window.location.href = 'profile.html#orders';
+            }, 2000);
+            
+        } catch (error) {
+            console.error('❌ Ошибка оформления заказа:', error);
+            this.showNotification('Ошибка оформления заказа', 'error');
+        }
+    }
+    
+    showNotification(message, type = 'info') {
+        if (window.authManager && window.authManager.showNotification) {
+            window.authManager.showNotification(message, type);
+        } else {
+            alert(message);
+        }
+    }
+}
