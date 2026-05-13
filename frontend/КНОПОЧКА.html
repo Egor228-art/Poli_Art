@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Переключатель-трансформер</title>
+    <style>
+        .toggle-switch {
+            position: relative;
+            width: 120px;
+            height: 60px;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .toggle-shape {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            display: flex;
+        }
+
+        /* Исходное состояние */
+        .toggle-pin {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            clip-path: polygon(0% 0%, 100% 0%, 70% 50%, 100% 100%, 0% 100%);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .toggle-slot {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 30% 100%, 0% 50%);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        /* Состояние после переключения - фигуры зеркально превращаются */
+        .toggle-switch.connected .toggle-pin {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 30% 50%);
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            transform: translateX(100%);
+        }
+
+        .toggle-switch.connected .toggle-slot {
+            clip-path: polygon(0% 0%, 70% 0%, 100% 50%, 70% 100%, 0% 100%);
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            transform: translateX(-100%);
+        }
+
+        /* Эффекты при наведении */
+        .toggle-switch:hover .toggle-pin {
+            filter: brightness(1.1);
+        }
+
+        .toggle-switch:hover .toggle-slot {
+            filter: brightness(1.1);
+        }
+
+        /* Активное состояние */
+        .toggle-switch.connected {
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+            border-color: #4CAF50;
+        }
+
+        /* Текст состояния */
+        .status {
+            text-align: center;
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="toggle-switch" id="puzzleToggle">
+        <div class="toggle-shape">
+            <div class="toggle-pin"></div>
+            <div class="toggle-slot"></div>
+        </div>
+    </div>
+    <div class="status" id="status">Состояние: ВЫКЛ</div>
+
+    <script>
+        const toggle = document.getElementById('puzzleToggle');
+        const status = document.getElementById('status');
+        
+        toggle.addEventListener('click', function() {
+            this.classList.toggle('connected');
+            
+            if (this.classList.contains('connected')) {
+                status.textContent = 'Состояние: ВКЛ';
+                status.style.color = '#4CAF50';
+                console.log('Переключатель ВКЛЮЧЕН');
+                // Действие при включении
+            } else {
+                status.textContent = 'Состояние: ВЫКЛ';
+                status.style.color = '#333';
+                console.log('Переключатель ВЫКЛЮЧЕН');
+                // Действие при выключении
+            }
+        });
+    </script>
+</body>
+</html>

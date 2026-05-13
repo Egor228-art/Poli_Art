@@ -1,0 +1,11 @@
+/pb_migrations/
+/pb_hooks/
+/pb_public/
+/pb_temp/
+node_modules/
+.DS_Store
+Thumbs.db
+.env
+*.log
+
+!pb_data/
