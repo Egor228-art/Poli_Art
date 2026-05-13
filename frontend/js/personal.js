@@ -792,27 +792,63 @@ class UserProfile {
         document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
         document.getElementById('email').value = this.currentUser.email || '';
         
-        // Получаем телефон из базы данных и форматируем для отображения
+        // Форматируем телефон для отображения
         const rawPhone = this.currentUser.phone;
         let formattedPhone = '';
         
         if (rawPhone) {
-            // Преобразуем число в строку
             const phoneStr = rawPhone.toString();
-            
-            // Форматируем как +7 (XXX) XXX-XX-XX если длина 10
             if (phoneStr.length === 10) {
                 formattedPhone = `+7 (${phoneStr.substring(0, 3)}) ${phoneStr.substring(3, 6)}-${phoneStr.substring(6, 8)}-${phoneStr.substring(8, 10)}`;
             } else if (phoneStr.length > 0) {
-                // Просто добавляем +7 если номер нестандартный
                 formattedPhone = `+7${phoneStr}`;
             }
         }
         
         document.getElementById('phone').value = formattedPhone;
         
-        // Используем правильное поле для адреса
-        document.getElementById('address').value = this.currentUser.address || '';
+        // ========== ВАЖНО: Правильно загружаем адрес ==========
+        const addressField = document.getElementById('address');
+        if (addressField) {
+            const userAddress = this.currentUser.address || '';
+            addressField.value = userAddress;
+            console.log('📝 Загружен адрес в форму:', userAddress);
+        }
+    }
+
+    openOrderModal() {
+        console.log('Открытие модального окна заказа...');
+        
+        const modal = document.getElementById('orderModal');
+        if (!modal) {
+            console.error('❌ Модальное окно не найдено');
+            return;
+        }
+        
+        fillOrderModal();
+        resetModalValues();
+        
+        // ========== ДОБАВЬТЕ ЭТОТ БЛОК ==========
+        // Подтягиваем адрес из профиля
+        const addressInput = document.getElementById('addressInput');
+        if (addressInput) {
+            if (window.authManager && window.authManager.currentUser) {
+                const userAddress = window.authManager.currentUser.address;
+                if (userAddress) {
+                    addressInput.value = userAddress;
+                    console.log('✅ Адрес из профиля подставлен:', userAddress);
+                }
+            }
+        }
+        // =======================================
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            setupOrderModalHandlers();
+            updateOrderSummary();
+        }, 50);
     }
 
     async loadCart() {
@@ -1668,7 +1704,7 @@ class UserProfile {
         const lastName = document.getElementById('lastName').value.trim();
         const email = document.getElementById('email').value.trim();
         const phoneInput = document.getElementById('phone').value.trim();
-        const address = document.getElementById('address').value.trim();
+        const address = document.getElementById('address').value.trim(); // Убедитесь, что это правильный ID
 
         // Собираем полное имя
         let fullName = firstName;
@@ -1682,9 +1718,12 @@ class UserProfile {
             // Убираем форматирование, оставляем только цифры
             phoneNumber = phoneInput.replace(/\D/g, '');
             
-            // Если начинается с +7 или 7, убираем код страны для сохранения
-            if (phoneNumber.startsWith('7')) {
-                phoneNumber = phoneNumber.substring(1); // Убираем первую 7
+            // Если начинается с 7 или 8, обрабатываем
+            if (phoneNumber.startsWith('8')) {
+                phoneNumber = '7' + phoneNumber.substring(1);
+            }
+            if (phoneNumber.startsWith('7') && phoneNumber.length === 11) {
+                phoneNumber = phoneNumber.substring(1);
             }
             
             // Преобразуем в число
@@ -1700,24 +1739,29 @@ class UserProfile {
         // Создаем объект с данными для обновления
         const newData = {
             name: fullName,
-            email: email,
-            address: address
+            email: email
         };
         
-        // Добавляем телефон только если он изменился и валиден
+        // Добавляем адрес ТОЛЬКО если он изменился или есть значение
+        if (address !== undefined) {
+            newData.address = address || '';
+            console.log('📝 Сохраняем адрес:', address);
+        }
+        
+        // Добавляем телефон только если он заполнен
         if (phoneNumber) {
             newData.phone = phoneNumber;
         } else if (phoneInput === '') {
-            // Если поле телефона очищено, устанавливаем null
             newData.phone = null;
         }
+
+        console.log('📤 Отправляемые данные для обновления:', newData);
 
         // Проверяем, есть ли изменения
         const hasChanges = Object.keys(newData).some(key => {
             const originalValue = this.originalUserData[key];
             const newValue = newData[key];
             
-            // Специальная обработка для телефона (может быть число в original)
             if (key === 'phone') {
                 const originalPhone = this.currentUser.phone;
                 return originalPhone !== newData.phone;
@@ -1746,6 +1790,8 @@ class UserProfile {
             // Обновляем данные пользователя
             const updatedUser = await this.pb.collection('users').update(this.currentUser.id, newData);
             
+            console.log('✅ Данные обновлены:', updatedUser);
+            
             // Обновляем локальные данные
             this.currentUser = updatedUser;
             this.originalUserData = {
@@ -1755,10 +1801,12 @@ class UserProfile {
                 address: updatedUser.address || ''
             };
             
-            // Обновляем UI (переформатируем телефон)
+            // Обновляем UI
             this.updateUserInfo();
             
-            // Показываем уведомление
+            // Обновляем форму (показываем сохранённые данные)
+            this.populatePersonalForm();
+            
             this.showNotification('Данные успешно обновлены', 'success');
             
         } catch (error) {

@@ -889,17 +889,6 @@
     function openOrderModal() {
         console.log('Открытие модального окна заказа ламината...');
         
-        // ПОДТЯГИВАЕМ АДРЕС ИЗ ПРОФИЛЯ
-        if (window.pb?.authStore?.model?.address) {
-            setTimeout(() => {
-                const addressInput = document.getElementById('laminateAddressInput');
-                if (addressInput) {
-                    addressInput.value = window.pb.authStore.model.address;
-                    console.log('Адрес из профиля подставлен:', window.pb.authStore.model.address);
-                }
-            }, 100);
-        }
-        
         if (!currentProduct) {
             console.error('Данные товара ламината не загружены');
             showNotification('Ошибка загрузки товара', 'error');
@@ -917,6 +906,37 @@
         
         // Сбрасываем значения
         resetModalValues();
+        
+        // ========== ДОБАВЬТЕ ЭТОТ БЛОК ==========
+        // ПОДТЯГИВАЕМ АДРЕС ИЗ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ
+        const addressInput = document.getElementById('laminateAddressInput');
+        if (addressInput) {
+            // Проверяем через глобальный authManager
+            if (window.authManager && window.authManager.currentUser) {
+                const userAddress = window.authManager.currentUser.address;
+                if (userAddress) {
+                    addressInput.value = userAddress;
+                    console.log('✅ Адрес из профиля (authManager) подставлен:', userAddress);
+                }
+            }
+            // Альтернативный вариант через pb
+            else if (window.pb && window.pb.authStore && window.pb.authStore.model) {
+                const userAddress = window.pb.authStore.model.address;
+                if (userAddress) {
+                    addressInput.value = userAddress;
+                    console.log('✅ Адрес из профиля (pb) подставлен:', userAddress);
+                }
+            }
+            // Если пользователь авторизован через userProfile
+            else if (window.userProfile && window.userProfile.currentUser) {
+                const userAddress = window.userProfile.currentUser.address;
+                if (userAddress) {
+                    addressInput.value = userAddress;
+                    console.log('✅ Адрес из профиля (userProfile) подставлен:', userAddress);
+                }
+            }
+        }
+        // =======================================
         
         // Показываем модальное окно
         modal.style.display = 'flex';

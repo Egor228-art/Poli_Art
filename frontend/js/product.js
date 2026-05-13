@@ -1503,6 +1503,14 @@ window.pb = null;
         fillOrderModal();
         resetModalValues();
         
+        setTimeout(() => {
+        const addressInput = document.getElementById('addressInput');
+        if (addressInput && window.authManager?.currentUser?.address) {
+            addressInput.value = window.authManager.currentUser.address;
+            console.log('✅ Адрес подставлен (с задержкой)');
+        }
+    }, 200);
+        
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         
@@ -1510,8 +1518,6 @@ window.pb = null;
             setupOrderModalHandlers();
             updateOrderSummary();
         }, 50);
-        
-        console.log('✅ Модальное окно открыто');
     }
     
     function fillOrderModal() {
@@ -1694,7 +1700,8 @@ window.pb = null;
         }
     }
     
-    async function submitOrder() {
+    async function submitOrder() {    
+        // Проверка авторизации
         if (typeof window.authManager === 'undefined' || !window.authManager.isAuthenticated?.()) {
             showNotification('Для оформления заказа необходимо войти в систему', 'error');
             setTimeout(() => {
@@ -1703,6 +1710,7 @@ window.pb = null;
             return;
         }
         
+        // Получаем данные из формы
         const quantity = parseInt(document.getElementById('orderQuantity').value) || 1;
         const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
         const deliveryType = deliveryRadio ? deliveryRadio.value : 'pickup';
@@ -1711,6 +1719,41 @@ window.pb = null;
         const warranty = document.getElementById('serviceWarranty')?.checked || false;
         const assembly = document.getElementById('serviceAssembly')?.checked || false;
         
+        // ========== ДОБАВЬТЕ СОХРАНЕНИЕ АДРЕСА ==========
+        if (saveAddress && address.trim()) {
+            await saveAddressToUserProfile(address);
+        }
+        // ===============================================
+
+        // ========== СОХРАНЯЕМ АДРЕС В ПРОФИЛЬ ==========
+        if (saveAddress && address.trim()) {            
+            try {
+                const userId = window.authManager.currentUser.id;
+                const pb = new PocketBase('http://127.0.0.1:8090');
+                
+                // Обновляем адрес пользователя
+                const updatedUser = await pb.collection('users').update(userId, {
+                    address: address.trim()
+                });
+                
+                console.log('✅ Адрес успешно сохранён в профиль:', updatedUser.address);
+                
+                // Обновляем локальные данные
+                window.authManager.currentUser.address = address;
+                if (window.pb) {
+                    window.pb.authStore.model.address = address;
+                }
+                
+                showNotification('✅ Адрес сохранён в вашем профиле', 'success');
+                
+            } catch (error) {
+                console.error('❌ Ошибка сохранения адреса:', error);
+                showNotification('❌ Не удалось сохранить адрес', 'error');
+            }
+        }
+        // ===============================================
+        
+         // Проверка адреса для доставки
         if ((deliveryType === 'delivery' || deliveryType === 'installation') && !address.trim()) {
             showNotification('Пожалуйста, укажите адрес доставки', 'error');
             document.getElementById('addressInput')?.focus();
@@ -1780,6 +1823,54 @@ window.pb = null;
                 submitBtn.innerHTML = '<span>Оформить заказ</span>';
                 submitBtn.disabled = false;
             }
+        }
+    }
+
+    // Функция для сохранения адреса в профиль пользователя
+    async function saveAddressToUserProfile(address) {
+        if (!address || !address.trim()) {
+            console.log('⚠️ Адрес пуст, не сохраняем');
+            return false;
+        }
+        
+        // Проверяем авторизацию
+        let pb = null;
+        let userId = null;
+        
+        if (window.pb && window.pb.authStore?.isValid) {
+            pb = window.pb;
+            userId = pb.authStore.model?.id;
+        } else if (window.authManager?.currentUser?.id) {
+            // Создаём экземпляр pb если нужно
+            if (typeof PocketBase !== 'undefined') {
+                pb = new PocketBase('http://127.0.0.1:8090');
+                userId = window.authManager.currentUser.id;
+            }
+        }
+        
+        if (!pb || !userId) {
+            console.log('⚠️ Пользователь не авторизован');
+            return false;
+        }
+        
+        try {
+            await pb.collection('users').update(userId, {
+                address: address.trim()
+            });
+            console.log('✅ Адрес сохранён в профиль:', address);
+            
+            // Обновляем локальные данные
+            if (window.authManager?.currentUser) {
+                window.authManager.currentUser.address = address;
+            }
+            if (window.pb?.authStore?.model) {
+                window.pb.authStore.model.address = address;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('❌ Ошибка сохранения адреса:', error);
+            return false;
         }
     }
     
