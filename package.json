@@ -1,0 +1,13 @@
+{
+  "name": "polyart-website",
+  "version": "1.0.0",
+  "description": "ПолиАрт - Двери и ламинат",
+  "scripts": {
+    "build": "echo 'Building...' && exit 0",
+    "start": "serve ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
