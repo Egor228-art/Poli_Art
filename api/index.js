@@ -431,3 +431,251 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Внутренняя ошибка сервера', details: error.message });
     }
 }
+
+// ============ АДМИН-ПАНЕЛЬ (ДОБАВИТЬ В API/INDEX.JS) ============
+
+// GET /api/admin/users
+if (path === '/api/admin/users' && req.method === 'GET') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const result = await sql`SELECT id, email, name, phone, role, created_at FROM users ORDER BY created_at DESC`;
+    return res.json({ items: result.rows });
+}
+
+// PUT /api/admin/user/role
+if (path === '/api/admin/user/role' && req.method === 'PUT') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id, role } = req.body;
+    await sql`UPDATE users SET role = ${role}, updated_at = NOW() WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// DELETE /api/admin/user/delete
+if (path === '/api/admin/user/delete' && req.method === 'DELETE') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id } = req.body;
+    await sql`DELETE FROM users WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// GET /api/admin/reviews/doors
+if (path === '/api/admin/reviews/doors' && req.method === 'GET') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const result = await sql`SELECT *, 'doors' as product_type FROM reviews ORDER BY created_at DESC`;
+    return res.json({ items: result.rows });
+}
+
+// GET /api/admin/reviews/laminate
+if (path === '/api/admin/reviews/laminate' && req.method === 'GET') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const result = await sql`SELECT *, 'laminate' as product_type FROM reviews_laminate ORDER BY created_at DESC`;
+    return res.json({ items: result.rows });
+}
+
+// PUT /api/admin/review/approve
+if (path === '/api/admin/review/approve' && req.method === 'PUT') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id, type } = req.body;
+    const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
+    await sql`UPDATE ${sql(table)} SET approved = true WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// DELETE /api/admin/review/delete
+if (path === '/api/admin/review/delete' && req.method === 'DELETE') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id, type } = req.body;
+    const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
+    await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// PUT /api/admin/order/status
+if (path === '/api/admin/order/status' && req.method === 'PUT') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id, status } = req.body;
+    await sql`UPDATE orders SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// DELETE /api/admin/order/delete
+if (path === '/api/admin/order/delete' && req.method === 'DELETE') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id } = req.body;
+    await sql`DELETE FROM orders WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// GET /api/admin/measure
+if (path === '/api/admin/measure' && req.method === 'GET') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const result = await sql`SELECT * FROM measure_requests ORDER BY created_at DESC`;
+    return res.json({ items: result.rows });
+}
+
+// PUT /api/admin/measure/status
+if (path === '/api/admin/measure/status' && req.method === 'PUT') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id, status } = req.body;
+    await sql`UPDATE measure_requests SET status = ${status} WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// DELETE /api/admin/measure/delete
+if (path === '/api/admin/measure/delete' && req.method === 'DELETE') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { id } = req.body;
+    await sql`DELETE FROM measure_requests WHERE id = ${id}`;
+    return res.json({ success: true });
+}
+
+// PUT /api/admin/product/update (добавить в существующий блок админа)
+if (path === '/api/admin/product/update' && req.method === 'PUT') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { collection, id, name, description, price, type, material, color, style, thickness, wear_class, pictures } = req.body;
+    const table = collection === 'laminate' ? 'laminate' : 'doors';
+    
+    await sql`
+        UPDATE ${sql(table)} 
+        SET name = ${name}, description = ${description}, price = ${price}, type = ${type},
+            material = ${material || null}, color = ${color || null}, style = ${style || null},
+            thickness = ${thickness || null}, wear_class = ${wear_class || null}, 
+            pictures = ${pictures || null}, updated_at = NOW()
+        WHERE id = ${id}
+    `;
+    return res.json({ success: true });
+}
+
+// DELETE /api/admin/product/delete
+if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Нет прав' });
+    }
+    
+    const { collection, id } = req.body;
+    const table = collection === 'laminate' ? 'laminate' : 'doors';
+    await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
+    return res.json({ success: true });
+}

@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - ПолиАрт</title>
+    <link rel="stylesheet" href="css/HeaderAndFooter.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+        }
+        
+        .admin-container {
+            display: flex;
+            min-height: calc(100vh - 140px);
+        }
+        
+        /* Sidebar */
+        .admin-sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #2c3e50, #1a252f);
+            color: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+        
+        .admin-logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .admin-logo h2 {
+            color: #eabb66;
+            font-size: 24px;
+        }
+        
+        .admin-logo p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+        }
+        
+        .admin-nav {
+            list-style: none;
+        }
+        
+        .admin-nav li {
+            margin-bottom: 5px;
+        }
+        
+        .admin-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .admin-nav a:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .admin-nav a.active {
+            background: #e74c3c;
+            color: white;
+            border-left: 3px solid #eabb66;
+        }
+        
+        .admin-nav .icon {
+            font-size: 20px;
+            width: 24px;
+        }
+        
+        /* Main content */
+        .admin-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .admin-header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .admin-user-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .logout-admin-btn {
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .logout-admin-btn:hover {
+            background: #c0392b;
+        }
+        
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .stat-info h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .stat-icon {
+            font-size: 48px;
+            opacity: 0.3;
+        }
+        
+        /* Tables */
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section-title h2 {
+            font-size: 20px;
+            color: #2c3e50;
+        }
+        
+        .btn-add {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-add:hover {
+            background: #219653;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-new { background: #e3f2fd; color: #1976d2; }
+        .status-processing { background: #fff3e0; color: #f57c00; }
+        .status-delivered { background: #e8f5e9; color: #388e3c; }
+        .status-cancelled { background: #ffebee; color: #d32f2f; }
+        
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .action-edit { background: #3498db; color: white; }
+        .action-delete { background: #e74c3c; color: white; }
+        .action-approve { background: #27ae60; color: white; }
+        
+        /* Modal */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .admin-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .admin-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+        
+        .btn-save {
+            padding: 12px 24px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .btn-cancel {
+            padding: 12px 24px;
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .image-preview {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .image-preview-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-preview-item .remove-image {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e74c3c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                flex-direction: column;
+            }
+            .admin-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .admin-content {
+                padding: 20px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header"></header>
+    
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <h2>ПолиАрт</h2>
+                <p>Административная панель</p>
+            </div>
+            <ul class="admin-nav">
+                <li><a href="#" data-page="dashboard" class="active"><span class="icon">📊</span> Дашборд</a></li>
+                <li><a href="#" data-page="doors"><span class="icon">🚪</span> Двери</a></li>
+                <li><a href="#" data-page="laminate"><span class="icon">🪵</span> Ламинат</a></li>
+                <li><a href="#" data-page="orders"><span class="icon">📦</span> Заказы</a></li>
+                <li><a href="#" data-page="reviews"><span class="icon">⭐</span> Отзывы</a></li>
+                <li><a href="#" data-page="users"><span class="icon">👥</span> Пользователи</a></li>
+                <li><a href="#" data-page="measure"><span class="icon">📏</span> Заявки на замер</a></li>
+            </ul>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1 id="pageTitle">Дашборд</h1>
+                <div class="admin-user">
+                    <span class="admin-user-name" id="adminUserName">Загрузка...</span>
+                    <button class="logout-admin-btn" id="logoutAdminBtn">Выйти</button>
+                </div>
+            </div>
+            
+            <div id="pageContent">
+                <!-- Контент загружается динамически -->
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <footer class="footer"></footer>
+    
+    <!-- Модальное окно для редактирования/добавления -->
+    <div id="adminModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2 id="modalTitle">Добавить товар</h2>
+                <button class="admin-modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="adminForm">
+                <input type="hidden" id="itemId">
+                <div id="modalFormFields">
+                    <!-- Поля формы загружаются динамически -->
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelModalBtn">Отмена</button>
+                    <button type="submit" class="btn-save">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/auth-state.js"></script>
+    
+    <script>
+        // ============ АДМИН-ПАНЕЛЬ ============
+        
+        let currentUser = null;
+        let currentPage = 'dashboard';
+        
+        // Проверка прав администратора
+        async function checkAdminAccess() {
+            await window.authManager?.checkAuth();
+            currentUser = window.authManager?.currentUser;
+            
+            if (!currentUser) {
+                window.location.href = 'login.html?redirect=admin.html';
+                return false;
+            }
+            
+            if (currentUser.role !== 'admin') {
+                document.body.innerHTML = '<div style="text-align:center; padding:100px;"><h1>⛔ Доступ запрещен</h1><p>У вас нет прав администратора</p><a href="index.html" class="btn btn--primary">На главную</a></div>';
+                return false;
+            }
+            
+            document.getElementById('adminUserName').textContent = currentUser.name || currentUser.email;
+            return true;
+        }
+        
+        // Загрузка страницы
+        async function loadPage(page) {
+            currentPage = page;
+            const titles = {
+                dashboard: 'Дашборд',
+                doors: 'Управление дверями',
+                laminate: 'Управление ламинатом',
+                orders: 'Заказы',
+                reviews: 'Отзывы',
+                users: 'Пользователи',
+                measure: 'Заявки на замер'
+            };
+            document.getElementById('pageTitle').textContent = titles[page] || page;
+            
+            const content = document.getElementById('pageContent');
+            content.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Загрузка...</p></div>';
+            
+            switch(page) {
+                case 'dashboard':
+                    await loadDashboard();
+                    break;
+                case 'doors':
+                    await loadProductsList('doors');
+                    break;
+                case 'laminate':
+                    await loadProductsList('laminate');
+                    break;
+                case 'orders':
+                    await loadOrdersList();
+                    break;
+                case 'reviews':
+                    await loadReviewsList();
+                    break;
+                case 'users':
+                    await loadUsersList();
+                    break;
+                case 'measure':
+                    await loadMeasureRequests();
+                    break;
+            }
+        }
+        
+        // Дашборд
+        async function loadDashboard() {
+            try {
+                const [doorsRes, laminateRes, ordersRes, usersRes] = await Promise.all([
+                    window.apiClient.getDoors(),
+                    window.apiClient.getLaminate(),
+                    window.apiClient.getOrders(),
+                    fetch('/api/admin/users').then(r => r.json()).catch(() => ({ items: [] }))
+                ]);
+                
+                const doorsCount = doorsRes.items?.length || 0;
+                const laminateCount = laminateRes.items?.length || 0;
+                const ordersCount = ordersRes.length || 0;
+                const usersCount = usersRes.items?.length || 0;
+                
+                const recentOrders = (ordersRes || []).slice(0, 5);
+                
+                const html = `
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-info"><h3>Двери</h3><div class="stat-number">${doorsCount}</div></div><div class="stat-icon">🚪</div></div>
+                        <div class="stat-card"><div class="stat-info"><h3>Ламинат</h3><div class="stat-number">${laminateCount}</div></div><div class="stat-icon">🪵</div></div>
+                        <div class="stat-card"><div class="stat-info"><h3>Заказы</h3><div class="stat-number">${ordersCount}</div></div><div class="stat-icon">📦</div></div>
+                        <div class="stat-card"><div class="stat-info"><h3>Пользователи</h3><div class="stat-number">${usersCount}</div></div><div class="stat-icon">👥</div></div>
+                    </div>
+                    
+                    <div class="section-card">
+                        <div class="section-title"><h2>Последние заказы</h2><button class="btn-add" onclick="loadPage('orders')">Все заказы →</button></div>
+                        ${recentOrders.length === 0 ? '<div class="no-data">Нет заказов</div>' : `
+                            <table class="data-table">
+                                <thead><tr><th>№ заказа</th><th>Клиент</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr></thead>
+                                <tbody>
+                                    ${recentOrders.map(order => `
+                                        <tr>
+                                            <td>${order.order_number || order.id.slice(0,8)}</td>
+                                            <td>${order.customer_name || 'Не указан'}</td>
+                                            <td>${(order.total_price || 0).toLocaleString()} ₽</td>
+                                            <td><span class="status-badge status-${order.status === 'доставлен' ? 'delivered' : order.status === 'отменен' ? 'cancelled' : 'processing'}">${order.status || 'ожидает'}</span></td>
+                                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                `;
+                
+                document.getElementById('pageContent').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки дашборда:', error);
+                document.getElementById('pageContent').innerHTML = '<div class="section-card"><div class="no-data">Ошибка загрузки данных</div></div>';
+            }
+        }
+        
+        // Список товаров
+        async function loadProductsList(collection) {
+            try {
+                const result = await window.apiClient[collection === 'doors' ? 'getDoors' : 'getLaminate']();
+                const products = result.items || [];
+                
+                const isLaminate = collection === 'laminate';
+                const addBtnHtml = `<button class="btn-add" onclick="openAddProductModal('${collection}')">➕ Добавить товар</button>`;
+                
+                let html = `
+                    <div class="section-card">
+                        <div class="section-title"><h2>${isLaminate ? 'Ламинат' : 'Двери'}</h2>${addBtnHtml}</div>
+                        ${products.length === 0 ? '<div class="no-data">Нет товаров</div>' : `
+                            <table class="data-table">
+                                <thead><tr><th>Изображение</th><th>Название</th><th>Цена</th><th>${isLaminate ? 'Класс' : 'Тип'}</th><th>Действия</th></tr></thead>
+                                <tbody>
+                                    ${products.map(product => `
+                                        <tr>
+                                            <td><img src="${(product.pictures || product.picture)?.[0] || '/img/no-image.jpg'}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;" onerror="this.src='/img/no-image.jpg'"></td>
+                                            <td>${escapeHtml(product.name || 'Без названия')}</td>
+                                            <td>${(product.price || product.prise) ? parsePrice(product.price || product.prise).toLocaleString() + ' ₽' : 'Цена не указана'}</td>
+                                            <td>${isLaminate ? (product.type || '-') : (product.type || '-')}</td>
+                                            <td class="action-btns">
+                                                <button class="action-btn action-edit" onclick="openEditProductModal('${collection}', '${product.id}')">✏️</button>
+                                                <button class="action-btn action-delete" onclick="deleteProduct('${collection}', '${product.id}')">🗑️</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                `;
+                
+                document.getElementById('pageContent').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки товаров:', error);
+                document.getElementById('pageContent').innerHTML = '<div class="section-card"><div class="no-data">Ошибка загрузки данных</div></div>';
+            }
+        }
+        
+        // Список заказов
+        async function loadOrdersList() {
+            try {
+                const orders = await window.apiClient.getOrders();
+                
+                const html = `
+                    <div class="section-card">
+                        <div class="section-title"><h2>Все заказы</h2></div>
+                        ${orders.length === 0 ? '<div class="no-data">Нет заказов</div>' : `
+                            <table class="data-table">
+                                <thead><tr><th>№ заказа</th><th>Клиент</th><th>Телефон</th><th>Сумма</th><th>Статус</th><th>Доставка</th><th>Дата</th><th>Действия</th></tr></thead>
+                                <tbody>
+                                    ${orders.map(order => `
+                                        <tr>
+                                            <td>${order.order_number || order.id.slice(0,8)}</td>
+                                            <td>${escapeHtml(order.customer_name || 'Не указан')}</td>
+                                            <td>${order.customer_phone || '-'}</td>
+                                            <td>${(order.total_price || 0).toLocaleString()} ₽</td>
+                                            <td>
+                                                <select class="status-select" data-order-id="${order.id}" onchange="updateOrderStatus('${order.id}', this.value)">
+                                                    <option value="ожидает" ${order.status === 'ожидает' ? 'selected' : ''}>Ожидает</option>
+                                                    <option value="обрабатывается" ${order.status === 'обрабатывается' ? 'selected' : ''}>Обрабатывается</option>
+                                                    <option value="отправлен" ${order.status === 'отправлен' ? 'selected' : ''}>Отправлен</option>
+                                                    <option value="доставлен" ${order.status === 'доставлен' ? 'selected' : ''}>Доставлен</option>
+                                                    <option value="отменен" ${order.status === 'отменен' ? 'selected' : ''}>Отменен</option>
+                                                </select>
+                                            </td>
+                                            <td>${order.delivery_type || 'самовывоз'}</td>
+                                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                                            <td><button class="action-btn action-delete" onclick="deleteOrder('${order.id}')">🗑️</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                `;
+                
+                document.getElementById('pageContent').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки заказов:', error);
+                document.getElementById('pageContent').innerHTML = '<div class="section-card"><div class="no-data">Ошибка загрузки данных</div></div>';
+            }
+        }
+        
+        // Список отзывов
+        async function loadReviewsList() {
+            try {
+                // Загружаем отзывы с двух коллекций
+                const [doorsReviews, laminateReviews] = await Promise.all([
+                    fetch('/api/admin/reviews/doors').then(r => r.json()).catch(() => []),
+                    fetch('/api/admin/reviews/laminate').then(r => r.json()).catch(() => [])
+                ]);
+                
+                const allReviews = [...(doorsReviews.items || []), ...(laminateReviews.items || [])];
+                
+                const html = `
+                    <div class="section-card">
+                        <div class="section-title"><h2>Все отзывы</h2></div>
+                        ${allReviews.length === 0 ? '<div class="no-data">Нет отзывов</div>' : `
+                            <table class="data-table">
+                                <thead><tr><th>Товар</th><th>Автор</th><th>Рейтинг</th><th>Отзыв</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+                                <tbody>
+                                    ${allReviews.map(review => `
+                                        <tr>
+                                            <td>${escapeHtml(review.product_name || review.product_id?.slice(0,8) || '-')}</td>
+                                            <td>${escapeHtml(review.author_name || '-')}</td>
+                                            <td>${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</td>
+                                            <td style="max-width:300px;">${escapeHtml(review.text?.substring(0, 80) || '')}${review.text?.length > 80 ? '...' : ''}</td>
+                                            <td><span class="status-badge ${review.approved ? 'status-delivered' : 'status-new'}">${review.approved ? 'Одобрен' : 'На модерации'}</span></td>
+                                            <td>${new Date(review.created_at).toLocaleDateString()}</td>
+                                            <td>
+                                                ${!review.approved ? `<button class="action-btn action-approve" onclick="approveReview('${review.id}', '${review.product_type || 'doors'}')">✓ Одобрить</button>` : ''}
+                                                <button class="action-btn action-delete" onclick="deleteReview('${review.id}', '${review.product_type || 'doors'}')">🗑️</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                `;
+                
+                document.getElementById('pageContent').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки отзывов:', error);
+                document.getElementById('pageContent').innerHTML = '<div class="section-card"><div class="no-data">Ошибка загрузки данных</div></div>';
+            }
+        }
+        
+        // Список пользователей
+        async function loadUsersList() {
+            try {
+                const response = await fetch('/api/admin/users');
+                const result = await response.json();
+                const users = result.items || [];
+                
+                const html = `
+                    <div class="section-card">
+                        <div class="section-title"><h2>Пользователи</h2></div>
+                        ${users.length === 0 ? '<div class="no-data">Нет пользователей</div>' : `
+                            <table class="data-table">
+                                <thead><tr><th>Имя</th><th>Email</th><th>Телефон</th><th>Роль</th><th>Дата регистрации</th><th>Действия</th></tr></thead>
+                                <tbody>
+                                    ${users.map(user => `
+                                        <tr>
+                                            <td>${escapeHtml(user.name || '-')}</td>
+                                            <td>${escapeHtml(user.email)}</td>
+                                            <td>${user.phone || '-'}</td>
+                                            <td>
+                                                <select class="role-select" data-user-id="${user.id}" onchange="updateUserRole('${user.id}', this.value)">
+                                                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
+                                                </select>
+                                            </td>
+                                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                                            <td><button class="action-btn action-delete" onclick="deleteUser('${user.id}')">🗑️</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                `;
+                
+                document.getElementById('pageContent').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки пользователей:', error);
+                document.getElementById('pageContent').innerHTML = '<div class="section-card"><div class="no-data">Ошибка загрузки данных</div></div>';
+            }
+        }
+        
+        // Список заявок на замер
+        async function loadMeasureRequests() {
+            try {
+                const response = await fetch('/api/admin/measure');
+                const result = await response.json();
+                const requests = result.items || [];
+                
+                const html = `
+                    <div class="section-card">
+                        <div class="section-title"><h2>Заявки на замер</h2></div>
+                        ${requests.length === 0 ? '<div class="no-data">Нет заявок</div>' : `
+                            <table class="data-table">
+                                <thead><tr><th>Клиент</th><th>Телефон</th><th>Адрес</th><th>Тип помещения</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+                                <tbody>
+                                    ${requests.map(req => `
+                                        <tr>
+                                            <td>${escapeHtml(req.name)}</td>
+                                            <td>${req.phone}</td>
+                                            <td>${escapeHtml(req.address?.substring(0, 50) || '')}${req.address?.length > 50 ? '...' : ''}</td>
+                                            <td>${req.room_type || '-'}</td>
+                                            <td>
+                                                <select class="status-select" data-request-id="${req.id}" onchange="updateMeasureStatus('${req.id}', this.value)">
+                                                    <option value="новая" ${req.status === 'новая' ? 'selected' : ''}>Новая</option>
+                                                    <option value="в обработке" ${req.status === 'в обработке' ? 'selected' : ''}>В обработке</option>
+                                                    <option value="выполнена" ${req.status === 'выполнена' ? 'selected' : ''}>Выполнена</option>
+                                                    <option value="отменена" ${req.status === 'отменена' ? 'selected' : ''}>Отменена</option>
+                                                </select>
+                                            </td>
+                                            <td>${new Date(req.created_at).toLocaleDateString()}</td>
+                                            <td><button class="action-btn action-delete" onclick="deleteMeasureRequest('${req.id}')">🗑️</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                `;
+                
+                document.getElementById('pageContent').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки заявок:', error);
+                document.getElementById('pageContent').innerHTML = '<div class="section-card"><div class="no-data">Ошибка загрузки данных</div></div>';
+            }
+        }
+        
+        // ============ МОДАЛЬНЫЕ ОКНА ДЛЯ ТОВАРОВ ============
+        
+        function openAddProductModal(collection) {
+            const isLaminate = collection === 'laminate';
+            
+            const modal = document.getElementById('adminModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalFormFields = document.getElementById('modalFormFields');
+            
+            modalTitle.textContent = isLaminate ? 'Добавить ламинат' : 'Добавить дверь';
+            
+            modalFormFields.innerHTML = `
+                <input type="hidden" id="productCollection" value="${collection}">
+                <div class="form-group"><label>Название *</label><input type="text" id="productName" required></div>
+                <div class="form-group"><label>Описание</label><textarea id="productDescription" rows="4"></textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Цена (₽) *</label><input type="number" id="productPrice" required></div>
+                    ${isLaminate ? 
+                        `<div class="form-group"><label>Класс</label><input type="text" id="productType" placeholder="32, 33, 34..."></div>` :
+                        `<div class="form-group"><label>Тип двери</label><select id="productType"><option value="Межкомнатная">Межкомнатная</option><option value="Входная">Входная</option></select></div>`
+                    }
+                </div>
+                <div class="form-row">
+                    ${isLaminate ?
+                        `<div class="form-group"><label>Толщина (мм)</label><input type="text" id="productThickness" placeholder="8, 10, 12..."></div>
+                         <div class="form-group"><label>Класс износостойкости</label><input type="text" id="productWearClass" placeholder="32, 33..."></div>` :
+                        `<div class="form-group"><label>Материал</label><input type="text" id="productMaterial" placeholder="МДФ, Массив, Шпон..."></div>
+                         <div class="form-group"><label>Стиль</label><input type="text" id="productStyle" placeholder="Классика, Модерн..."></div>`
+                    }
+                </div>
+                <div class="form-group"><label>Цвета (через запятую)</label><input type="text" id="productColors" placeholder="Дуб, Орех, Венге..."></div>
+                <div class="form-group"><label>Ссылки на изображения (по одной на строку)</label><textarea id="productImages" rows="3" placeholder="https://..."></textarea></div>
+                <div class="image-preview" id="imagePreview"></div>
+            `;
+            
+            // Добавляем превью изображений
+            const imagesTextarea = document.getElementById('productImages');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            imagesTextarea.addEventListener('input', () => {
+                const urls = imagesTextarea.value.split('\n').filter(u => u.trim());
+                imagePreview.innerHTML = urls.map(url => `
+                    <div class="image-preview-item"><img src="${url.trim()}" onerror="this.src='/img/no-image.jpg'"></div>
+                `).join('');
+            });
+            
+            modal.style.display = 'flex';
+            
+            // Обработчик отправки
+            const form = document.getElementById('adminForm');
+            const oldSubmit = form.onsubmit;
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                await createProduct(collection);
+            };
+        }
+        
+        function openEditProductModal(collection, productId) {
+            // Аналогично openAddProductModal, но с заполнением данных
+            // Для краткости - загружаем товар и заполняем форму
+            (async () => {
+                try {
+                    const product = await window.apiClient.getProduct(collection, productId);
+                    if (!product) return;
+                    
+                    const isLaminate = collection === 'laminate';
+                    const modal = document.getElementById('adminModal');
+                    const modalTitle = document.getElementById('modalTitle');
+                    const modalFormFields = document.getElementById('modalFormFields');
+                    
+                    modalTitle.textContent = isLaminate ? 'Редактировать ламинат' : 'Редактировать дверь';
+                    
+                    const colorsStr = Array.isArray(product.color) ? product.color.join(', ') : (product.color || '');
+                    const imagesStr = (product.pictures || product.picture || []).join('\n');
+                    
+                    modalFormFields.innerHTML = `
+                        <input type="hidden" id="productCollection" value="${collection}">
+                        <input type="hidden" id="productEditId" value="${product.id}">
+                        <div class="form-group"><label>Название *</label><input type="text" id="productName" value="${escapeHtml(product.name || '')}" required></div>
+                        <div class="form-group"><label>Описание</label><textarea id="productDescription" rows="4">${escapeHtml(product.description || '')}</textarea></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Цена (₽) *</label><input type="number" id="productPrice" value="${product.price || product.prise || 0}" required></div>
+                            ${isLaminate ? 
+                                `<div class="form-group"><label>Класс</label><input type="text" id="productType" value="${escapeHtml(product.type || '')}"></div>` :
+                                `<div class="form-group"><label>Тип двери</label><select id="productType"><option value="Межкомнатная" ${product.type === 'Межкомнатная' ? 'selected' : ''}>Межкомнатная</option><option value="Входная" ${product.type === 'Входная' ? 'selected' : ''}>Входная</option></select></div>`
+                            }
+                        </div>
+                        <div class="form-row">
+                            ${isLaminate ?
+                                `<div class="form-group"><label>Толщина (мм)</label><input type="text" id="productThickness" value="${escapeHtml(product.thickness || '')}"></div>
+                                 <div class="form-group"><label>Класс износостойкости</label><input type="text" id="productWearClass" value="${escapeHtml(product.wear_class || '')}"></div>` :
+                                `<div class="form-group"><label>Материал</label><input type="text" id="productMaterial" value="${escapeHtml(product.material || '')}"></div>
+                                 <div class="form-group"><label>Стиль</label><input type="text" id="productStyle" value="${escapeHtml(product.style || '')}"></div>`
+                            }
+                        </div>
+                        <div class="form-group"><label>Цвета (через запятую)</label><input type="text" id="productColors" value="${escapeHtml(colorsStr)}"></div>
+                        <div class="form-group"><label>Ссылки на изображения (по одной на строку)</label><textarea id="productImages" rows="3">${imagesStr}</textarea></div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    `;
+                    
+                    // Превью
+                    const imagesTextarea = document.getElementById('productImages');
+                    const imagePreview = document.getElementById('imagePreview');
+                    
+                    const updatePreview = () => {
+                        const urls = imagesTextarea.value.split('\n').filter(u => u.trim());
+                        imagePreview.innerHTML = urls.map(url => `
+                            <div class="image-preview-item"><img src="${url.trim()}" onerror="this.src='/img/no-image.jpg'"></div>
+                        `).join('');
+                    };
+                    updatePreview();
+                    imagesTextarea.addEventListener('input', updatePreview);
+                    
+                    modal.style.display = 'flex';
+                    
+                    const form = document.getElementById('adminForm');
+                    form.onsubmit = async (e) => {
+                        e.preventDefault();
+                        await updateProduct(collection, product.id);
+                    };
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки товара для редактирования:', error);
+                    alert('Ошибка загрузки товара');
+                }
+            })();
+        }
+        
+        async function createProduct(collection) {
+            const name = document.getElementById('productName')?.value;
+            const description = document.getElementById('productDescription')?.value;
+            const price = parseInt(document.getElementById('productPrice')?.value) || 0;
+            const type = document.getElementById('productType')?.value;
+            const colors = document.getElementById('productColors')?.value.split(',').map(c => c.trim()).filter(c => c);
+            const images = document.getElementById('productImages')?.value.split('\n').filter(u => u.trim());
+            
+            const isLaminate = collection === 'laminate';
+            
+            let productData = { name, description, price, color: colors, pictures: images };
+            
+            if (isLaminate) {
+                productData.type = type;
+                productData.thickness = document.getElementById('productThickness')?.value;
+                productData.wear_class = document.getElementById('productWearClass')?.value;
+            } else {
+                productData.type = type;
+                productData.material = document.getElementById('productMaterial')?.value;
+                productData.style = document.getElementById('productStyle')?.value;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/product/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ collection, ...productData })
+                });
+                
+                if (response.ok) {
+                    alert('Товар добавлен');
+                    closeModal();
+                    await loadPage(collection);
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + (error.error || 'Не удалось добавить товар'));
+                }
+            } catch (error) {
+                console.error('Ошибка создания товара:', error);
+                alert('Ошибка создания товара');
+            }
+        }
+        
+        async function updateProduct(collection, productId) {
+            const name = document.getElementById('productName')?.value;
+            const description = document.getElementById('productDescription')?.value;
+            const price = parseInt(document.getElementById('productPrice')?.value) || 0;
+            const type = document.getElementById('productType')?.value;
+            const colors = document.getElementById('productColors')?.value.split(',').map(c => c.trim()).filter(c => c);
+            const images = document.getElementById('productImages')?.value.split('\n').filter(u => u.trim());
+            
+            const isLaminate = collection === 'laminate';
+            
+            let productData = { name, description, price, color: colors, pictures: images };
+            
+            if (isLaminate) {
+                productData.type = type;
+                productData.thickness = document.getElementById('productThickness')?.value;
+                productData.wear_class = document.getElementById('productWearClass')?.value;
+            } else {
+                productData.type = type;
+                productData.material = document.getElementById('productMaterial')?.value;
+                productData.style = document.getElementById('productStyle')?.value;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/product/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ collection, id: productId, ...productData })
+                });
+                
+                if (response.ok) {
+                    alert('Товар обновлен');
+                    closeModal();
+                    await loadPage(collection);
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + (error.error || 'Не удалось обновить товар'));
+                }
+            } catch (error) {
+                console.error('Ошибка обновления товара:', error);
+                alert('Ошибка обновления товара');
+            }
+        }
+        
+        async function deleteProduct(collection, productId) {
+            if (!confirm('Удалить товар? Это действие нельзя отменить.')) return;
+            
+            try {
+                const response = await fetch('/api/admin/product/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ collection, id: productId })
+                });
+                
+                if (response.ok) {
+                    alert('Товар удален');
+                    await loadPage(collection);
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + (error.error || 'Не удалось удалить товар'));
+                }
+            } catch (error) {
+                console.error('Ошибка удаления товара:', error);
+                alert('Ошибка удаления товара');
+            }
+        }
+        
+        async function updateOrderStatus(orderId, status) {
+            try {
+                const response = await fetch('/api/admin/order/status', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: orderId, status })
+                });
+                
+                if (!response.ok) {
+                    alert('Ошибка обновления статуса');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка обновления статуса');
+            }
+        }
+        
+        async function deleteOrder(orderId) {
+            if (!confirm('Удалить заказ?')) return;
+            
+            try {
+                const response = await fetch('/api/admin/order/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: orderId })
+                });
+                
+                if (response.ok) {
+                    alert('Заказ удален');
+                    await loadPage('orders');
+                } else {
+                    alert('Ошибка удаления заказа');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка удаления заказа');
+            }
+        }
+        
+        async function approveReview(reviewId, productType) {
+            try {
+                const response = await fetch('/api/admin/review/approve', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: reviewId, type: productType })
+                });
+                
+                if (response.ok) {
+                    alert('Отзыв одобрен');
+                    await loadPage('reviews');
+                } else {
+                    alert('Ошибка одобрения отзыва');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка одобрения отзыва');
+            }
+        }
+        
+        async function deleteReview(reviewId, productType) {
+            if (!confirm('Удалить отзыв?')) return;
+            
+            try {
+                const response = await fetch('/api/admin/review/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: reviewId, type: productType })
+                });
+                
+                if (response.ok) {
+                    alert('Отзыв удален');
+                    await loadPage('reviews');
+                } else {
+                    alert('Ошибка удаления отзыва');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка удаления отзыва');
+            }
+        }
+        
+        async function updateUserRole(userId, role) {
+            try {
+                const response = await fetch('/api/admin/user/role', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: userId, role })
+                });
+                
+                if (!response.ok) {
+                    alert('Ошибка обновления роли');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка обновления роли');
+            }
+        }
+        
+        async function deleteUser(userId) {
+            if (!confirm('Удалить пользователя?')) return;
+            
+            try {
+                const response = await fetch('/api/admin/user/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: userId })
+                });
+                
+                if (response.ok) {
+                    alert('Пользователь удален');
+                    await loadPage('users');
+                } else {
+                    alert('Ошибка удаления пользователя');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка удаления пользователя');
+            }
+        }
+        
+        async function updateMeasureStatus(requestId, status) {
+            try {
+                const response = await fetch('/api/admin/measure/status', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: requestId, status })
+                });
+                
+                if (!response.ok) {
+                    alert('Ошибка обновления статуса');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка обновления статуса');
+            }
+        }
+        
+        async function deleteMeasureRequest(requestId) {
+            if (!confirm('Удалить заявку?')) return;
+            
+            try {
+                const response = await fetch('/api/admin/measure/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.apiClient.token}` },
+                    body: JSON.stringify({ id: requestId })
+                });
+                
+                if (response.ok) {
+                    alert('Заявка удалена');
+                    await loadPage('measure');
+                } else {
+                    alert('Ошибка удаления заявки');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка удаления заявки');
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+        
+        // ============ ВСПОМОГАТЕЛЬНЫЕ ============
+        
+        function parsePrice(priceStr) {
+            if (!priceStr) return 0;
+            const match = priceStr.toString().match(/(\d[\d\s]*[\d.,]?\d*)/);
+            if (match) {
+                const num = parseFloat(match[1].replace(/\s/g, '').replace(',', '.'));
+                return isNaN(num) ? 0 : Math.round(num);
+            }
+            return 0;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ============ ИНИЦИАЛИЗАЦИЯ ============
+        
+        async function initAdmin() {
+            const hasAccess = await checkAdminAccess();
+            if (!hasAccess) return;
+            
+            // Навигация
+            document.querySelectorAll('.admin-nav a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page;
+                    document.querySelectorAll('.admin-nav a').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    loadPage(page);
+                });
+            });
+            
+            // Закрытие модального окна
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+            window.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('adminModal')) closeModal();
+            });
+            
+            // Выход
+            document.getElementById('logoutAdminBtn').addEventListener('click', () => {
+                if (window.apiClient) window.apiClient.setToken(null);
+                window.location.href = 'index.html';
+            });
+            
+            // Загружаем дашборд
+            await loadPage('dashboard');
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initAdmin, 500);
+        });
+    </script>
+</body>
+</html>
