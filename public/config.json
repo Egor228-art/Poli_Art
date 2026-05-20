@@ -1,0 +1,8 @@
+{
+  "PB_URL": "http://127.0.0.1:8090",
+  "SITE_NAME": "ПолиАрт",
+  "CONTACTS": {
+    "phone": "+7 (8162) 55-55-55",
+    "email": "info@polyart.ru"
+  }
+}

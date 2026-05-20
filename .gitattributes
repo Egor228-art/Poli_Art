@@ -1,0 +1,11 @@
+*.db filter=lfs diff=lfs merge=lfs -text
+pb_data/** filter=lfs diff=lfs merge=lfs -text
+pb_data/auxiliary.db filter=lfs diff=lfs merge=lfs -text
+pb_data/*.db filter=lfs diff=lfs merge=lfs -text
+pb_data/**/* filter=lfs diff=lfs merge=lfs -text
+*.db-shm filter=lfs diff=lfs merge=lfs -text
+*.db-wal filter=lfs diff=lfs merge=lfs -text
+data/* filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.pocketbase filter=lfs diff=lfs merge=lfs -text
+pb_data/data.db filter=lfs diff=lfs merge=lfs -text

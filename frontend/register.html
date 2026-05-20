@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - ПолиАрт</title>
+    <link rel="stylesheet" href="css/HeaderAndFooter.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <!-- PocketBase SDK -->
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+</head>
+<body>
+    <header class="header"></header>
+    
+    <main class="auth-page">
+        <div class="laminate-animation-container">
+            <!-- Ламинат будет добавлен JS -->
+        </div>
+        
+        <div class="auth-container">
+            <h1>Регистрация</h1>
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Имя *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Пароль *</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Подтверждение пароля *</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                </div>
+                
+                <button type="submit" class="btn btn--primary btn-block">Зарегистрироваться</button>
+                
+                <div class="auth-links">
+                    <p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
+                    <p><a href="index.html">Вернуться на главную</a></p>
+                </div>
+            </form>
+        </div>
+    </main>
+    
+    <footer class="footer"></footer>
+    
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
+    <script src="js/laminate-animation.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
