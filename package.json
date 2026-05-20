@@ -2,6 +2,9 @@
     "name": "polyart",
     "version": "1.0.0",
     "type": "module",
+    "scripts": {
+        "build": "echo 'Build completed'"
+    },
     "dependencies": {
         "@vercel/postgres": "^0.5.0",
         "bcryptjs": "^2.4.3",
