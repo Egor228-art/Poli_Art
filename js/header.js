@@ -551,7 +551,7 @@ function loadHeader() {
                 <div class="header__contacts">
                     <a href="tel:+78162555555" class="phone">+7 (8162) 55-55-55</a>
                 </div>
-                <div class="header__actions">
+                <div class="header__actions" id="user-info-header">
                     <!-- Контейнер будет заполняться динамически -->
                     <div id="user-info-header">
                         <!-- По умолчанию показываем кнопки входа/регистрации -->
