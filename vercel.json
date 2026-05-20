@@ -1,35 +1,22 @@
 {
     "version": 2,
-    "builds": [
-        {
-            "src": "api/**/*.js",
-            "use": "@vercel/node"
-        },
-        {
-            "src": "*.html",
-            "use": "@vercel/static"
-        },
-        {
-            "src": "css/**/*",
-            "use": "@vercel/static"
-        },
-        {
-            "src": "js/**/*",
-            "use": "@vercel/static"
-        },
-        {
-            "src": "image/**/*",
-            "use": "@vercel/static"
+    "functions": {
+        "api/index.js": {
+            "runtime": "nodejs20.x"
         }
-    ],
+    },
     "routes": [
         {
             "src": "/api/(.*)",
             "dest": "/api/index.js"
         },
         {
-            "src": "/(.*)",
+            "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|json|xml|txt|html))",
             "dest": "/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/$1.html"
         }
     ]
 }
