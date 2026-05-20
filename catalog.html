@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог дверей - ПолиАрт</title>
+    <link rel="stylesheet" href="css/HeaderAndFooter.css">
+    <link rel="stylesheet" href="css/catalog.css">
+</head>
+<body>
+    <header class="header"></header>
+
+    <div class="catalog-container">
+        <div class="filters-panel" id="filters-panel">
+            <div class="filter-section">
+                <h3 class="filter-title">Тип двери</h3>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="type" value="interior" checked> Межкомнатная
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="type" value="entry"> Входная
+                    </label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h3 class="filter-title">Цена</h3>
+                <div class="price-filter">
+                    <input type="number" id="price-min" placeholder="От" min="0" step="100">
+                    <span>-</span>
+                    <input type="number" id="price-max" placeholder="До" min="0" step="100">
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-title">Материал</h3>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="material" value="array"> Массив
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="material" value="mdf"> МДФ
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="material" value="veneer"> Шпон
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="material" value="ecoshpon"> Экошпон
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="material" value="pvc"> ПВХ
+                    </label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h3 class="filter-title">Цвет</h3>
+                <div class="color-options">
+                    <div class="color-option" style="background-color: #8B4513;" data-color="brown" title="Коричневый"></div>
+                    <div class="color-option" style="background-color: #F5DEB3;" data-color="beige" title="Бежевый"></div>
+                    <div class="color-option" style="background-color: #2F4F4F;" data-color="gray" title="Серый"></div>
+                    <div class="color-option" style="background-color: #FFFFFF; border: 1px solid #ccc;" data-color="white" title="Белый"></div>
+                    <div class="color-option" style="background-color: #000000;" data-color="black" title="Чёрный"></div>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-title">Стиль</h3>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="style" value="classic"> Классика
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="style" value="modern"> Модерн
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="style" value="loft"> Лофт
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="style" value="minimal"> Минимализм
+                    </label>
+                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button class="btn btn-primary" id="apply-filters">Применить</button>
+                <button class="btn btn-secondary" id="reset-filters">Сбросить</button>
+            </div>
+        </div>
+        
+        <div class="products-panel">
+            <div class="sticky-header" id="sticky-header">
+                <div class="sticky-header-content">
+                    <div class="btn-container">
+                        <button class="toggle-button" id="toggleBtn">
+                            <div class="triangle-bg"></div>
+                            <div class="triangle-fg"></div>
+                            <span class="doors-label">Двери</span>
+                            <span class="laminate-label">Ламинат</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Поиск -->
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Поиск по названию...">
+                        <button class="btn btn-primary" id="search-btn">Найти</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопка мобильных фильтров -->
+            <button class="mobile-filters-btn" id="mobile-filters-btn">
+                <span class="filter-icon">🔍</span> Фильтры
+            </button>
+            
+            <div class="products-grid" id="products-grid">
+                <!-- Товары загрузятся сюда -->
+            </div>
+            
+            <div class="pagination" id="pagination">
+                <!-- Будет сгенерировано JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer"></footer>
+    
+    <!-- PocketBase SDK -->
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
+    <script src="js/catalog.js"></script>
+    <script>
+// Кнопка конструктора только для ламината
+const constructorButton = isLaminateMode ? 
+`<button class="btn-constructor" onclick="window.addToConstructor('${product.id}', '${escapeHtml(product.name || '')}', ${card.dataset.productColor || '[]'})">
+    В конструктор
+</button>` : '';
+    </script>
+</body>
+</html>
