@@ -92,6 +92,78 @@ export default async function handler(req, res) {
             }
         }
 
+        // GET /api/products/doors/:id
+        if (path.match(/^\/api\/products\/doors\/[^/]+$/) && req.method === 'GET') {
+            const id = path.split('/').pop();
+            try {
+                const result = await sql`SELECT * FROM doors WHERE id = ${id}`;
+                if (result.rows.length === 0) {
+                    return res.status(404).json({ error: 'Товар не найден' });
+                }
+                return res.json(result.rows[0]);
+            } catch (error) {
+                return res.status(500).json({ error: 'Ошибка получения товара' });
+            }
+        }
+
+        // GET /api/products/laminate/:id
+        if (path.match(/^\/api\/products\/laminate\/[^/]+$/) && req.method === 'GET') {
+            const id = path.split('/').pop();
+            try {
+                const result = await sql`SELECT * FROM laminate WHERE id = ${id}`;
+                if (result.rows.length === 0) {
+                    return res.status(404).json({ error: 'Товар не найден' });
+                }
+                return res.json(result.rows[0]);
+            } catch (error) {
+                return res.status(500).json({ error: 'Ошибка получения товара' });
+            }
+        }
+
+        // GET /api/reviews/:productId
+        if (path.match(/^\/api\/reviews\/[^/]+$/) && req.method === 'GET') {
+            const productId = path.split('/').pop();
+            const urlParams = new URL(req.url, `http://${req.headers.host}`);
+            const type = urlParams.searchParams.get('type');
+            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
+            
+            try {
+                const result = await sql`SELECT * FROM ${sql(table)} WHERE product_id = ${productId} ORDER BY created_at DESC`;
+                return res.json(result.rows);
+            } catch (error) {
+                return res.json([]);
+            }
+        }
+
+        // POST /api/reviews
+        if (path === '/api/reviews' && req.method === 'POST') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                return res.status(401).json({ error: 'Не авторизован' });
+            }
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) {
+                return res.status(401).json({ error: 'Недействительный токен' });
+            }
+            
+            const { product_id, product_name, rating, text, isLaminate } = req.body;
+            const table = isLaminate ? 'reviews_laminate' : 'reviews';
+            
+            try {
+                const result = await sql`
+                    INSERT INTO ${sql(table)} (product_id, product_name, rating, text, author_name, author_email, approved)
+                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${decoded.name}, ${decoded.email}, false)
+                    RETURNING *
+                `;
+                return res.json(result.rows[0]);
+            } catch (error) {
+                console.error('Review error:', error);
+                return res.status(500).json({ error: 'Ошибка сохранения отзыва' });
+            }
+        }
+
         // POST /api/contacts
         if (path === '/api/contacts' && req.method === 'POST') {
             const { name, phone, email, message } = req.body;
