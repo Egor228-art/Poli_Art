@@ -281,31 +281,52 @@ export default async function handler(req, res) {
             
             const { name, phone, address } = req.body;
             
-            console.log('Updating profile for user:', decoded.id, { name, phone, address });
+            console.log('Updating profile for user:', decoded.id);
+            console.log('New data:', { name, phone, address });
             
             try {
-                let query = sql`UPDATE users SET updated_at = NOW()`;
+                // Проверяем, существует ли пользователь
+                const checkUser = await sql`SELECT id FROM users WHERE id = ${decoded.id}`;
+                if (checkUser.rows.length === 0) {
+                    return res.status(404).json({ error: 'Пользователь не найден' });
+                }
+                
+                // Строим UPDATE запрос динамически
+                let query = 'UPDATE users SET updated_at = NOW()';
+                const values = [];
+                let paramCount = 1;
                 
                 if (name !== undefined && name !== null) {
-                    query = sql`${query}, name = ${name}`;
+                    query += `, name = $${paramCount}`;
+                    values.push(name);
+                    paramCount++;
                 }
                 if (phone !== undefined && phone !== null) {
-                    query = sql`${query}, phone = ${phone}`;
+                    query += `, phone = $${paramCount}`;
+                    values.push(phone);
+                    paramCount++;
                 }
                 if (address !== undefined && address !== null) {
-                    query = sql`${query}, address = ${address}`;
+                    query += `, address = $${paramCount}`;
+                    values.push(address);
+                    paramCount++;
                 }
                 
-                query = sql`${query} WHERE id = ${decoded.id} RETURNING id, email, name, role, phone, address`;
+                query += ` WHERE id = $${paramCount} RETURNING id, email, name, role, phone, address`;
+                values.push(decoded.id);
                 
-                const result = await query;
+                console.log('SQL Query:', query);
+                console.log('Values:', values);
+                
+                const result = await sql.query(query, values);
                 
                 if (result.rows.length === 0) {
                     return res.status(404).json({ error: 'Пользователь не найден' });
                 }
                 
-                console.log('Profile updated:', result.rows[0]);
+                console.log('Profile updated successfully:', result.rows[0]);
                 return res.json(result.rows[0]);
+                
             } catch (error) {
                 console.error('Profile update error:', error);
                 return res.status(500).json({ error: 'Ошибка обновления профиля', details: error.message });
@@ -360,6 +381,65 @@ export default async function handler(req, res) {
         
         // ============ КОНТАКТЫ ============
         
+        // POST /api/measure
+        if (path === '/api/measure' && req.method === 'POST') {
+            const { name, phone, address, comment } = req.body;
+            
+            let userId = null;
+            let userEmail = null;
+            let userName = null;
+            let userPhone = null;
+            
+            const authHeader = req.headers.authorization;
+            if (authHeader) {
+                const token = authHeader.split(' ')[1];
+                const decoded = verifyToken(token);
+                if (decoded) {
+                    userId = decoded.id;
+                    userEmail = decoded.email;
+                    
+                    // Получаем данные пользователя из БД
+                    const userResult = await sql`SELECT name, phone FROM users WHERE id = ${decoded.id}`;
+                    if (userResult.rows.length > 0) {
+                        userName = userResult.rows[0].name;
+                        userPhone = userResult.rows[0].phone;
+                    }
+                }
+            }
+            
+            // Используем данные из формы или из профиля
+            const finalName = name || userName;
+            const finalPhone = phone || userPhone;
+            const finalAddress = address || null;
+            
+            try {
+                // Создаем таблицу если нет
+                await sql`
+                    CREATE TABLE IF NOT EXISTS measure_requests (
+                        id SERIAL PRIMARY KEY,
+                        user_id UUID,
+                        name VARCHAR(255) NOT NULL,
+                        phone VARCHAR(50) NOT NULL,
+                        address TEXT,
+                        comment TEXT,
+                        status VARCHAR(50) DEFAULT 'новая',
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                `;
+                
+                const result = await sql`
+                    INSERT INTO measure_requests (user_id, name, phone, address, comment, status)
+                    VALUES (${userId}, ${finalName}, ${finalPhone}, ${finalAddress}, ${comment || null}, 'новая')
+                    RETURNING id
+                `;
+                
+                return res.json({ success: true, id: result.rows[0].id });
+            } catch (error) {
+                console.error('Error saving measure request:', error);
+                return res.status(500).json({ error: 'Ошибка сохранения заявки' });
+            }
+        }
+
         // POST /api/contacts
         if (path === '/api/contacts' && req.method === 'POST') {
             const { name, phone, email, message } = req.body;

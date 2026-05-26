@@ -365,43 +365,43 @@
         }
     }
 
-    window.populateMeasureForm = function() {
-        if (!currentUser) return;
+    window.populateMeasureForm = async function() {
+        // Ждем авторизацию
+        let user = null;
+        
+        if (window.authManager && window.authManager.currentUser) {
+            user = window.authManager.currentUser;
+        } else if (window.userProfile && window.userProfile.currentUser) {
+            user = window.userProfile.currentUser;
+        }
+        
+        if (!user) return;
+        
+        console.log('👤 Заполнение формы замера данными пользователя:', user);
         
         const nameInput = document.getElementById('measureName');
         const phoneInput = document.getElementById('measurePhone');
         const addressInput = document.getElementById('measureAddress');
-        const saveCheckbox = document.getElementById('saveAddressCheckbox');
         
-        if (currentUser) {
-            console.log('👤 Пользователь авторизован, настраиваем поля формы...');
-            
-            if (nameInput && currentUser.name) {
-                nameInput.value = currentUser.name;
-                nameInput.readOnly = true;
-                nameInput.title = "Имя из профиля";
-                nameInput.classList.add('readonly-field');
-            }
-            
-            if (phoneInput && currentUser.phone) {
-                phoneInput.value = formatPhoneForDisplay(currentUser.phone);
+        if (nameInput && user.name) {
+            nameInput.value = user.name;
+            nameInput.readOnly = true;
+            nameInput.classList.add('readonly-field');
+        }
+        
+        if (phoneInput && user.phone) {
+            const phoneStr = user.phone.toString();
+            if (phoneStr.length >= 10) {
+                const formatted = `+7 (${phoneStr.substring(0, 3)}) ${phoneStr.substring(3, 6)}-${phoneStr.substring(6, 8)}-${phoneStr.substring(8, 10)}`;
+                phoneInput.value = formatted;
                 phoneInput.readOnly = true;
-                phoneInput.title = "Телефон из профиля";
                 phoneInput.classList.add('readonly-field');
             }
-            
-            if (addressInput) {
-                if (currentUser.address) {
-                    addressInput.value = currentUser.address;
-                }
-                addressInput.readOnly = false;
-                addressInput.placeholder = "Адрес для замера (можно изменить)";
-                
-                if (saveCheckbox) {
-                    saveCheckbox.checked = true;
-                    saveCheckbox.disabled = false;
-                }
-            }
+        }
+        
+        if (addressInput && user.address) {
+            addressInput.value = user.address;
+            addressInput.placeholder = "Адрес из профиля (можно изменить)";
         }
     };
 
