@@ -36,16 +36,21 @@ class AuthStateManager {
         if (!headerActions) return;
 
         if (this.currentUser) {
+            // Кнопка админки только для админов
+            let adminButtonHtml = '';
+            if (this.currentUser.role === 'admin') {
+                adminButtonHtml = '<a href="admin.html" class="admin-link" style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; margin-right: 10px; font-size: 14px;">👑 Админка</a>';
+            }
+            
             headerActions.innerHTML = `
                 <div class="user-profile">
+                    ${adminButtonHtml}
                     <a href="personal.html" class="user-name">${this.escapeHtml(this.currentUser.name || 'Пользователь')}</a>
                     <button class="btn btn--secondary" id="logoutBtn">Выйти</button>
                 </div>
             `;
             const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => this.logout());
-            }
+            if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
         } else {
             headerActions.innerHTML = `
                 <div class="auth-buttons">

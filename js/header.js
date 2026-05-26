@@ -576,55 +576,6 @@ function loadHeader() {
     initHeaderFunctionality();
 }
 
-async function checkAuthStatus() {}
-
-function updateHeaderForLoggedInUser(user) {
-    const headerActions = document.querySelector('.header__actions');
-    if (!headerActions) return;
-    
-    const userName = user.name || user.email?.split('@')[0] || 'Пользователь';
-    
-    headerActions.innerHTML = `
-        <div class="user-profile">
-            <a href="personal.html" class="user-name">${userName}</a>
-            <button class="btn btn--secondary" onclick="logout()">Выйти</button>
-        </div>
-    `;
-}
-
-function renderHeaderUserInfo(container) {
-    const user = this.currentUser;
-    if (!user) return;
-    
-    const firstName = user.name || 'Пользователь';
-    const email = user.email || '';
-    const initials = this.getUserInitials(firstName);
-    
-    let adminButton = '';
-    if (user.role === 'admin') {
-        adminButton = '<a href="admin.html" class="admin-link" style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; margin: 0 10px; font-size: 14px;">👑 Админка</a>';
-    }
-    
-    container.innerHTML = `
-        <div class="header-user-info">
-            <a href="personal.html" class="user-profile-link">
-                <div class="user-avatar">${initials}</div>
-                <div class="user-details">
-                    <div class="user-name">${escapeHtml(firstName)}</div>
-                    <div class="user-email" title="${escapeHtml(email)}">${escapeHtml(email)}</div>
-                </div>
-            </a>
-            ${adminButton}
-            <button class="logout-btn" id="logout-button">
-                <span>Выйти</span>
-                <span class="logout-btn-icon">🚪</span>
-            </button>
-        </div>
-    `;
-    
-    document.getElementById('logout-button')?.addEventListener('click', () => this.logout());
-}
-
 async function logout() {
     try {
         const pb = new PocketBase('http://127.0.0.1:8090');
