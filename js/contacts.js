@@ -124,41 +124,55 @@
 
     // Заполнение формы данными пользователя
     function populateFormWithUserData() {
-        if (!currentUser) return;
-        
-        const nameInput = document.getElementById('name');
-        const phoneInput = document.getElementById('phone');
-        const emailInput = document.getElementById('email');
-        
-        if (DEBUG) console.log('👤 Заполнение формы данными пользователя...');
-        
-        // Имя
-        if (nameInput && currentUser.name) {
-            nameInput.value = currentUser.name;
-            nameInput.readOnly = true;
-            nameInput.classList.add('readonly-field');
-        }
-        
-        // Телефон
-        if (phoneInput && currentUser.phone) {
-            const phoneStr = currentUser.phone.toString();
-            if (phoneStr.length >= 10) {
-                const formattedPhone = '(' + phoneStr.substring(0, 3) + ') ' + 
-                                      phoneStr.substring(3, 6) + '-' + 
-                                      phoneStr.substring(6, 8) + '-' + 
-                                      phoneStr.substring(8, 10);
-                phoneInput.value = formattedPhone;
-                phoneInput.readOnly = true;
-                phoneInput.classList.add('readonly-field');
+        // Ждем загрузки authManager
+        setTimeout(async () => {
+            let user = null;
+            
+            // Пробуем получить пользователя из разных источников
+            if (window.authManager && window.authManager.currentUser) {
+                user = window.authManager.currentUser;
+            } else if (window.authManager && typeof window.authManager.getUser === 'function') {
+                user = window.authManager.getUser();
+            } else if (window.userProfile && window.userProfile.currentUser) {
+                user = window.userProfile.currentUser;
             }
-        }
-        
-        // Email
-        if (emailInput && currentUser.email) {
-            emailInput.value = currentUser.email;
-            emailInput.readOnly = true;
-            emailInput.classList.add('readonly-field');
-        }
+            
+            if (!user) {
+                console.log('👤 Пользователь не авторизован');
+                return;
+            }
+            
+            const nameInput = document.getElementById('name');
+            const phoneInput = document.getElementById('phone');
+            const emailInput = document.getElementById('email');
+            
+            if (DEBUG) console.log('👤 Заполнение формы данными пользователя:', user);
+            
+            if (nameInput && user.name) {
+                nameInput.value = user.name;
+                nameInput.readOnly = true;
+                nameInput.classList.add('readonly-field');
+            }
+            
+            if (phoneInput && user.phone) {
+                const phoneStr = user.phone.toString();
+                if (phoneStr.length >= 10) {
+                    const formattedPhone = '+7 (' + phoneStr.substring(0, 3) + ') ' + 
+                                        phoneStr.substring(3, 6) + '-' + 
+                                        phoneStr.substring(6, 8) + '-' + 
+                                        phoneStr.substring(8, 10);
+                    phoneInput.value = formattedPhone;
+                    phoneInput.readOnly = true;
+                    phoneInput.classList.add('readonly-field');
+                }
+            }
+            
+            if (emailInput && user.email) {
+                emailInput.value = user.email;
+                emailInput.readOnly = true;
+                emailInput.classList.add('readonly-field');
+            }
+        }, 500);
     }
 
     // Настройка валидации формы

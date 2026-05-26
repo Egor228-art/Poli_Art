@@ -1,4 +1,4 @@
-// js/api-client.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// js/api-client.js - ПОЛНОСТЬЮ ГОТОВАЯ ВЕРСИЯ
 class APIClient {
     constructor() {
         this.token = null;
@@ -32,10 +32,7 @@ class APIClient {
 
     async request(method, endpoint, data = null) {
         const url = `/api${endpoint}`;
-        const options = { 
-            method, 
-            headers: this.getHeaders() 
-        };
+        const options = { method, headers: this.getHeaders() };
         
         if (data && (method === 'POST' || method === 'PUT')) {
             options.body = JSON.stringify(data);
@@ -44,8 +41,8 @@ class APIClient {
         try {
             const response = await fetch(url, options);
             
-            // Для 401 не пытаемся парсить JSON
             if (response.status === 401) {
+                this.setToken(null);
                 throw new Error('Не авторизован');
             }
             
@@ -102,17 +99,18 @@ class APIClient {
         this.setToken(null); 
     }
     
+    // ============ ПРОФИЛЬ ============
+    async updateProfile(data) { 
+        return this.request('PUT', '/user/profile', data); 
+    }
+    
     // ============ ЗАКАЗЫ ============
-    async getOrders() {
-        return this.request('GET', '/orders');
+    async getOrders() { 
+        return this.request('GET', '/orders'); 
     }
-
-    async createOrder(data) {
-        return this.request('POST', '/orders', data);
-    }
-
-    async updateProfile(data) {
-        return this.request('PUT', '/user/profile', data);
+    
+    async createOrder(data) { 
+        return this.request('POST', '/orders', data); 
     }
     
     // ============ ОТЗЫВЫ ============
@@ -131,6 +129,5 @@ class APIClient {
     }
 }
 
-// Создаем глобальный экземпляр
 window.apiClient = new APIClient();
 console.log('✅ API Client инициализирован');

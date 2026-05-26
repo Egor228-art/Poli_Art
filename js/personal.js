@@ -930,15 +930,27 @@ class UserProfile {
             }
         }
         
-        // Здесь должен быть API вызов для обновления профиля
-        // Пока просто обновляем локально
-        this.currentUser.name = fullName;
-        this.currentUser.email = email;
-        this.currentUser.phone = phoneNumber;
-        this.currentUser.address = address;
-        
-        this.updateUserInfo();
-        this.showNotification('Данные успешно обновлены', 'success');
+        try {
+            // Обновляем через API
+            const updateData = {};
+            if (fullName !== this.currentUser.name) updateData.name = fullName;
+            if (email !== this.currentUser.email) updateData.email = email;
+            if (phoneNumber !== this.currentUser.phone) updateData.phone = phoneNumber;
+            if (address !== this.currentUser.address) updateData.address = address;
+            
+            if (Object.keys(updateData).length > 0) {
+                const result = await window.apiClient.updateProfile(updateData);
+                this.currentUser = { ...this.currentUser, ...result };
+                console.log('✅ Данные обновлены:', result);
+            }
+            
+            this.updateUserInfo();
+            this.showNotification('Данные успешно обновлены', 'success');
+            
+        } catch (error) {
+            console.error('❌ Ошибка обновления данных:', error);
+            this.showNotification('Ошибка обновления данных', 'error');
+        }
     }
 
     async changePassword() {
