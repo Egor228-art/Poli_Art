@@ -557,8 +557,15 @@ function initOrderModal() {
 }
 
 function openOrderModal() {
+    console.log('📦 Открытие модального окна заказа...');
+    
     const modal = document.getElementById('orderModal');
-    if (!modal) return;
+    if (!modal) {
+        console.error('❌ Модальное окно #orderModal не найдено в DOM');
+        // Создаем модальное окно если его нет
+        createOrderModal();
+        return;
+    }
     
     fillOrderModal();
     resetModalValues();
@@ -570,14 +577,95 @@ function openOrderModal() {
     updateOrderSummary();
 }
 
+function createOrderModal() {
+    console.log('🏗️ Создаем модальное окно заказа');
+    
+    const modalHTML = `
+        <div id="orderModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+            <div style="background: white; border-radius: 10px; max-width: 500px; width: 90%; padding: 20px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <h3>Оформление заказа</h3>
+                    <button id="closeOrderModalBtn" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <div id="orderModalBody">
+                    <div class="product-summary" style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <img id="orderProductImage" src="" style="width: 80px; height: 80px; object-fit: cover;">
+                        <div>
+                            <h4 id="orderProductName"></h4>
+                            <div id="orderProductPrice"></div>
+                            <div class="product-quantity" style="display: flex; gap: 10px; margin-top: 10px;">
+                                <button class="qty-minus">-</button>
+                                <input type="number" id="orderQuantity" value="1" min="1" max="99" style="width: 60px; text-align: center;">
+                                <button class="qty-plus">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4>Способ получения</h4>
+                        <label><input type="radio" name="delivery" value="pickup" checked> Самовывоз (бесплатно)</label><br>
+                        <label><input type="radio" name="delivery" value="delivery"> Доставка (500 ₽)</label><br>
+                        <label><input type="radio" name="delivery" value="installation"> Доставка и установка (1500 ₽)</label>
+                    </div>
+                    
+                    <div id="deliveryAddress" style="display: none; margin-bottom: 20px;">
+                        <h4>Адрес доставки</h4>
+                        <textarea id="addressInput" rows="2" style="width: 100%;" placeholder="Введите адрес доставки..."></textarea>
+                        <label><input type="checkbox" id="saveAddressCheckbox"> Сохранить адрес в профиле</label>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4>Дополнительные услуги</h4>
+                        <label><input type="checkbox" id="serviceWarranty"> Расширенная гарантия (+500 ₽)</label><br>
+                        <label><input type="checkbox" id="serviceAssembly"> Дополнительный монтаж (+1000 ₽)</label>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                        <h4>Итого:</h4>
+                        <div>Товар: <span id="summaryProduct">0 ₽</span></div>
+                        <div>Доставка: <span id="summaryDelivery">0 ₽</span></div>
+                        <div>Услуги: <span id="summaryServices">0 ₽</span></div>
+                        <div style="font-size: 20px; font-weight: bold;">К оплате: <span id="summaryTotal">0 ₽</span></div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="cancelOrder" style="padding: 10px 20px; background: #f0f0f0; border: none; border-radius: 5px;">Отмена</button>
+                        <button id="submitOrder" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px;">Добавить в корзину</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Привязываем обработчики
+    document.getElementById('closeOrderModalBtn')?.addEventListener('click', closeOrderModal);
+    document.getElementById('cancelOrder')?.addEventListener('click', closeOrderModal);
+    document.getElementById('submitOrder')?.addEventListener('click', submitOrder);
+    
+    document.querySelector('.qty-minus')?.addEventListener('click', () => changeQuantity(-1));
+    document.querySelector('.qty-plus')?.addEventListener('click', () => changeQuantity(1));
+    document.getElementById('orderQuantity')?.addEventListener('input', updateOrderSummary);
+    
+    document.querySelectorAll('input[name="delivery"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            handleDeliveryChange();
+            updateOrderSummary();
+        });
+    });
+    
+    document.getElementById('serviceWarranty')?.addEventListener('change', updateOrderSummary);
+    document.getElementById('serviceAssembly')?.addEventListener('change', updateOrderSummary);
+}
+
 function fillOrderModal() {
-    document.getElementById('orderProductName').textContent = currentProduct.name || 'Ламинат';
+    document.getElementById('orderProductName').textContent = currentProduct?.name || 'Ламинат';
     document.getElementById('orderProductPrice').textContent = formatPrice(currentProductPrice);
     
     const mainImage = document.getElementById('mainImage');
-    const modalImage = document.getElementById('orderProductImage');
-    if (mainImage?.src && modalImage) {
-        modalImage.src = mainImage.src;
+    if (mainImage?.src) {
+        document.getElementById('orderProductImage').src = mainImage.src;
     }
 }
 
@@ -588,8 +676,11 @@ function resetModalValues() {
     const pickupRadio = document.querySelector('input[name="delivery"][value="pickup"]');
     if (pickupRadio) pickupRadio.checked = true;
     
-    document.getElementById('serviceWarranty').checked = false;
-    document.getElementById('serviceAssembly').checked = false;
+    const warrantyCheckbox = document.getElementById('serviceWarranty');
+    if (warrantyCheckbox) warrantyCheckbox.checked = false;
+    
+    const assemblyCheckbox = document.getElementById('serviceAssembly');
+    if (assemblyCheckbox) assemblyCheckbox.checked = false;
     
     const addressInput = document.getElementById('addressInput');
     if (addressInput) addressInput.value = '';
@@ -638,7 +729,8 @@ function changeQuantity(delta) {
 function updateProductPriceDisplay() {
     const quantity = parseInt(document.getElementById('orderQuantity')?.value) || 1;
     const total = currentProductPrice * quantity;
-    document.getElementById('orderProductPrice').textContent = formatPrice(total);
+    const priceElement = document.getElementById('orderProductPrice');
+    if (priceElement) priceElement.textContent = formatPrice(total);
 }
 
 function handleDeliveryChange() {
@@ -667,14 +759,31 @@ function updateOrderSummary() {
     
     const totalCost = productTotal + deliveryCost + servicesCost;
     
-    document.getElementById('summaryProduct').textContent = formatPrice(productTotal);
-    document.getElementById('summaryDelivery').textContent = deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost);
-    document.getElementById('summaryServices').textContent = servicesCost === 0 ? '—' : formatPrice(servicesCost);
-    document.getElementById('summaryTotal').textContent = formatPrice(totalCost);
+    const summaryProduct = document.getElementById('summaryProduct');
+    if (summaryProduct) summaryProduct.textContent = formatPrice(productTotal);
+    
+    const summaryDelivery = document.getElementById('summaryDelivery');
+    if (summaryDelivery) summaryDelivery.textContent = deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost);
+    
+    const summaryServices = document.getElementById('summaryServices');
+    if (summaryServices) summaryServices.textContent = servicesCost === 0 ? '—' : formatPrice(servicesCost);
+    
+    const summaryTotal = document.getElementById('summaryTotal');
+    if (summaryTotal) summaryTotal.textContent = formatPrice(totalCost);
+}
+
+function closeOrderModal() {
+    const modal = document.getElementById('orderModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
 }
 
 async function submitOrder() {
-    if (!window.authManager || !window.authManager.currentUser) {
+    console.log('📦 Отправка заказа...');
+    
+    if (!window.authManager?.currentUser) {
         alert('Для оформления заказа необходимо войти в систему');
         window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
         return;
@@ -692,80 +801,38 @@ async function submitOrder() {
         return;
     }
     
-    // ============ СОХРАНЯЕМ АДРЕС В ПРОФИЛЬ ============
+    // Сохраняем адрес
     if (saveAddress && address.trim()) {
         try {
-            const result = await window.apiClient.updateProfile({ address: address.trim() });
-            if (result && result.address) {
-                window.authManager.currentUser.address = result.address;
-                console.log('✅ Адрес сохранен в профиль:', result.address);
-            }
+            await window.apiClient.updateProfile({ address: address.trim() });
+            console.log('✅ Адрес сохранен в профиль');
         } catch (error) {
             console.warn('⚠️ Не удалось сохранить адрес:', error);
         }
     }
-    // ================================================
     
-    const submitBtn = document.getElementById('submitOrder');
-    if (submitBtn) {
-        submitBtn.innerHTML = '🔄 Добавление...';
-        submitBtn.disabled = true;
-    }
+    const cartItem = {
+        id: currentProduct.id,
+        name: currentProduct.name,
+        price: currentProductPrice,
+        quantity: quantity,
+        image: document.getElementById('mainImage')?.src || '',
+        delivery_type: deliveryType,
+        delivery_address: address,
+        warranty_service: warranty,
+        assembly_service: assembly,
+        collection: 'laminate'
+    };
     
-    try {
-        const cartItem = {
-            id: currentProduct.id,
-            name: currentProduct.name,
-            price: currentProductPrice,
-            quantity: quantity,
-            image: document.getElementById('mainImage')?.src || '',
-            code: currentProduct.id.substring(0, 8),
-            color: getFormattedColors(currentProduct.color),
-            delivery_type: deliveryType,
-            delivery_address: address,
-            warranty_service: warranty,
-            assembly_service: assembly,
-            payment_method: 'наличные',
-            collection: isLaminateMode ? 'laminate' : 'doors',
-            added_at: new Date().toISOString(),
-            save_address: saveAddress
-        };
-        
-        const userId = window.authManager.currentUser?.id;
-        const cartKey = userId ? `user_cart_${userId}` : 'guest_cart';
-        
-        let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
-        
-        const existingIndex = cart.findIndex(item => 
-            item.id === currentProduct.id && 
-            item.collection === (isLaminateMode ? 'laminate' : 'doors') &&
-            item.delivery_type === deliveryType &&
-            item.warranty_service === warranty &&
-            item.assembly_service === assembly
-        );
-        
-        if (existingIndex !== -1) {
-            cart[existingIndex].quantity += quantity;
-        } else {
-            cart.push(cartItem);
-        }
-        
-        localStorage.setItem(cartKey, JSON.stringify(cart));
-        
-        closeOrderModal();
-        alert('✅ Товар добавлен в корзину!');
-        
-        if (window.cartManager) window.cartManager.updateCartCounter();
-        
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('❌ Ошибка добавления в корзину');
-    } finally {
-        if (submitBtn) {
-            submitBtn.innerHTML = 'Оформить заказ';
-            submitBtn.disabled = false;
-        }
-    }
+    const userId = window.authManager.currentUser?.id;
+    const cartKey = userId ? `user_cart_${userId}` : 'guest_cart';
+    
+    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    cart.push(cartItem);
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    
+    closeOrderModal();
+    alert('✅ Товар добавлен в корзину!');
 }
 
 function getFormattedColorsString(colorData) {
