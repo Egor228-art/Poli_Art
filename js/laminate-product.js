@@ -1,10 +1,10 @@
-// js/laminate-product.js - ПОЛНОСТЬЮ РАБОЧАЯ ВЕРСИЯ
+// js/laminate-product.js - ИСПРАВЛЕНА ТОЛЬКО МОДАЛКА
 let currentProduct = null;
 let currentProductPrice = 0;
 let currentProductId = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Страница ламината загружена');
+    console.log('Инициализация страницы ламината...');
     
     const urlParams = new URLSearchParams(window.location.search);
     currentProductId = urlParams.get('id');
@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 async function loadProduct() {
+    console.log('Загрузка ламината:', currentProductId);
     showLoading();
     
     try {
@@ -32,65 +33,73 @@ async function loadProduct() {
         renderProductPage();
         await loadReviews();
         await loadSimilarProducts();
-        initOrderModal();
+        initOrderModal(); // Инициализируем модальное окно
         
     } catch (error) {
-        console.error('Ошибка:', error);
-        showError('Не удалось загрузить товар');
+        console.error('Ошибка загрузки ламината:', error);
+        showError('Не удалось загрузить информацию о товаре');
     } finally {
         hideLoading();
     }
 }
 
 function renderProductPage() {
-    const container = document.querySelector('.product-main__inner');
-    if (!container) return;
+    console.log('Рендеринг страницы ламината...');
     
-    const pictures = currentProduct.pictures || currentProduct.picture || [];
-    const mainImage = pictures[0] || '/image/no-image.jpg';
+    // Сохраняем существующую структуру, не пересоздаем всё
+    const titleEl = document.querySelector('.product-title');
+    const skuEl = document.querySelector('.product-sku');
+    const priceEl = document.querySelector('.laminate-price .price-current');
+    const priceUnit = document.querySelector('.laminate-price .price-unit');
+    const featuresEl = document.getElementById('laminateFeatures');
+    const mainImage = document.querySelector('.gallery-main__image');
+    const galleryThumbs = document.querySelector('.gallery-thumbs');
     
-    container.innerHTML = `
-        <div class="product-gallery-section">
-            <div class="product-gallery">
-                <div class="gallery-thumbs" id="galleryThumbs">
-                    ${pictures.map((img, i) => `<div class="thumb ${i === 0 ? 'active' : ''}" data-img="${img}"><img src="${img}" onerror="this.src='/image/no-image.jpg'"></div>`).join('')}
-                    ${pictures.length === 0 ? '<div class="thumb active"><img src="/image/no-image.jpg"></div>' : ''}
-                </div>
-                <div class="gallery-main">
-                    <img src="${mainImage}" alt="${currentProduct.name}" class="gallery-main__image" id="mainImage" onerror="this.src='/image/no-image.jpg'">
-                </div>
-            </div>
-        </div>
-        <div class="product-info-section">
-            <h1 class="product-title">${escapeHtml(currentProduct.name || 'Ламинат')}</h1>
-            <div class="product-sku">Код: ${currentProduct.id?.substring(0, 8)}</div>
-            <div class="product-price-block">
-                <div class="laminate-price"><span class="price-current">${formatPrice(currentProductPrice)}</span><span class="price-unit">за м²</span></div>
-            </div>
-            <div class="product-actions">
-                <button class="btn btn--primary" id="orderBtn">🛒 Оформить заказ</button>
-                <button class="btn-constructor" id="constructorBtn">🧮 В конструктор</button>
-            </div>
-            <div class="laminate-features-tags" id="laminateFeatures">
-                ${currentProduct.type ? `<span class="laminate-feature-tag">${currentProduct.type} класс</span>` : ''}
-                ${currentProduct.thickness ? `<span class="laminate-feature-tag">${currentProduct.thickness} мм</span>` : ''}
-            </div>
-        </div>
-    `;
+    if (titleEl) titleEl.textContent = currentProduct.name || 'Ламинат';
+    if (skuEl) skuEl.textContent = `Код: ${currentProduct.id?.substring(0, 8) || '---'}`;
+    if (priceEl) priceEl.textContent = formatPrice(currentProductPrice);
+    if (priceUnit) priceUnit.textContent = 'за м²';
+    
+    if (featuresEl) {
+        featuresEl.innerHTML = `
+            ${currentProduct.type ? `<span class="laminate-feature-tag">${currentProduct.type} класс</span>` : ''}
+            ${currentProduct.thickness ? `<span class="laminate-feature-tag">${currentProduct.thickness} мм</span>` : ''}
+            ${currentProduct.wear_class ? `<span class="laminate-feature-tag">Класс ${currentProduct.wear_class}</span>` : ''}
+        `;
+    }
     
     // Галерея
-    document.querySelectorAll('.thumb').forEach(thumb => {
-        thumb.addEventListener('click', function() {
-            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            const img = this.dataset.img;
-            if (img) document.getElementById('mainImage').src = img;
+    const pictures = currentProduct.pictures || currentProduct.picture || [];
+    if (mainImage && pictures.length > 0) {
+        mainImage.src = pictures[0];
+        mainImage.onerror = () => mainImage.src = '/image/no-image.jpg';
+    }
+    
+    if (galleryThumbs && pictures.length > 0) {
+        galleryThumbs.innerHTML = pictures.map((img, i) => `
+            <div class="thumb ${i === 0 ? 'active' : ''}" data-img="${img}">
+                <img src="${img}" onerror="this.src='/image/no-image.jpg'">
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.thumb').forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const img = this.dataset.img;
+                if (img && mainImage) mainImage.src = img;
+            });
         });
-    });
+    }
     
     // Описание
     const descTab = document.getElementById('description');
-    if (descTab) descTab.innerHTML = `<h2>${escapeHtml(currentProduct.name)}</h2><div class="description-text">${currentProduct.description || 'Описание отсутствует'}</div>`;
+    if (descTab) {
+        descTab.innerHTML = `
+            <h2>${escapeHtml(currentProduct.name)}</h2>
+            <div class="description-text">${currentProduct.description || 'Описание отсутствует'}</div>
+        `;
+    }
     
     // Характеристики
     const specsGrid = document.querySelector('.laminate-specs-grid');
@@ -103,46 +112,111 @@ function renderProductPage() {
         `;
     }
     
-    // Конструктор
-    document.getElementById('constructorBtn')?.addEventListener('click', () => {
-        window.location.href = `laminate-constructor.html?product_id=${currentProduct.id}&product_name=${encodeURIComponent(currentProduct.name)}`;
-    });
+    // Кнопка конструктора
+    const constructorBtn = document.getElementById('constructorBtn');
+    if (constructorBtn) {
+        const newBtn = constructorBtn.cloneNode(true);
+        constructorBtn.parentNode.replaceChild(newBtn, constructorBtn);
+        newBtn.addEventListener('click', () => {
+            window.location.href = `laminate-constructor.html?product_id=${currentProduct.id}&product_name=${encodeURIComponent(currentProduct.name)}`;
+        });
+    }
 }
 
 function initOrderModal() {
+    console.log('🎯 Инициализация модального окна заказа');
+    
+    // Кнопка заказа
     const orderBtn = document.getElementById('orderBtn');
-    if (!orderBtn) return;
+    if (orderBtn) {
+        const newBtn = orderBtn.cloneNode(true);
+        orderBtn.parentNode.replaceChild(newBtn, orderBtn);
+        newBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('🛒 Открытие модального окна');
+            openOrderModal();
+        });
+    }
     
-    const newBtn = orderBtn.cloneNode(true);
-    orderBtn.parentNode.replaceChild(newBtn, orderBtn);
-    newBtn.addEventListener('click', () => openOrderModal());
+    // Закрытие
+    const closeBtn = document.getElementById('closeOrderModal');
+    if (closeBtn) {
+        const newClose = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newClose, closeBtn);
+        newClose.addEventListener('click', closeOrderModal);
+    }
     
-    document.getElementById('closeOrderModal')?.addEventListener('click', closeOrderModal);
-    document.getElementById('cancelLaminateOrder')?.addEventListener('click', closeOrderModal);
+    const cancelBtn = document.getElementById('cancelLaminateOrder');
+    if (cancelBtn) {
+        const newCancel = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+        newCancel.addEventListener('click', closeOrderModal);
+    }
     
-    document.querySelector('#laminateOrderModal .qty-minus')?.addEventListener('click', () => changeQty(-1));
-    document.querySelector('#laminateOrderModal .qty-plus')?.addEventListener('click', () => changeQty(1));
-    document.getElementById('laminateOrderQuantity')?.addEventListener('input', updateTotal);
+    // Количество
+    const minusBtn = document.querySelector('#laminateOrderModal .qty-minus');
+    const plusBtn = document.querySelector('#laminateOrderModal .qty-plus');
+    const qtyInput = document.getElementById('laminateOrderQuantity');
     
+    if (minusBtn) {
+        const newMinus = minusBtn.cloneNode(true);
+        minusBtn.parentNode.replaceChild(newMinus, minusBtn);
+        newMinus.addEventListener('click', () => changeQty(-1));
+    }
+    if (plusBtn) {
+        const newPlus = plusBtn.cloneNode(true);
+        plusBtn.parentNode.replaceChild(newPlus, plusBtn);
+        newPlus.addEventListener('click', () => changeQty(1));
+    }
+    if (qtyInput) {
+        const newQty = qtyInput.cloneNode(true);
+        qtyInput.parentNode.replaceChild(newQty, qtyInput);
+        newQty.addEventListener('input', updateTotal);
+    }
+    
+    // Доставка
     document.querySelectorAll('#laminateOrderModal input[name="laminateDelivery"]').forEach(radio => {
-        radio.addEventListener('change', () => {
+        const newRadio = radio.cloneNode(true);
+        radio.parentNode.replaceChild(newRadio, radio);
+        newRadio.addEventListener('change', () => {
             const isDelivery = document.querySelector('#laminateOrderModal input[name="laminateDelivery"]:checked')?.value !== 'pickup';
-            const addrBlock = document.getElementById('laminateDeliveryAddress');
-            if (addrBlock) addrBlock.style.display = isDelivery ? 'block' : 'none';
+            const addressBlock = document.getElementById('laminateDeliveryAddress');
+            if (addressBlock) addressBlock.style.display = isDelivery ? 'block' : 'none';
             updateTotal();
         });
     });
     
-    document.getElementById('laminateServiceWarranty')?.addEventListener('change', updateTotal);
-    document.getElementById('laminateServiceAssembly')?.addEventListener('change', updateTotal);
-    document.getElementById('submitLaminateOrder')?.addEventListener('click', submitOrder);
+    // Услуги
+    const warrantyChk = document.getElementById('laminateServiceWarranty');
+    if (warrantyChk) {
+        const newWarranty = warrantyChk.cloneNode(true);
+        warrantyChk.parentNode.replaceChild(newWarranty, warrantyChk);
+        newWarranty.addEventListener('change', updateTotal);
+    }
     
+    const assemblyChk = document.getElementById('laminateServiceAssembly');
+    if (assemblyChk) {
+        const newAssembly = assemblyChk.cloneNode(true);
+        assemblyChk.parentNode.replaceChild(newAssembly, assemblyChk);
+        newAssembly.addEventListener('change', updateTotal);
+    }
+    
+    // Отправка
+    const submitBtn = document.getElementById('submitLaminateOrder');
+    if (submitBtn) {
+        const newSubmit = submitBtn.cloneNode(true);
+        submitBtn.parentNode.replaceChild(newSubmit, submitBtn);
+        newSubmit.addEventListener('click', submitOrder);
+    }
+    
+    // Подтягиваем адрес из профиля
     setTimeout(() => {
         const user = window.authManager?.currentUser;
         if (user?.address) {
             const addrInput = document.getElementById('laminateAddressInput');
             if (addrInput) addrInput.value = user.address;
-            document.getElementById('saveLaminateAddress').checked = true;
+            const saveChk = document.getElementById('saveLaminateAddress');
+            if (saveChk) saveChk.checked = true;
         }
     }, 500);
 }
@@ -151,21 +225,38 @@ function openOrderModal() {
     const modal = document.getElementById('laminateOrderModal');
     if (!modal) return;
     
+    // Заполняем данные
     document.getElementById('orderProductName').textContent = currentProduct.name;
     document.getElementById('orderProductPrice').textContent = formatPrice(currentProductPrice);
-    const mainImg = document.getElementById('mainImage');
-    if (mainImg) document.getElementById('orderProductImage').src = mainImg.src;
     
-    document.getElementById('laminateOrderQuantity').value = 1;
-    document.querySelector('#laminateOrderModal input[name="laminateDelivery"][value="pickup"]').checked = true;
-    document.getElementById('laminateDeliveryAddress').style.display = 'none';
-    document.getElementById('laminateServiceWarranty').checked = false;
-    document.getElementById('laminateServiceAssembly').checked = false;
+    const mainImage = document.getElementById('mainImage');
+    if (mainImage) {
+        document.getElementById('orderProductImage').src = mainImage.src;
+    }
     
+    // Сброс
+    const qtyInput = document.getElementById('laminateOrderQuantity');
+    if (qtyInput) qtyInput.value = 1;
+    
+    const pickupRadio = document.querySelector('#laminateOrderModal input[name="laminateDelivery"][value="pickup"]');
+    if (pickupRadio) pickupRadio.checked = true;
+    
+    const addressBlock = document.getElementById('laminateDeliveryAddress');
+    if (addressBlock) addressBlock.style.display = 'none';
+    
+    const warrantyChk = document.getElementById('laminateServiceWarranty');
+    if (warrantyChk) warrantyChk.checked = false;
+    
+    const assemblyChk = document.getElementById('laminateServiceAssembly');
+    if (assemblyChk) assemblyChk.checked = false;
+    
+    // Подтягиваем адрес из профиля
     const user = window.authManager?.currentUser;
     if (user?.address) {
-        document.getElementById('laminateAddressInput').value = user.address;
-        document.getElementById('saveLaminateAddress').checked = true;
+        const addrInput = document.getElementById('laminateAddressInput');
+        if (addrInput) addrInput.value = user.address;
+        const saveChk = document.getElementById('saveLaminateAddress');
+        if (saveChk) saveChk.checked = true;
     }
     
     updateTotal();
@@ -183,6 +274,7 @@ function closeOrderModal() {
 
 function changeQty(delta) {
     const input = document.getElementById('laminateOrderQuantity');
+    if (!input) return;
     let val = parseInt(input.value) || 1;
     val = Math.max(1, Math.min(99, val + delta));
     input.value = val;
@@ -190,7 +282,7 @@ function changeQty(delta) {
 }
 
 function updateTotal() {
-    const qty = parseInt(document.getElementById('laminateOrderQuantity').value) || 1;
+    const qty = parseInt(document.getElementById('laminateOrderQuantity')?.value) || 1;
     const productTotal = currentProductPrice * qty;
     
     let deliveryCost = 0;
@@ -204,10 +296,17 @@ function updateTotal() {
     
     const total = productTotal + deliveryCost + servicesCost;
     
-    document.getElementById('summaryProduct').textContent = formatPrice(productTotal);
-    document.getElementById('summaryDelivery').textContent = deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost);
-    document.getElementById('summaryServices').textContent = servicesCost === 0 ? '—' : formatPrice(servicesCost);
-    document.getElementById('summaryTotal').textContent = formatPrice(total);
+    const summaryProduct = document.getElementById('summaryProduct');
+    if (summaryProduct) summaryProduct.textContent = formatPrice(productTotal);
+    
+    const summaryDelivery = document.getElementById('summaryDelivery');
+    if (summaryDelivery) summaryDelivery.textContent = deliveryCost === 0 ? 'Бесплатно' : formatPrice(deliveryCost);
+    
+    const summaryServices = document.getElementById('summaryServices');
+    if (summaryServices) summaryServices.textContent = servicesCost === 0 ? '—' : formatPrice(servicesCost);
+    
+    const summaryTotal = document.getElementById('summaryTotal');
+    if (summaryTotal) summaryTotal.textContent = formatPrice(total);
 }
 
 async function submitOrder() {
@@ -217,7 +316,7 @@ async function submitOrder() {
         return;
     }
     
-    const qty = parseInt(document.getElementById('laminateOrderQuantity').value) || 1;
+    const qty = parseInt(document.getElementById('laminateOrderQuantity')?.value) || 1;
     const deliveryType = document.querySelector('#laminateOrderModal input[name="laminateDelivery"]:checked')?.value;
     const address = document.getElementById('laminateAddressInput')?.value.trim() || '';
     const saveAddress = document.getElementById('saveLaminateAddress')?.checked || false;
@@ -229,18 +328,26 @@ async function submitOrder() {
         return;
     }
     
+    // Сохраняем адрес
     if (saveAddress && address) {
         try {
             await window.apiClient.updateProfile({ address: address });
             if (window.authManager.currentUser) window.authManager.currentUser.address = address;
-        } catch(e) { console.warn(e); }
+            console.log('✅ Адрес сохранен');
+        } catch (e) { console.warn(e); }
     }
     
     const cartItem = {
-        id: currentProduct.id, name: currentProduct.name, price: currentProductPrice,
-        quantity: qty, image: document.getElementById('orderProductImage')?.src || '',
-        delivery_type: deliveryType, delivery_address: address,
-        warranty_service: warranty, assembly_service: assembly, collection: 'laminate'
+        id: currentProduct.id,
+        name: currentProduct.name,
+        price: currentProductPrice,
+        quantity: qty,
+        image: document.getElementById('orderProductImage')?.src || '',
+        delivery_type: deliveryType,
+        delivery_address: address,
+        warranty_service: warranty,
+        assembly_service: assembly,
+        collection: 'laminate'
     };
     
     const userId = window.authManager.currentUser.id;
@@ -259,41 +366,83 @@ async function loadReviews() {
         const container = document.getElementById('reviewsList');
         if (!container) return;
         
-        const approved = (reviews || []).filter(r => r.approved);
+        if (!reviews || reviews.length === 0) {
+            container.innerHTML = '<div class="no-reviews">Пока нет отзывов</div>';
+            return;
+        }
+        
+        const approved = reviews.filter(r => r.approved);
         if (approved.length === 0) {
             container.innerHTML = '<div class="no-reviews">Пока нет отзывов</div>';
             return;
         }
         
         container.innerHTML = approved.map(r => `
-            <div class="review-item"><strong>${escapeHtml(r.author_name || 'Пользователь')}</strong>
-            <div>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-            <p>${escapeHtml(r.text)}</p><small>${new Date(r.created_at).toLocaleDateString()}</small></div>
+            <div class="review-item">
+                <strong>${escapeHtml(r.author_name || 'Пользователь')}</strong>
+                <div class="review-rating">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                <p>${escapeHtml(r.text)}</p>
+                <small>${new Date(r.created_at).toLocaleDateString()}</small>
+            </div>
         `).join('');
-    } catch(e) { console.warn(e); }
+        
+    } catch (e) {
+        console.warn('Отзывы не загружены');
+    }
 }
 
 async function loadSimilarProducts() {
+    const grid = document.getElementById('similarProductsGrid');
+    const loading = document.getElementById('similarLoading');
+    const noResults = document.getElementById('noSimilarProducts');
+    
+    if (!grid) return;
+    
     try {
         const result = await window.apiClient.getLaminate();
-        const others = (result.items || []).filter(p => p.id !== currentProductId).slice(0, 4);
-        const grid = document.getElementById('similarProductsGrid');
-        if (!grid) return;
+        const allProducts = result.items || [];
+        const otherProducts = allProducts.filter(p => p.id !== currentProductId);
         
-        if (others.length === 0) {
-            document.getElementById('similarLoading')?.remove();
-            document.getElementById('noSimilarProducts')?.style.display = 'block';
+        if (otherProducts.length === 0) {
+            if (loading) loading.style.display = 'none';
+            if (noResults) noResults.style.display = 'block';
             return;
         }
         
-        grid.innerHTML = others.map(p => `
-            <div class="product-card similar-card">
-                <div class="product-image-container"><img src="${(p.pictures || p.picture)?.[0] || '/image/no-image.jpg'}" class="product-image" onclick="location.href='laminate-product.html?id=${p.id}'" onerror="this.src='/image/no-image.jpg'"></div>
-                <div class="product-info"><h3 class="product-title">${escapeHtml(p.name)}</h3><div class="product-price">${parsePrice(p.price).toLocaleString()} ₽</div><a href="laminate-product.html?id=${p.id}" class="btn-details">Подробнее</a></div>
-            </div>
-        `).join('');
-        document.getElementById('similarLoading')?.remove();
-    } catch(e) { console.warn(e); }
+        const similar = [...otherProducts].sort(() => Math.random() - 0.5).slice(0, 4);
+        
+        grid.innerHTML = '';
+        
+        similar.forEach(product => {
+            const imageUrl = (product.pictures || product.picture)?.[0] || '/image/no-image.jpg';
+            const priceValue = product.price || product.prise;
+            const priceDisplay = priceValue ? `${parsePrice(priceValue).toLocaleString()} ₽` : 'Цена по запросу';
+            
+            const card = document.createElement('div');
+            card.className = 'product-card similar-card';
+            card.innerHTML = `
+                <div class="product-image-container">
+                    <img src="${imageUrl}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" onerror="this.src='/image/no-image.jpg'" onclick="window.location.href='laminate-product.html?id=${product.id}'">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">${escapeHtml(product.name)}</h3>
+                    <div class="laminate-price">${priceDisplay} <span class="price-unit">за м²</span></div>
+                    <div class="product-actions">
+                        <a href="laminate-product.html?id=${product.id}" class="btn-details">Подробнее</a>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+        
+        if (loading) loading.style.display = 'none';
+        if (noResults) noResults.style.display = 'none';
+        
+    } catch (error) {
+        console.error('Ошибка загрузки похожих:', error);
+        if (loading) loading.style.display = 'none';
+        if (noResults) noResults.style.display = 'block';
+    }
 }
 
 function getColorsString(colorData) {
@@ -322,14 +471,19 @@ function escapeHtml(text) {
 
 function showLoading() {
     const container = document.querySelector('.product-main__inner');
-    if (container) container.innerHTML = '<div class="loading-container">Загрузка...</div>';
+    if (container && !container.querySelector('.loading-container')) {
+        container.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Загрузка...</p></div>';
+    }
 }
 
 function hideLoading() {
-    // handled in render
+    const loading = document.querySelector('.loading-container');
+    if (loading) loading.remove();
 }
 
-function showError(msg) {
+function showError(message) {
     const container = document.querySelector('.product-main__inner');
-    if (container) container.innerHTML = `<div class="error">${msg}</div>`;
+    if (container) {
+        container.innerHTML = `<div class="error-container"><h2>Ошибка</h2><p>${message}</p><a href="catalog.html" class="btn btn--primary">Вернуться в каталог</a></div>`;
+    }
 }

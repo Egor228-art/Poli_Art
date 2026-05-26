@@ -612,7 +612,11 @@ function renderHeaderUserInfo(container) {
     const firstName = user.name || 'Пользователь';
     const email = user.email || '';
     const initials = this.getUserInitials(firstName);
-    const isAdmin = user.role === 'admin';
+    
+    let adminButton = '';
+    if (user.role === 'admin') {
+        adminButton = '<a href="admin.html" class="admin-link" style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; margin: 0 10px; font-size: 14px;">👑 Админка</a>';
+    }
     
     container.innerHTML = `
         <div class="header-user-info">
@@ -623,7 +627,7 @@ function renderHeaderUserInfo(container) {
                     <div class="user-email" title="${escapeHtml(email)}">${escapeHtml(email)}</div>
                 </div>
             </a>
-            ${isAdmin ? `<a href="admin.html" class="admin-link" style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; margin: 0 10px;">👑 Админка</a>` : ''}
+            ${adminButton}
             <button class="logout-btn" id="logout-button">
                 <span>Выйти</span>
                 <span class="logout-btn-icon">🚪</span>
