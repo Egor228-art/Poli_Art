@@ -552,13 +552,9 @@ function loadHeader() {
                     <a href="tel:+78162555555" class="phone">+7 (8162) 55-55-55</a>
                 </div>
                 <div class="header__actions" id="user-info-header">
-                    <!-- Контейнер будет заполняться динамически -->
-                    <div id="user-info-header">
-                        <!-- По умолчанию показываем кнопки входа/регистрации -->
-                        <div class="auth-buttons">
-                            <a href="login.html" class="btn btn--secondary btn-auth">Войти</a>
-                            <a href="register.html" class="btn btn--primary btn-auth">Регистрация</a>
-                        </div>
+                    <div class="auth-buttons">
+                        <a href="login.html" class="btn btn--secondary btn-auth">Войти</a>
+                        <a href="register.html" class="btn btn--primary btn-auth">Регистрация</a>
                     </div>
                 </div>
                 <div class="header__burger">

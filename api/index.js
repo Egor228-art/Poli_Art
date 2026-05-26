@@ -91,6 +91,34 @@ export default async function handler(req, res) {
                 });
             }
         }
+
+        // POST /api/contacts
+        if (path === '/api/contacts' && req.method === 'POST') {
+            const { name, phone, email, message } = req.body;
+            
+            let userId = null;
+            const authHeader = req.headers.authorization;
+            if (authHeader) {
+                const token = authHeader.split(' ')[1];
+                const decoded = verifyToken(token);
+                if (decoded) userId = decoded.id;
+            }
+            
+            try {
+                // Сохраняем сообщение в БД
+                await sql`
+                    INSERT INTO contact_messages (name, phone, email, message, user_id, is_read)
+                    VALUES (${name}, ${phone || null}, ${email || null}, ${message}, ${userId}, false)
+                `;
+                
+                // Здесь можно добавить отправку email через nodemailer или другой сервис
+                
+                return res.json({ success: true, message: 'Сообщение отправлено' });
+            } catch (error) {
+                console.error('Error saving contact:', error);
+                return res.status(500).json({ error: 'Ошибка сохранения сообщения' });
+            }
+        }
         
         // ============ АВТОРИЗАЦИЯ ============
         

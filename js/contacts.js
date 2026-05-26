@@ -237,56 +237,47 @@
     async function submitFeedbackForm(event) {
         event.preventDefault();
         
-        console.log('📤 Отправка формы...');
-        
+        const form = event.target;
         const nameInput = document.getElementById('name');
         const phoneInput = document.getElementById('phone');
         const emailInput = document.getElementById('email');
         const messageInput = document.getElementById('message');
-        const submitBtn = document.querySelector('.submit-btn');
+        const submitBtn = form.querySelector('.submit-btn');
+        const successMessage = document.getElementById('success-message');
         
         const name = nameInput.value.trim();
         const phone = phoneInput.value.trim();
         const email = emailInput.value.trim();
         const message = messageInput.value.trim();
         
-        if (!name || !phone || !email) {
-            alert('Заполните все обязательные поля');
-            return;
-        }
-        
-        submitBtn.disabled = true;
         submitBtn.textContent = '⏳ Отправка...';
+        submitBtn.disabled = true;
         
         try {
-            if (!pb) {
-                if (typeof PocketBase !== 'undefined') {
-                    pb = new PocketBase('http://127.0.0.1:8090');
-                }
-            }
-            
-            // Только текстовые поля, никаких relation
-            const contactsData = {
+            // Используем apiClient вместо прямого вызова к PocketBase
+            const result = await window.apiClient.sendContactMessage({
                 name: name,
                 phone: phone,
                 email: email,
-                message: message || ''
-            };
+                message: message
+            });
             
-            console.log('📤 Данные:', contactsData);
-            
-            const result = await pb.collection('contacts').create(contactsData);
-            console.log('✅ Сохранено, ID:', result.id);
-            
-            alert('✅ Сообщение отправлено!');
-            document.getElementById('feedback-form').reset();
+            if (result.success) {
+                successMessage.style.display = 'block';
+                successMessage.textContent = '✅ Сообщение отправлено! Мы ответим вам в ближайшее время.';
+                form.reset();
+                
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 5000);
+            }
             
         } catch (error) {
             console.error('❌ Ошибка:', error);
-            alert('Ошибка отправки: ' + (error.message || 'Позвоните нам'));
+            alert('❌ Не удалось отправить сообщение. Попробуйте позже или позвоните нам.');
         } finally {
-            submitBtn.disabled = false;
             submitBtn.textContent = 'Отправить';
+            submitBtn.disabled = false;
         }
     }
 
