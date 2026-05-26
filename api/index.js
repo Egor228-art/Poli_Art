@@ -135,6 +135,48 @@ export default async function handler(req, res) {
             }
         }
 
+        // PUT /api/user/profile
+        if (path === '/api/user/profile' && req.method === 'PUT') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                return res.status(401).json({ error: 'Не авторизован' });
+            }
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            
+            if (!decoded) {
+                return res.status(401).json({ error: 'Недействительный токен' });
+            }
+            
+            const { name, phone, address } = req.body;
+            
+            // Строим запрос только с переданными полями
+            const updates = [];
+            if (name !== undefined) updates.push(sql`name = ${name}`);
+            if (phone !== undefined) updates.push(sql`phone = ${phone}`);
+            if (address !== undefined) updates.push(sql`address = ${address}`);
+            
+            if (updates.length === 0) {
+                return res.status(400).json({ error: 'Нет данных для обновления' });
+            }
+            
+            // Собираем запрос
+            let query = sql`UPDATE users SET updated_at = NOW()`;
+            for (const update of updates) {
+                query = sql`${query}, ${update}`;
+            }
+            query = sql`${query} WHERE id = ${decoded.id} RETURNING id, email, name, role, phone, address`;
+            
+            const result = await query;
+            
+            if (result.rows.length === 0) {
+                return res.status(404).json({ error: 'Пользователь не найден' });
+            }
+            
+            return res.json(result.rows[0]);
+        }
+
         // POST /api/reviews
         if (path === '/api/reviews' && req.method === 'POST') {
             const authHeader = req.headers.authorization;
@@ -275,7 +317,7 @@ export default async function handler(req, res) {
         
         // ============ ЗАКАЗЫ ============
         
-        if (path === '/api/orders' && req.method === 'GET') {
+        if (path === '/api/orders' && req.method === 'POST') {
             const authHeader = req.headers.authorization;
             if (!authHeader) {
                 return res.status(401).json({ error: 'Не авторизован' });
@@ -288,15 +330,41 @@ export default async function handler(req, res) {
                 return res.status(401).json({ error: 'Недействительный токен' });
             }
             
+            const { products, total_price, delivery_type, delivery_address, payment_method, customer_name, customer_phone, notes } = req.body;
+            
+            // Генерируем номер заказа
+            const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+            
+            console.log('Создание заказа:', { 
+                user_id: decoded.id, 
+                orderNumber, 
+                products: products?.length,
+                total_price 
+            });
+            
             try {
+                // Проверяем, что products - это массив
+                const productsJson = JSON.stringify(products || []);
+                
                 const result = await sql`
-                    SELECT * FROM orders 
-                    WHERE user_id = ${decoded.id} 
-                    ORDER BY created_at DESC
+                    INSERT INTO orders (
+                        order_number, user_id, products, total_price, 
+                        delivery_type, delivery_address, payment_method, 
+                        customer_name, customer_phone, notes, status, created_at
+                    ) VALUES (
+                        ${orderNumber}, ${decoded.id}, ${productsJson}, ${total_price}, 
+                        ${delivery_type || 'pickup'}, ${delivery_address || null}, ${payment_method || 'наличные'}, 
+                        ${customer_name || decoded.name}, ${customer_phone || null}, ${notes || null}, 'ожидает', NOW()
+                    )
+                    RETURNING *
                 `;
-                return res.json(result.rows);
+                
+                console.log('✅ Заказ создан:', result.rows[0].id);
+                return res.json(result.rows[0]);
+                
             } catch (error) {
-                return res.json([]);
+                console.error('Order creation error:', error);
+                return res.status(500).json({ error: 'Ошибка создания заказа', details: error.message });
             }
         }
         

@@ -547,10 +547,22 @@ class UserProfile {
     }
 
     async updateUserAddress(address) {
-        // В реальном проекте здесь был бы API вызов для обновления адреса
-        console.log('Сохранение адреса:', address);
-        // API endpoint для обновления профиля
-        // await window.apiClient.updateProfile({ address });
+        if (!address || !this.currentUser) return false;
+        
+        try {
+            const result = await window.apiClient.request('PUT', '/user/profile', {
+                address: address
+            });
+            
+            if (result && result.address) {
+                this.currentUser.address = result.address;
+                console.log('✅ Адрес сохранен в профиль:', result.address);
+                return true;
+            }
+        } catch (error) {
+            console.error('❌ Ошибка сохранения адреса:', error);
+        }
+        return false;
     }
 
     async loadOrders() {
