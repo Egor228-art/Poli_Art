@@ -574,22 +574,9 @@ function loadHeader() {
     `;
 
     initHeaderFunctionality();
-    checkAuthStatus();
 }
 
-async function checkAuthStatus() {
-    try {
-        if (typeof PocketBase !== 'undefined') {
-            const pb = new PocketBase('http://127.0.0.1:8090');
-            
-            if (pb.authStore.isValid) {
-                updateHeaderForLoggedInUser(pb.authStore.model);
-            }
-        }
-    } catch (error) {
-        console.log('Проверка авторизации:', error.message);
-    }
-}
+async function checkAuthStatus() {}
 
 function updateHeaderForLoggedInUser(user) {
     const headerActions = document.querySelector('.header__actions');
