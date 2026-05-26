@@ -386,6 +386,46 @@ export default async function handler(req, res) {
             const { name, phone, address, comment } = req.body;
             
             let userId = null;
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader !== 'Bearer null') {
+                const token = authHeader.split(' ')[1];
+                const decoded = verifyToken(token);
+                if (decoded) userId = decoded.id;
+            }
+            
+            try {
+                // Создаем таблицу если нет
+                await sql`
+                    CREATE TABLE IF NOT EXISTS measure_requests (
+                        id SERIAL PRIMARY KEY,
+                        user_id UUID,
+                        name VARCHAR(255) NOT NULL,
+                        phone VARCHAR(50) NOT NULL,
+                        address TEXT,
+                        comment TEXT,
+                        status VARCHAR(50) DEFAULT 'новая',
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                `;
+                
+                const result = await sql`
+                    INSERT INTO measure_requests (user_id, name, phone, address, comment, status)
+                    VALUES (${userId}, ${name}, ${phone}, ${address}, ${comment || null}, 'новая')
+                    RETURNING id
+                `;
+                
+                return res.json({ success: true, id: result.rows[0].id });
+            } catch (error) {
+                console.error('Error saving measure request:', error);
+                return res.status(500).json({ error: 'Ошибка сохранения заявки' });
+            }
+        }
+
+        // POST /api/measure
+        if (path === '/api/measure' && req.method === 'POST') {
+            const { name, phone, address, comment } = req.body;
+            
+            let userId = null;
             let userEmail = null;
             let userName = null;
             let userPhone = null;

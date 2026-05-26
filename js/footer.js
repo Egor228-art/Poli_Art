@@ -685,27 +685,23 @@
         
         console.log('📤 Отправка заявки на замер...');
         
-        // Получаем данные формы
         const name = document.getElementById('measureName').value.trim();
         const phone = document.getElementById('measurePhone').value.trim();
         const address = document.getElementById('measureAddress').value.trim();
         const comment = document.getElementById('measureComment').value.trim();
         const saveAddress = document.getElementById('saveAddressCheckbox')?.checked || false;
         
-        // Валидация
         if (!name || !phone || !address) {
             showNotification('❌ Пожалуйста, заполните все обязательные поля', 'error');
             return;
         }
         
-        // Преобразуем телефон в числовой формат
         const cleanPhone = phone.replace(/\D/g, '');
         if (cleanPhone.length < 10) {
-            showNotification('❌ Введите корректный номер телефона (минимум 10 цифр)', 'error');
+            showNotification('❌ Введите корректный номер телефона', 'error');
             return;
         }
         
-        // Показываем индикатор загрузки
         const submitBtn = event.target.querySelector('button[type="submit"]');
         const btnText = submitBtn?.querySelector('.btn-text');
         const btnLoader = submitBtn?.querySelector('.btn-loader');
@@ -717,126 +713,58 @@
         }
         
         try {
-            // 1. Сохраняем адрес в профиль пользователя если нужно
-            if (saveAddress && currentUser && address) {
+            // 1. Сохраняем адрес в профиль если нужно
+            if (saveAddress && address) {
                 try {
-                    console.log('💾 Сохранение адреса в профиль пользователя...');
-                    await pb.collection('users').update(currentUser.id, {
-                        address: address
-                    });
-                    console.log('✅ Адрес сохранен в профиль пользователя');
-                    currentUser.address = address;
+                    const token = localStorage.getItem('auth_token');
+                    if (token) {
+                        await fetch('/api/user/profile', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ address: address })
+                        });
+                        console.log('✅ Адрес сохранен в профиль');
+                    }
                 } catch (error) {
-                    console.warn('⚠️ Не удалось сохранить адрес в профиль:', error.message);
+                    console.warn('⚠️ Не удалось сохранить адрес:', error);
                 }
             }
             
-            // 2. Сохраняем заявку в БД по вашей структуре
-            console.log('💾 Сохранение заявки в таблицу orders...');
+            // 2. Отправляем заявку через API
+            const response = await fetch('/api/measure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                },
+                body: JSON.stringify({
+                    name: name,
+                    phone: cleanPhone,
+                    address: address,
+                    comment: comment
+                })
+            });
             
-            // Генерируем номер заявки
-            const now = new Date();
-            const dateStr = now.getFullYear().toString() + 
-                        (now.getMonth() + 1).toString().padStart(2, '0') + 
-                        now.getDate().toString().padStart(2, '0');
-            const random = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-            const orderNumber = `MEASURE-${dateStr}-${random}`;
-            
-            // Подготавливаем данные по вашей структуре
-            const measureData = {
-                user: currentUser ? currentUser.id : null,
-                product: 'Бесплатный замер', // text
-                product_name: 'Услуга замера помещения', // text
-                quantity: 1, // number
-                unit_price: 0, // number
-                total_price: 0, // number
-                delivery_type: 'самовывоз', // select (по умолчанию для замера)
-                delivery_address: address, // text
-                warranty_service: false, // bool
-                assembly_service: false, // bool
-                status: 'ожидает', // select
-                payment_method: 'наличные', // select (по умолчанию для замера)
-                order_number: orderNumber, // text
-                notes: `Заявка на бесплатный замер. ${comment ? 'Комментарий: ' + comment : ''}`, // text
-                created: new Date().toISOString(), // date
-                updated: new Date().toISOString(), // date
-                customer_name: name, // Добавляем как дополнительное поле
-                customer_phone: cleanPhone // Добавляем как дополнительное поле
-            };
-            
-            console.log('Данные для сохранения в orders:', measureData);
-            
-            // Сохраняем в таблицу orders
-            const record = await pb.collection('orders').create(measureData);
-            console.log('✅ Заявка сохранена в БД:', record.id, record.order_number);
-            
-            // Показываем успешное уведомление
-            showNotification(`✅ Заявка на замер №${orderNumber} сохранена! Наш специалист свяжется с вами.`, 'success');
-            
-            // 3. Закрываем модалку и очищаем форму через 2 секунды
-            setTimeout(() => {
-                closeMeasureModal();
+            if (response.ok) {
+                showNotification('✅ Заявка на замер отправлена! Наш специалист свяжется с вами.', 'success');
                 
-                // Очищаем только незаблокированные поля
-                const form = document.getElementById('measureForm');
-                if (form) {
-                    const inputs = form.querySelectorAll('input, textarea');
-                    inputs.forEach(input => {
-                        // Очищаем только те поля, которые не readonly и не disabled
-                        if (!input.readOnly && !input.disabled && input.type !== 'checkbox') {
-                            input.value = '';
-                        }
-                    });
-                    
-                    // Сбрасываем чекбокс "Сохранить адрес"
-                    const saveCheckbox = document.getElementById('saveAddressCheckbox');
-                    if (saveCheckbox) {
-                        saveCheckbox.checked = false;
-                    }
-                    
-                    // Сбрасываем комментарий (он всегда редактируемый)
-                    const commentField = document.getElementById('measureComment');
-                    if (commentField) {
-                        commentField.value = '';
-                    }
-                }
-            }, 2000);
+                setTimeout(() => {
+                    closeMeasureModal();
+                    const form = document.getElementById('measureForm');
+                    if (form) form.reset();
+                }, 2000);
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Ошибка отправки');
+            }
             
         } catch (error) {
-            console.error('❌ Ошибка сохранения заявки:', error);
-            
-            // Детализируем ошибку
-            let errorMessage = '❌ Ошибка при сохранении заявки. ';
-            
-            if (error.message.includes('422')) {
-                errorMessage += 'Некорректные данные. Проверьте заполнение полей.';
-            } else if (error.message.includes('403')) {
-                errorMessage += 'Нет прав доступа к базе данных.';
-            } else if (error.message.includes('Failed to fetch')) {
-                errorMessage += 'Нет подключения к серверу. Проверьте интернет.';
-            } else {
-                errorMessage += 'Попробуйте позже или позвоните нам.';
-            }
-            
-            showNotification(errorMessage, 'error');
-            
-            // В случае ошибки БД, предлагаем альтернативу
-            if (currentUser && pb.authStore.isValid) {
-                setTimeout(() => {
-                    if (confirm('Не удалось сохранить заявку. Хотите попробовать создать заявку через личный кабинет?')) {
-                        closeMeasureModal();
-                        // Можно перенаправить в личный кабинет
-                        if (window.location.pathname.includes('personal.html')) {
-                            window.location.reload();
-                        } else {
-                            window.location.href = 'personal.html';
-                        }
-                    }
-                }, 1000);
-            }
-            
+            console.error('❌ Ошибка:', error);
+            showNotification('❌ Ошибка отправки заявки. Попробуйте позже.', 'error');
         } finally {
-            // Восстанавливаем кнопку
             if (submitBtn) {
                 submitBtn.disabled = false;
                 if (btnText) btnText.style.display = 'inline';
