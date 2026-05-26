@@ -1030,10 +1030,10 @@ function getFormattedColorsString(colorData) {
 }
 
 function closeOrderModal() {
-    const modal = document.getElementById('orderModal');
+    const modal = document.getElementById('laminateOrderModal');
     if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        document.body.style.overflow = ''; // Возвращаем скролл страницы
     }
 }
 
