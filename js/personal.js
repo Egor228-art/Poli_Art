@@ -1155,3 +1155,55 @@ document.addEventListener('DOMContentLoaded', () => {
         window.userProfile = userProfile;
     }, 500);
 });
+
+// Добавь в конец файла personal.js
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('avatarInput');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            console.log('📸 Загрузка аватара:', file.name);
+            
+            const formData = new FormData();
+            formData.append('avatar', file);
+            
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    console.error('❌ Не авторизован');
+                    return;
+                }
+                
+                // Сначала показываем локальный превью
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+                    if (avatarPlaceholder) {
+                        avatarPlaceholder.style.backgroundImage = `url(${evt.target.result})`;
+                        avatarPlaceholder.style.backgroundSize = 'cover';
+                        avatarPlaceholder.style.backgroundPosition = 'center';
+                        const initials = document.getElementById('avatarInitials');
+                        if (initials) initials.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+                
+                // TODO: Отправить на сервер (пока просто имитируем)
+                // const response = await fetch('/api/user/avatar', {
+                //     method: 'POST',
+                //     headers: { 'Authorization': `Bearer ${token}` },
+                //     body: formData
+                // });
+                
+                setTimeout(() => {
+                    console.log('✅ Аватар обновлен локально');
+                }, 500);
+                
+            } catch (error) {
+                console.error('❌ Ошибка:', error);
+            }
+        });
+    }
+});

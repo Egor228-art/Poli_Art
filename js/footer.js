@@ -366,30 +366,23 @@
     }
 
     window.populateMeasureForm = async function() {
-        console.log('🔄 Заполнение формы замера данными из профиля...');
+        console.log('🔄 Заполнение формы замера...');
         
-        // Ждем авторизацию
+        // Получаем пользователя
         let user = null;
-        let attempts = 0;
         
-        while (!user && attempts < 10) {
-            if (window.authManager && window.authManager.currentUser) {
-                user = window.authManager.currentUser;
-            } else if (window.userProfile && window.userProfile.currentUser) {
-                user = window.userProfile.currentUser;
-            }
-            if (!user) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                attempts++;
-            }
+        if (window.authManager && window.authManager.currentUser) {
+            user = window.authManager.currentUser;
+        } else if (window.userProfile && window.userProfile.currentUser) {
+            user = window.userProfile.currentUser;
         }
         
         if (!user) {
-            console.log('👤 Пользователь не авторизован, форма не заполнена');
+            console.log('👤 Пользователь не авторизован');
             return;
         }
         
-        console.log('👤 Заполнение формы данными пользователя:', user);
+        console.log('👤 Данные пользователя:', user);
         
         const nameInput = document.getElementById('measureName');
         const phoneInput = document.getElementById('measurePhone');
@@ -412,20 +405,14 @@
             }
         }
         
-        if (addressInput) {
-            if (user.address) {
-                addressInput.value = user.address;
-                addressInput.placeholder = "Адрес из профиля (можно изменить)";
-            } else {
-                addressInput.placeholder = "Введите адрес для замера";
-            }
+        if (addressInput && user.address) {
+            addressInput.value = user.address;
         }
         
         if (saveCheckbox && user.address) {
             saveCheckbox.checked = true;
         }
     };
-
     // Настройка кнопок футера
     function setupFooterButtons() {
         // Социальные сети
@@ -665,30 +652,14 @@
         
         // Сбрасываем форму
         const form = document.getElementById('measureForm');
-        if (form) {
-            form.reset();
-        }
+        if (form) form.reset();
         
-        // Автозаполняем и блокируем поля для авторизованных пользователей
+        // Заполняем данными пользователя
         populateMeasureForm();
         
         // Показываем модальное окно
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        
-        // Фокус на поле имени (если оно не заблокировано)
-        setTimeout(() => {
-            const nameInput = document.getElementById('measureName');
-            const addressInput = document.getElementById('measureAddress');
-            
-            if (nameInput && !nameInput.readOnly) {
-                nameInput.focus();
-            } else if (addressInput) {
-                addressInput.focus();
-            }
-        }, 100);
-        
-        console.log('✅ Модальное окно замера открыто');
     };
 
     // Закрытие модального окна замера
