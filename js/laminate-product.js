@@ -1,9 +1,9 @@
-// js/laminate-product.js - ПОЛНОСТЬЮ РАБОЧАЯ ВЕРСИЯ
+// js/laminate-product.js - ГОТОВАЯ ВЕРСИЯ
 let currentProduct = null;
 let currentPrice = 0;
 
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Страница ламината загружена');
+    console.log('Страница ламината загружена');
     
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
@@ -19,12 +19,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 async function loadProduct(productId) {
     try {
-        if (!window.apiClient) {
-            setTimeout(() => loadProduct(productId), 500);
-            return;
-        }
-        
-        currentProduct = await window.apiClient.getProduct('laminate', productId);
+        const result = await window.apiClient.getProduct('laminate', productId);
+        currentProduct = result;
         currentPrice = parsePrice(currentProduct.price);
         
         renderProduct();
@@ -43,20 +39,22 @@ function renderProduct() {
     const imageUrl = (currentProduct.pictures || currentProduct.picture)?.[0] || '/image/no-image.jpg';
     
     container.innerHTML = `
-        <div class="product-gallery">
-            <div class="gallery-main">
-                <img src="${imageUrl}" alt="${currentProduct.name}" class="gallery-main__image" id="mainImage" onerror="this.src='/image/no-image.jpg'">
+        <div class="product-gallery-section">
+            <div class="product-gallery">
+                <div class="gallery-main">
+                    <img src="${imageUrl}" alt="${currentProduct.name}" id="mainImage" onerror="this.src='/image/no-image.jpg'">
+                </div>
             </div>
         </div>
-        <div class="product-info">
-            <h1 class="product-title">${escapeHtml(currentProduct.name || 'Ламинат')}</h1>
+        <div class="product-info-section">
+            <h1 class="product-title">${currentProduct.name || 'Ламинат'}</h1>
             <div class="product-sku">Код: ${currentProduct.id?.substring(0, 8)}</div>
-            <div class="product-price">
-                ${formatPrice(currentPrice)} <span class="price-unit">за м²</span>
+            <div class="product-price-block">
+                <div class="product-price">${formatPrice(currentPrice)} <span class="price-unit">за м²</span></div>
             </div>
             <div class="product-actions">
                 <button class="btn btn--primary" id="orderBtn">🛒 Оформить заказ</button>
-                <button class="btn-constructor" id="constructorBtn">🧮 В конструктор</button>
+                <button class="btn btn--secondary" id="constructorBtn">🧮 В конструктор</button>
             </div>
         </div>
     `;
@@ -65,30 +63,6 @@ function renderProduct() {
     document.getElementById('constructorBtn')?.addEventListener('click', () => {
         window.location.href = `laminate-constructor.html?product_id=${currentProduct.id}&product_name=${encodeURIComponent(currentProduct.name)}`;
     });
-    
-    // Описание
-    const descTab = document.getElementById('description');
-    if (descTab) {
-        descTab.innerHTML = `<p>${currentProduct.description || 'Описание отсутствует'}</p>`;
-    }
-    
-    // Характеристики
-    const specsGrid = document.querySelector('.laminate-specs-grid');
-    if (specsGrid) {
-        specsGrid.innerHTML = `
-            <div class="laminate-spec-item"><h4>Толщина</h4><p>${currentProduct.thickness || '—'} мм</p></div>
-            <div class="laminate-spec-item"><h4>Класс</h4><p>${currentProduct.type || '—'}</p></div>
-            <div class="laminate-spec-item"><h4>Износостойкость</h4><p>${currentProduct.wear_class || '—'}</p></div>
-            <div class="laminate-spec-item"><h4>Цвета</h4><p>${getColorsString(currentProduct.color)}</p></div>
-        `;
-    }
-}
-
-function getColorsString(colorData) {
-    if (!colorData) return '—';
-    if (Array.isArray(colorData)) return colorData.join(', ');
-    if (typeof colorData === 'string') return colorData;
-    return '—';
 }
 
 function initOrderModal() {
@@ -131,17 +105,20 @@ function openOrderModal() {
     const modal = document.getElementById('orderModal');
     if (!modal) return;
     
+    // Заполняем данные
     document.getElementById('modalProductName').textContent = currentProduct.name;
     document.getElementById('modalProductPrice').textContent = formatPrice(currentPrice);
     const mainImage = document.getElementById('mainImage');
     if (mainImage) document.getElementById('modalProductImage').src = mainImage.src;
     
+    // Сброс
     document.getElementById('orderQty').value = 1;
     document.querySelector('input[name="deliveryType"][value="pickup"]').checked = true;
     document.getElementById('addressBlock').style.display = 'none';
     document.getElementById('serviceWarranty').checked = false;
     document.getElementById('serviceAssembly').checked = false;
     
+    // Подтягиваем адрес
     const user = window.authManager?.currentUser;
     if (user?.address) {
         document.getElementById('deliveryAddress').value = user.address;
@@ -193,7 +170,7 @@ function updateTotal() {
 async function submitOrder() {
     if (!window.authManager?.currentUser) {
         alert('Для оформления заказа необходимо войти в систему');
-        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
+        window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
         return;
     }
     
@@ -217,6 +194,7 @@ async function submitOrder() {
         } catch (e) { console.warn(e); }
     }
     
+    // Добавляем в корзину
     const cartItem = {
         id: currentProduct.id,
         name: currentProduct.name,
@@ -240,37 +218,6 @@ async function submitOrder() {
     alert('✅ Товар добавлен в корзину!');
 }
 
-async function loadReviews() {
-    try {
-        const reviews = await window.apiClient.getReviews(currentProduct.id, true);
-        const container = document.querySelector('.reviews-list');
-        if (!container) return;
-        
-        if (!reviews.length) {
-            container.innerHTML = '<p>Пока нет отзывов</p>';
-            return;
-        }
-        
-        const approved = reviews.filter(r => r.approved);
-        if (!approved.length) {
-            container.innerHTML = '<p>Пока нет отзывов</p>';
-            return;
-        }
-        
-        container.innerHTML = approved.map(r => `
-            <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
-                <strong>${escapeHtml(r.author_name || 'Пользователь')}</strong>
-                <div>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-                <p>${escapeHtml(r.text)}</p>
-                <small>${new Date(r.created_at).toLocaleDateString()}</small>
-            </div>
-        `).join('');
-        
-    } catch (e) {
-        console.warn('Отзывы не загружены');
-    }
-}
-
 function parsePrice(price) {
     if (!price) return 0;
     const num = parseInt(price.toString().replace(/[^\d]/g, ''));
@@ -281,14 +228,38 @@ function formatPrice(price) {
     return price.toLocaleString('ru-RU') + ' ₽';
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 function showError(msg) {
     const container = document.getElementById('productContainer');
     if (container) container.innerHTML = `<div class="error">${msg}</div>`;
+}
+
+async function loadReviews() {
+    try {
+        const reviews = await window.apiClient.getReviews(currentProduct.id, true);
+        const container = document.querySelector('.reviews-list');
+        if (!container) return;
+        
+        if (!reviews.length) {
+            container.innerHTML = '<div class="no-reviews">Пока нет отзывов</div>';
+            return;
+        }
+        
+        const approved = reviews.filter(r => r.approved);
+        if (!approved.length) {
+            container.innerHTML = '<div class="no-reviews">Пока нет отзывов</div>';
+            return;
+        }
+        
+        container.innerHTML = approved.map(r => `
+            <div class="review-item">
+                <strong>${r.author_name || 'Пользователь'}</strong>
+                <div>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                <p>${r.text}</p>
+                <small>${new Date(r.created_at).toLocaleDateString()}</small>
+            </div>
+        `).join('');
+        
+    } catch (e) {
+        console.warn('Отзывы не загружены');
+    }
 }
