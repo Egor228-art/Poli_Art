@@ -137,10 +137,7 @@ class AuthPage {
         button.disabled = true;
         
         try {
-            const result = await window.apiClient.login(email, password);
-            if (result.token) {
-                console.log('✅ Токен сохранен');
-            }
+            const result = await window.apiClient.login(data.email.trim(), data.password);
             
             console.log('✅ Успешный вход:', result);
             
