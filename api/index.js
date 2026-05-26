@@ -297,57 +297,24 @@ export default async function handler(req, res) {
                 return res.status(401).json({ error: 'Недействительный токен' });
             }
             
-            const { name, phone, address } = req.body;
-            
-            console.log('Updating profile for user:', decoded.id);
-            console.log('New data:', { name, phone, address });
+            const { address } = req.body;
             
             try {
-                // Проверяем, существует ли пользователь
-                const checkUser = await sql`SELECT id FROM users WHERE id = ${decoded.id}`;
-                if (checkUser.rows.length === 0) {
-                    return res.status(404).json({ error: 'Пользователь не найден' });
-                }
-                
-                // Строим UPDATE запрос динамически
-                let query = 'UPDATE users SET updated_at = NOW()';
-                const values = [];
-                let paramCount = 1;
-                
-                if (name !== undefined && name !== null) {
-                    query += `, name = $${paramCount}`;
-                    values.push(name);
-                    paramCount++;
-                }
-                if (phone !== undefined && phone !== null) {
-                    query += `, phone = $${paramCount}`;
-                    values.push(phone);
-                    paramCount++;
-                }
-                if (address !== undefined && address !== null) {
-                    query += `, address = $${paramCount}`;
-                    values.push(address);
-                    paramCount++;
-                }
-                
-                query += ` WHERE id = $${paramCount} RETURNING id, email, name, role, phone, address`;
-                values.push(decoded.id);
-                
-                console.log('SQL Query:', query);
-                console.log('Values:', values);
-                
-                const result = await sql.query(query, values);
+                const result = await sql`
+                    UPDATE users 
+                    SET address = ${address}, updated_at = NOW()
+                    WHERE id = ${decoded.id}
+                    RETURNING id, email, name, role, phone, address
+                `;
                 
                 if (result.rows.length === 0) {
                     return res.status(404).json({ error: 'Пользователь не найден' });
                 }
                 
-                console.log('Profile updated successfully:', result.rows[0]);
                 return res.json(result.rows[0]);
-                
             } catch (error) {
                 console.error('Profile update error:', error);
-                return res.status(500).json({ error: 'Ошибка обновления профиля', details: error.message });
+                return res.status(500).json({ error: 'Ошибка обновления профиля' });
             }
         }
         

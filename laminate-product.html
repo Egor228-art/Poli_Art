@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ламинат - ПолиАрт</title>
+    <title>Товар ламината - ПолиАрт</title>
     <link rel="stylesheet" href="css/HeaderAndFooter.css">
     <link rel="stylesheet" href="css/product.css">
-    <style>
+    <link rel="stylesheet" href="css/auth.css">
+<style>
         /* Стили для модального окна заказа */
         #orderModal {
             display: none;
@@ -184,116 +185,407 @@
     </style>
 </head>
 <body>
+    <!-- Хедер -->
     <header class="header"></header>
 
     <main class="product-page">
         <div class="background-block">
+            <!-- Основная информация о товаре -->
             <section class="product-main">
                 <div class="container">
-                    <div class="product-main__inner" id="productContainer">
-                        <div class="loading-container">Загрузка...</div>
+                    <div class="product-main__inner">
+                        <div class="product-actions">
+                            <button class="btn btn--primary" id="orderBtn" style="margin-right: 10px;">
+                                <span>🛒 Оформить заказ</span>
+                            </button>
+                            <button class="btn-constructor" id="constructorBtn">
+                                <span>🧮 В конструктор</span>
+                            </button>
+                        </div>
+                        <!-- Содержимое будет загружено JS -->
                     </div>
                 </div>
             </section>
 
+            <!-- Детальное описание и характеристики -->
             <section class="product-details">
                 <div class="container">
                     <div class="tabs">
-                        <div class="tabs-nav">
+                        <div class="tabs-nav" style="margin-bottom: 0;">
                             <button class="tab-btn active" data-tab="description">Описание</button>
                             <button class="tab-btn" data-tab="specifications">Характеристики</button>
+                            <button class="tab-btn" data-tab="installation">Укладка и уход</button>
                             <button class="tab-btn" data-tab="reviews">Отзывы</button>
                             <button class="tab-btn" data-tab="delivery">Доставка</button>
                         </div>
+
                         <div class="tabs-content">
-                            <div class="tab-pane active" id="description"></div>
+                            <!-- Вкладка с описанием -->
+                            <div class="tab-pane active" id="description">
+                                <!-- Описание будет добавлено JavaScript -->
+                            </div>
+
+                            <!-- Вкладка с характеристиками -->
                             <div class="tab-pane" id="specifications">
-                                <div class="laminate-specs-grid"></div>
+                                <div class="laminate-specs">
+                                    <h3>Технические характеристики</h3>
+                                    <div class="laminate-specs-grid">
+                                        <!-- Характеристики будут добавлены JavaScript -->
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- Вкладка с укладкой и уходом -->
+                            <div class="tab-pane" id="installation">
+                                <div class="installation-content">
+                                    <h3>Инструкция по укладке и уходу</h3>
+                                    <div class="installation-steps">
+                                        <div class="step">
+                                            <div class="step-icon">📏</div>
+                                            <div class="step-content">
+                                                <h4>Подготовка основания</h4>
+                                                <p>Поверхность должна быть ровной, чистой и сухой. Допустимый перепад высот - не более 2 мм на 1 м²</p>
+                                            </div>
+                                        </div>
+                                        <div class="step">
+                                            <div class="step-icon">🧩</div>
+                                            <div class="step-content">
+                                                <h4>Укладка ламината</h4>
+                                                <p>Монтаж производится плавающим способом без приклеивания к основанию. Обязателен технологический зазор 8-10 мм у стен</p>
+                                            </div>
+                                        </div>
+                                        <div class="step">
+                                            <div class="step-icon">🧹</div>
+                                            <div class="step-content">
+                                                <h4>Уход за ламинатом</h4>
+                                                <p>Регулярно пылесосьте или подметайте. Для влажной уборки используйте хорошо отжатую тряпку. Избегайте излишней влаги</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Вкладка с отзывами (ОТДЕЛЬНО ОТ МОДАЛЬНОГО ОКНА) -->
                             <div class="tab-pane" id="reviews">
-                                <div class="reviews-list"></div>
+                                <!-- Контейнер для отзывов -->
+                                <div id="reviewsContainer">
+                                    <div class="reviews-header">
+                                    </div>
+                                    <div class="reviews-list" id="reviewsList" style="gap: 0;">
+                                        <!-- Отзывы загрузятся JavaScript -->
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- Вкладка с доставкой -->
                             <div class="tab-pane" id="delivery">
-                                <h2>Доставка и установка</h2>
-                                <p>Бесплатная доставка по Великому Новгороду при заказе от 50 м²</p>
+                                <h2>Доставка и складирование ламината</h2>
+                                <div class="delivery-options">
+                                    <div class="delivery-option">
+                                        <div class="box-line">
+                                            <img src="image/icon/thuislevering.png" alt="Грузовик">
+                                            <h3>Бесплатная доставка</h3>
+                                        </div>
+                                        <p>При заказе от 25 000 ₽ в пределах Великого Новгорода</p>
+                                    </div>
+                                    <div class="delivery-option">
+                                        <div class="box-line">
+                                            <img src="image/icon/flash.png" alt="Молния">
+                                            <h3>Быстрая доставка</h3>
+                                        </div>
+                                        <p>Доставка в день заказа при наличии товара на складе</p>
+                                    </div>
+                                    <div class="delivery-option">
+                                        <div class="box-line">
+                                            <img src="image/icon/installation.png" alt="Грузчики">
+                                            <h3>Подъем на этаж</h3>
+                                        </div>
+                                        <p>Бесплатный подъем до квартиры при наличии лифта</p>
+                                    </div>
+                                </div>
+                                <div class="delivery-terms">
+                                    <h3>Условия доставки:</h3>
+                                    <ul>
+                                        <li>Великий Новгород - 1-2 дня (при наличии на складе)</li>
+                                        <li>Область - 3-5 дней</li>
+                                        <li>Самовывоз со склада - ежедневно с 9:00 до 18:00</li>
+                                    </ul>
+                                </div>
+                                <div class="delivery-note">
+                                    <p><strong>Важно:</strong> Ламинат доставляется в заводской упаковке. Рекомендуем хранить в сухом помещении при температуре 15-25°C.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
         </div>
-    </main>
 
-    <footer class="footer"></footer>
-
-    <!-- Модальное окно заказа -->
-    <div id="orderModal">
-        <div class="order-modal-content">
-            <div class="order-modal-header">
-                <h3>🛒 Оформление заказа</h3>
-                <button class="order-modal-close" id="closeModalBtn">&times;</button>
-            </div>
-            
-            <div class="order-product">
-                <img id="modalProductImage" src="" alt="">
-                <div class="order-product-info">
-                    <h4 id="modalProductName"></h4>
-                    <div class="order-product-price" id="modalProductPrice"></div>
-                    <div class="quantity-control">
-                        <button class="quantity-btn" id="qtyMinus">-</button>
-                        <input type="number" id="orderQty" class="quantity-input" value="1" min="1" max="99">
-                        <button class="quantity-btn" id="qtyPlus">+</button>
+        <!-- Модальное окно для отзыва (оставляем как было) -->
+        <div id="reviewModal" class="review-modal" style="display: none;">
+            <div class="review-modal__overlay"></div>
+            <div class="review-modal__content">
+                <div class="review-modal__header">
+                    <h2 class="review-modal__title">Оставить отзыв</h2>
+                    <button class="review-modal__close" id="closeReviewModal">
+                        <span>×</span>
+                    </button>
+                </div>
+                
+                <div class="review-modal__body">
+                    <div class="review-rating">
+                        <div class="review-rating__title">Ваша оценка:</div>
+                        <div class="review-rating__stars">
+                            <div class="star" data-rating="1">★</div>
+                            <div class="star" data-rating="2">★</div>
+                            <div class="star" data-rating="3">★</div>
+                            <div class="star" data-rating="4">★</div>
+                            <div class="star" data-rating="5">★</div>
+                        </div>
+                        <div class="review-rating__value" id="ratingValue">0 из 5</div>
+                    </div>
+                    
+                    <div class="review-form">
+                        <div class="form-group">
+                            <label for="reviewComment">Комментарий:</label>
+                            <textarea 
+                                id="reviewComment" 
+                                class="review-comment" 
+                                placeholder="Поделитесь вашим мнением о товаре..." 
+                                rows="5"
+                                maxlength="1000"
+                            ></textarea>
+                            <div class="review-comment-counter">
+                                <span id="charCount">0</span> / 1000 символов
+                            </div>
+                        </div>
+                        
+                        <div class="review-form__actions">
+                            <button class="btn btn--secondary review-form__cancel" id="cancelReview">
+                                Отмена
+                            </button>
+                            <button class="btn btn--primary review-form__submit" id="submitReview" disabled>
+                                <span>Отправить отзыв</span>
+                                <span class="btn-icon">📤</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="review-modal__footer">
+                    <div class="review-notice">
+                        <span class="review-notice__icon">ℹ️</span>
+                        <span class="review-notice__text">
+                            Ваш отзыв будет опубликован после проверки модератором.
+                        </span>
                     </div>
                 </div>
             </div>
-            
-            <div class="delivery-section">
-                <h4>🚚 Способ получения</h4>
-                <div class="delivery-option">
-                    <label><input type="radio" name="deliveryType" value="pickup" checked> 📦 Самовывоз (бесплатно)</label>
-                </div>
-                <div class="delivery-option">
-                    <label><input type="radio" name="deliveryType" value="delivery"> 🚚 Доставка (500 ₽)</label>
-                </div>
-                <div class="delivery-option">
-                    <label><input type="radio" name="deliveryType" value="installation"> 🔧 Доставка + установка (1500 ₽)</label>
+        </div>
+
+        <!-- Похожие товары -->
+        <section class="recommended-products">
+            <div class="container">
+                <h2>Вам также может понравиться</h2>
+                
+                <!-- Загрузчик -->
+                <div id="similarLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Загрузка похожих товаров...</p>
                 </div>
                 
-                <div id="addressBlock" class="address-block">
-                    <label>📍 Адрес доставки</label>
-                    <textarea id="deliveryAddress" rows="2" placeholder="Введите адрес доставки..."></textarea>
-                    <label><input type="checkbox" id="saveAddressChk"> 💾 Сохранить адрес в профиле</label>
+                <!-- Сетка товаров -->
+                <div class="products-grid" id="similarProductsGrid">
+                    <!-- Товары загружаются динамически -->
+                </div>
+                
+                <!-- Сообщение при отсутствии товаров -->
+                <div id="noSimilarProducts" class="no-results" style="display: none;">
+                    <h3>Похожие товары не найдены</h3>
+                    <p>Возможно, вас заинтересуют другие товары из нашего каталога</p>
+                    <a href="catalog.html" class="btn btn--primary">Перейти в каталог</a>
                 </div>
             </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer"></footer>
+
+    <!-- Модальное окно замерщика -->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="modal" id="measureModal">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <h2>Вызвать замерщика или рассчитать стоимость</h2>
+            <!-- Форма будет добавлена JavaScript -->
+        </div>
+    </div>
+
+    <!-- Модальное окно оформления заказа -->
+    <div class="modal-overlay" id="laminateOrderModal" style="display: none;">
+        <div class="modal modal--order">
+            <button class="modal-close" id="closeOrderModal">&times;</button>
             
-            <div class="services-section">
-                <h4>➕ Дополнительные услуги</h4>
-                <div class="service-option">
-                    <label><input type="checkbox" id="serviceWarranty"> 🛡️ Расширенная гарантия (+500 ₽)</label>
+            <div class="order-modal__content">
+                <!-- Заголовок с переключателем -->
+                <div class="order-type-switch">
+                    <h2>Оформление заказа</h2>
+                    <div class="switch-container">
+                        <label class="switch-label active" data-type="single">
+                            <input type="radio" name="orderType" value="single" checked>
+                            <span class="switch-text">Один товар</span>
+                        </label>
+                        <label class="switch-label" data-type="multiple">
+                            <input type="radio" name="orderType" value="multiple">
+                            <span class="switch-text">Несколько товаров</span>
+                        </label>
+                    </div>
                 </div>
-                <div class="service-option">
-                    <label><input type="checkbox" id="serviceAssembly"> 🛠️ Дополнительный монтаж (+1000 ₽)</label>
+
+                <!-- Информация о товаре -->
+                <div class="order-product-info" id="orderProductInfo">
+                    <div class="product-summary">
+                        <img id="orderProductImage" src="" alt="Товар">
+                        <div class="product-details">
+                            <h3 id="orderProductName">Название товара</h3>
+                            <div class="product-price" id="orderProductPrice">0 ₽</div>
+                            <div class="product-quantity">
+                                <button class="qty-btn qty-minus">-</button>
+                                <input type="number" id="laminateOrderQuantity" value="1" min="1" max="99">
+                                <button class="qty-btn qty-plus">+</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="order-total">
-                <div class="order-total-row"><span>Товар:</span><span id="totalProduct">0 ₽</span></div>
-                <div class="order-total-row"><span>Доставка:</span><span id="totalDelivery">0 ₽</span></div>
-                <div class="order-total-row"><span>Услуги:</span><span id="totalServices">0 ₽</span></div>
-                <div class="order-total-final"><span>Итого:</span><span id="totalAmount">0 ₽</span></div>
-            </div>
-            
-            <div class="modal-actions">
-                <button class="btn-cancel" id="cancelModalBtn">Отмена</button>
-                <button class="btn-submit" id="submitOrderBtn">Добавить в корзину</button>
+
+                <!-- Опции доставки -->
+                <div class="delivery-options">
+                    <h3>Способ получения</h3>
+                    <div class="option-group">
+                        <label class="option-item">
+                            <input type="radio" name="laminateDelivery" value="pickup" checked>
+                            <div class="option-content">
+                                <div class="option-icon">🏪</div>
+                                <div class="option-text">
+                                    <div class="option-title">Самовывоз</div>
+                                    <div class="option-description">Бесплатно • г. Великий Новгород</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="option-item">
+                            <input type="radio" name="laminateDelivery" value="delivery">
+                            <div class="option-content">
+                                <div class="option-icon">🚚</div>
+                                <div class="option-text">
+                                    <div class="option-title">Доставка</div>
+                                    <div class="option-description">500 ₽ • 1-2 рабочих дня</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="option-item">
+                            <input type="radio" name="laminateDelivery" value="installation">
+                            <div class="option-content">
+                                <div class="option-icon">👷</div>
+                                <div class="option-text">
+                                    <div class="option-title">Доставка и установка</div>
+                                    <div class="option-description" id="installationPrice">от 1 500 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Адрес доставки (показывается только при выборе доставки или установки) -->
+                    <div id="laminateDeliveryAddress" style="display: none; margin-top: 15px;">
+                        <h4 style="font-size: 15px; margin-bottom: 10px;">Адрес доставки</h4>
+                        <textarea id="laminateAddressInput" placeholder="Введите адрес доставки..." 
+                                rows="3" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px;"></textarea>
+                        
+                        <div class="save-address-checkbox" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                            <label class="checkbox-label" for="saveLaminateAddress" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="saveLaminateAddress" name="save_address" style="width: 18px; height: 18px;">
+                                <span style="font-size: 14px; color: #666;">Сохранить адрес в моем профиле</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Дополнительные услуги -->
+                <div class="additional-services">
+                    <h3>Дополнительные услуги</h3>
+                    <div class="services-list">
+                        <label class="service-item">
+                            <input type="checkbox" id="laminateServiceWarranty">
+                            <div class="service-content">
+                                <div class="service-icon">🛡️</div>
+                                <div class="service-text">
+                                    <div class="service-title">Расширенная гарантия</div>
+                                    <div class="service-price">+ 500 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="service-item">
+                            <input type="checkbox" id="laminateServiceAssembly">
+                            <div class="service-content">
+                                <div class="service-icon">🧰</div>
+                                <div class="service-text">
+                                    <div class="service-title">Дополнительный монтаж</div>
+                                    <div class="service-price">+ 1 000 ₽</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Итоговая стоимость -->
+                <div class="order-summary">
+                    <h3>Итоговая стоимость</h3>
+                    <div class="summary-details">
+                        <div class="summary-row">
+                            <span>Товар:</span>
+                            <span id="summaryProduct">0 ₽</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Доставка:</span>
+                            <span id="summaryDelivery">0 ₽</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Услуги:</span>
+                            <span id="summaryServices">0 ₽</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span>К оплате:</span>
+                            <span id="summaryTotal">0 ₽</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопки действия -->
+                <div class="order-actions" style="display: flex; gap: 15px;">
+                    <button class="btn btn--secondary" id="cancelLaminateOrder" 
+                            style="flex: 1; padding: 16px; background: #f8f9fa; color: #666; border: 2px solid #ddd; border-radius: 10px;">
+                        Отмена
+                    </button>
+                    <button class="btn btn--primary" id="submitLaminateOrder" 
+                        style="flex: 1; padding: 16px; background: linear-gradient(135deg, #eabb66, #e74c3c); color: white; border: none; border-radius: 10px;">
+                    Добавить в корзину
+                </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="js/header.js"></script>
+    <!-- Подключение JS файлов -->
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="js/laminate-product.js"></script>
+    <script src="js/laminate-reviews.js"></script>
+    <script src="js/product-manager.js"></script>
+
     <script src="js/api-client.js"></script>
     <script src="js/auth-state.js"></script>
-    <script src="js/laminate-product.js"></script>
+    <script src="js/header.js"></script>
     <script src="js/footer.js"></script>
 </body>
 </html>

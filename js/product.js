@@ -685,7 +685,7 @@ function updateOrderSummary() {
 }
 
 async function submitOrder() {
-    if (!window.authManager || !window.authManager.currentUser) {
+    if (!window.authManager?.currentUser) {
         alert('Для оформления заказа необходимо войти в систему');
         window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
         return;
@@ -703,9 +703,23 @@ async function submitOrder() {
         return;
     }
     
+    // ============ СОХРАНЯЕМ АДРЕС (как в ламинате) ============
+    if (saveAddress && address.trim()) {
+        try {
+            const result = await window.apiClient.updateProfile({ address: address.trim() });
+            if (result && result.address) {
+                if (window.authManager.currentUser) window.authManager.currentUser.address = result.address;
+                console.log('✅ Адрес сохранен в профиль:', result.address);
+            }
+        } catch (error) {
+            console.warn('⚠️ Не удалось сохранить адрес:', error);
+        }
+    }
+    // ========================================================
+    
     const submitBtn = document.getElementById('submitOrder');
     if (submitBtn) {
-        submitBtn.innerHTML = '🔄 Добавление...';
+        submitBtn.textContent = '🔄 Добавление...';
         submitBtn.disabled = true;
     }
     
@@ -752,7 +766,6 @@ async function submitOrder() {
         closeOrderModal();
         alert('✅ Товар добавлен в корзину!');
         
-        // Обновляем счетчик
         if (window.cartManager) window.cartManager.updateCartCounter();
         
     } catch (error) {
@@ -760,7 +773,7 @@ async function submitOrder() {
         alert('❌ Ошибка добавления в корзину');
     } finally {
         if (submitBtn) {
-            submitBtn.innerHTML = 'Оформить заказ';
+            submitBtn.textContent = 'Оформить заказ';
             submitBtn.disabled = false;
         }
     }
