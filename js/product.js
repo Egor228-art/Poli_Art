@@ -685,7 +685,7 @@ function updateOrderSummary() {
 }
 
 async function submitOrder() {
-    if (!window.authManager?.isAuthenticated()) {
+    if (!window.authManager || !window.authManager.currentUser) {
         alert('Для оформления заказа необходимо войти в систему');
         window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
         return;

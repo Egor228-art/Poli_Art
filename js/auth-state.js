@@ -1,4 +1,3 @@
-// js/auth-state.js
 class AuthStateManager {
     constructor() {
         this.currentUser = null;
@@ -27,6 +26,11 @@ class AuthStateManager {
         }
     }
 
+    // ДОБАВЬ ЭТОТ МЕТОД:
+    isAuthenticated() {
+        return !!this.currentUser;
+    }
+
     updateUI() {
         const headerActions = document.querySelector('.header__actions');
         if (!headerActions) return;
@@ -38,7 +42,10 @@ class AuthStateManager {
                     <button class="btn btn--secondary" id="logoutBtn">Выйти</button>
                 </div>
             `;
-            document.getElementById('logoutBtn')?.addEventListener('click', () => this.logout());
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => this.logout());
+            }
         } else {
             headerActions.innerHTML = `
                 <div class="auth-buttons">
@@ -50,7 +57,7 @@ class AuthStateManager {
     }
 
     async logout() {
-        window.apiClient.setToken(null);
+        await window.apiClient.logout();
         this.currentUser = null;
         this.updateUI();
         window.location.href = 'index.html';
@@ -65,9 +72,11 @@ class AuthStateManager {
 }
 
 let authManager = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         authManager = new AuthStateManager();
         window.authManager = authManager;
+        console.log('✅ AuthStateManager инициализирован');
     }, 500);
 });
