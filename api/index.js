@@ -265,6 +265,24 @@ export default async function handler(req, res) {
         
         // ============ ОБНОВЛЕНИЕ ПРОФИЛЯ ============
         
+        // POST /api/user/avatar
+        if (path === '/api/user/avatar' && req.method === 'POST') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                return res.status(401).json({ error: 'Не авторизован' });
+            }
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            
+            if (!decoded) {
+                return res.status(401).json({ error: 'Недействительный токен' });
+            }
+            
+            // Пока просто возвращаем успех (для аватара нужно настроить blob storage)
+            return res.json({ success: true, message: 'Функционал аватара в разработке' });
+        }
+
         // PUT /api/user/profile
         if (path === '/api/user/profile' && req.method === 'PUT') {
             const authHeader = req.headers.authorization;

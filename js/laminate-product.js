@@ -509,9 +509,16 @@ function createSimilarCard(product) {
 function initOrderModal() {
     console.log('🎯 Инициализация модального окна заказа для ламината');
     
-    const orderBtn = document.getElementById('orderBtn');
+    // Ищем кнопку разными способами
+    let orderBtn = document.getElementById('orderBtn');
+    
+    // Если не нашли, ищем в родительских элементах
+    if (!orderBtn) {
+        orderBtn = document.querySelector('#orderBtn, .btn--primary, [data-order-btn]');
+    }
+    
     if (orderBtn) {
-        // Удаляем старые обработчики
+        // Удаляем старые обработчики через клонирование
         const newOrderBtn = orderBtn.cloneNode(true);
         orderBtn.parentNode.replaceChild(newOrderBtn, orderBtn);
         
@@ -521,6 +528,10 @@ function initOrderModal() {
             console.log('🛒 Кнопка заказа ламината нажата');
             openOrderModal();
         });
+        console.log('✅ Обработчик кнопки заказа установлен');
+    } else {
+        console.log('⚠️ Кнопка заказа не найдена, повторная попытка через 1 секунду');
+        setTimeout(() => initOrderModal(), 1000);
     }
     
     // Обработчики закрытия
@@ -663,7 +674,7 @@ function updateOrderSummary() {
 }
 
 async function submitOrder() {
-    if (!window.authManager?.isAuthenticated()) {
+    if (!window.authManager || !window.authManager.currentUser) {
         alert('Для оформления заказа необходимо войти в систему');
         window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
         return;
@@ -681,6 +692,20 @@ async function submitOrder() {
         return;
     }
     
+    // ============ СОХРАНЯЕМ АДРЕС В ПРОФИЛЬ ============
+    if (saveAddress && address.trim()) {
+        try {
+            const result = await window.apiClient.updateProfile({ address: address.trim() });
+            if (result && result.address) {
+                window.authManager.currentUser.address = result.address;
+                console.log('✅ Адрес сохранен в профиль:', result.address);
+            }
+        } catch (error) {
+            console.warn('⚠️ Не удалось сохранить адрес:', error);
+        }
+    }
+    // ================================================
+    
     const submitBtn = document.getElementById('submitOrder');
     if (submitBtn) {
         submitBtn.innerHTML = '🔄 Добавление...';
@@ -695,13 +720,13 @@ async function submitOrder() {
             quantity: quantity,
             image: document.getElementById('mainImage')?.src || '',
             code: currentProduct.id.substring(0, 8),
-            color: getFormattedColorsString(currentProduct.color),
+            color: getFormattedColors(currentProduct.color),
             delivery_type: deliveryType,
             delivery_address: address,
             warranty_service: warranty,
             assembly_service: assembly,
             payment_method: 'наличные',
-            collection: 'laminate',
+            collection: isLaminateMode ? 'laminate' : 'doors',
             added_at: new Date().toISOString(),
             save_address: saveAddress
         };
@@ -713,7 +738,7 @@ async function submitOrder() {
         
         const existingIndex = cart.findIndex(item => 
             item.id === currentProduct.id && 
-            item.collection === 'laminate' &&
+            item.collection === (isLaminateMode ? 'laminate' : 'doors') &&
             item.delivery_type === deliveryType &&
             item.warranty_service === warranty &&
             item.assembly_service === assembly

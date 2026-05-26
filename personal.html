@@ -400,9 +400,9 @@
     <script src="js/personal.js"></script>
 
     <script src="js/api-client.js"></script>
-<script src="js/auth-state.js"></script>
-<script src="js/header.js"></script>
-<script src="js/footer.js"></script>
+    <script src="js/auth-state.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
     
     <script>
         // Редирект на страницу входа если пользователь не авторизован
@@ -414,51 +414,52 @@
             }, 1000);
         });
 
-        // Тестовые функции
-function testAvatarUpload() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
+async function handleAvatarUpload(file) {
+    if (!file) return;
     
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    console.log('📸 Загрузка аватара:', file.name);
+    
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            console.error('❌ Пользователь не авторизован');
+            return;
+        }
         
-        console.log('🧪 Тестируем загрузку файла:', {
-            name: file.name,
-            size: file.size,
-            type: file.type
+        const response = await fetch('/api/user/avatar', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
         });
         
-        // Создаем FormData
-        const formData = new FormData();
-        formData.append('avatar', file);
-        
-        try {
-            console.log('📤 Отправляем тестовый запрос...');
-            const response = await fetch(`http://127.0.0.1:8090/api/collections/users/records/${window.userProfile.currentUser.id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': window.userProfile.pb.authStore.token
-                },
-                body: formData
-            });
-            
+        if (response.ok) {
             const result = await response.json();
-            console.log('📥 Ответ сервера:', result);
-            
-            if (response.ok) {
-                // Обновляем данные
-                window.userProfile.loadUserData();
-            }
-        } catch (error) {
-            console.error('❌ Ошибка теста:', error);
+            console.log('✅ Аватар загружен:', result);
+            location.reload();
+        } else {
+            console.error('❌ Ошибка загрузки');
         }
-    };
-    
-    fileInput.click();
+    } catch (error) {
+        console.error('❌ Ошибка:', error);
+    }
 }
 
+// Привязываем обработчик к инпуту
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('avatarInput');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleAvatarUpload(e.target.files[0]);
+            }
+        });
+    }
+});
 
 async function loadUserOrders() {
     try {

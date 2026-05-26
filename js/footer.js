@@ -366,22 +366,35 @@
     }
 
     window.populateMeasureForm = async function() {
+        console.log('🔄 Заполнение формы замера данными из профиля...');
+        
         // Ждем авторизацию
         let user = null;
+        let attempts = 0;
         
-        if (window.authManager && window.authManager.currentUser) {
-            user = window.authManager.currentUser;
-        } else if (window.userProfile && window.userProfile.currentUser) {
-            user = window.userProfile.currentUser;
+        while (!user && attempts < 10) {
+            if (window.authManager && window.authManager.currentUser) {
+                user = window.authManager.currentUser;
+            } else if (window.userProfile && window.userProfile.currentUser) {
+                user = window.userProfile.currentUser;
+            }
+            if (!user) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
+            }
         }
         
-        if (!user) return;
+        if (!user) {
+            console.log('👤 Пользователь не авторизован, форма не заполнена');
+            return;
+        }
         
-        console.log('👤 Заполнение формы замера данными пользователя:', user);
+        console.log('👤 Заполнение формы данными пользователя:', user);
         
         const nameInput = document.getElementById('measureName');
         const phoneInput = document.getElementById('measurePhone');
         const addressInput = document.getElementById('measureAddress');
+        const saveCheckbox = document.getElementById('saveAddressCheckbox');
         
         if (nameInput && user.name) {
             nameInput.value = user.name;
@@ -399,9 +412,17 @@
             }
         }
         
-        if (addressInput && user.address) {
-            addressInput.value = user.address;
-            addressInput.placeholder = "Адрес из профиля (можно изменить)";
+        if (addressInput) {
+            if (user.address) {
+                addressInput.value = user.address;
+                addressInput.placeholder = "Адрес из профиля (можно изменить)";
+            } else {
+                addressInput.placeholder = "Введите адрес для замера";
+            }
+        }
+        
+        if (saveCheckbox && user.address) {
+            saveCheckbox.checked = true;
         }
     };
 
