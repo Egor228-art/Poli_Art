@@ -316,7 +316,116 @@ export default async function handler(req, res) {
         }
         
         // ============ ЗАКАЗЫ ============
+        if (path === '/api/orders' && req.method === 'GET') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: 'Не авторизован' });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded) {
+        return res.status(401).json({ error: 'Недействительный токен' });
+    }
+    
+    try {
+        const result = await sql`
+            SELECT * FROM orders 
+            WHERE user_id = ${decoded.id} 
+            ORDER BY created_at DESC
+        `;
+        return res.json(result.rows);
+    } catch (error) {
+        console.error('Error getting orders:', error);
+        return res.json([]);
+    }
+}
+
+// ============ СОЗДАНИЕ ЗАКАЗА ============
+if (path === '/api/orders' && req.method === 'POST') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: 'Не авторизован' });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded) {
+        return res.status(401).json({ error: 'Недействительный токен' });
+    }
+    
+    const { products, total_price, delivery_type, delivery_address, payment_method, customer_name, customer_phone, notes } = req.body;
+    
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    
+    try {
+        const result = await sql`
+            INSERT INTO orders (
+                order_number, user_id, products, total_price, 
+                delivery_type, delivery_address, payment_method, 
+                customer_name, customer_phone, customer_email, notes, status
+            ) VALUES (
+                ${orderNumber}, ${decoded.id}, ${JSON.stringify(products || [])}, ${total_price}, 
+                ${delivery_type || 'pickup'}, ${delivery_address || null}, ${payment_method || 'наличные'}, 
+                ${customer_name || decoded.name}, ${customer_phone || null}, ${decoded.email}, ${notes || null}, 'ожидает'
+            )
+            RETURNING *
+        `;
         
+        return res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Order creation error:', error);
+        return res.status(500).json({ error: 'Ошибка создания заказа', details: error.message });
+    }
+}
+
+// ============ ОБНОВЛЕНИЕ ПРОФИЛЯ ============
+if (path === '/api/user/profile' && req.method === 'PUT') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: 'Не авторизован' });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded) {
+        return res.status(401).json({ error: 'Недействительный токен' });
+    }
+    
+    const { name, phone, address } = req.body;
+    
+    try {
+        let query = sql`UPDATE users SET updated_at = NOW()`;
+        
+        if (name !== undefined) {
+            query = sql`${query}, name = ${name}`;
+        }
+        if (phone !== undefined) {
+            query = sql`${query}, phone = ${phone}`;
+        }
+        if (address !== undefined) {
+            query = sql`${query}, address = ${address}`;
+        }
+        
+        query = sql`${query} WHERE id = ${decoded.id} RETURNING id, email, name, role, phone, address`;
+        
+        const result = await query;
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+        
+        return res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Profile update error:', error);
+        return res.status(500).json({ error: 'Ошибка обновления профиля', details: error.message });
+    }
+}
+
+
         if (path === '/api/orders' && req.method === 'POST') {
             const authHeader = req.headers.authorization;
             if (!authHeader) {

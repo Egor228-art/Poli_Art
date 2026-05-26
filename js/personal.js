@@ -556,6 +556,16 @@ class UserProfile {
             
             if (result && result.address) {
                 this.currentUser.address = result.address;
+                // Также обновляем в localStorage
+                const cartKey = this.getCartStorageKey();
+                const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+                cart.forEach(item => {
+                    if (item.save_address) {
+                        item.delivery_address = address;
+                    }
+                });
+                localStorage.setItem(cartKey, JSON.stringify(cart));
+                
                 console.log('✅ Адрес сохранен в профиль:', result.address);
                 return true;
             }

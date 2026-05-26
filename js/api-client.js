@@ -107,12 +107,16 @@ class APIClient {
     }
     
     // ============ ЗАКАЗЫ ============
-    async getOrders() { 
-        return this.request('GET', '/orders'); 
+    async getOrders() {
+        return this.request('GET', '/orders');
     }
-    
-    async createOrder(data) { 
-        return this.request('POST', '/orders', data); 
+
+    async createOrder(data) {
+        return this.request('POST', '/orders', data);
+    }
+
+    async updateProfile(data) {
+        return this.request('PUT', '/user/profile', data);
     }
     
     // ============ ОТЗЫВЫ ============
