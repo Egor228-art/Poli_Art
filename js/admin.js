@@ -3,21 +3,48 @@ let currentUser = null;
 let currentPage = 'dashboard';
 
 async function checkAdminAccess() {
-    await window.authManager?.checkAuth();
-    currentUser = window.authManager?.currentUser;
+    // Ждем загрузку apiClient и authManager
+    await new Promise(resolve => {
+        const check = setInterval(() => {
+            if (window.apiClient && window.authManager) {
+                clearInterval(check);
+                resolve();
+            }
+        }, 100);
+    });
+    
+    // Получаем пользователя
+    try {
+        currentUser = await window.apiClient.getCurrentUser();
+    } catch(e) {
+        console.error('Ошибка получения пользователя:', e);
+        window.location.href = 'login.html?redirect=admin.html';
+        return false;
+    }
     
     if (!currentUser) {
         window.location.href = 'login.html?redirect=admin.html';
         return false;
     }
     
-    if (currentUser.role !== 'admin') {
-        document.body.innerHTML = '<div style="text-align:center; padding:100px;"><h1>⛔ Доступ запрещен</h1><p>У вас нет прав администратора</p><a href="index.html" class="btn btn--primary">На главную</a></div>';
+    // Проверяем роль через БД, а не через кэш
+    try {
+        const checkRole = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
+        const userData = await checkRole.json();
+        
+        if (userData.role !== 'admin') {
+            document.body.innerHTML = '<div style="text-align:center; padding:100px;"><h1>⛔ Доступ запрещен</h1><p>У вас нет прав администратора</p><a href="index.html" class="btn btn--primary">На главную</a></div>';
+            return false;
+        }
+        
+        document.getElementById('adminUserName').textContent = userData.name || userData.email;
+        return true;
+    } catch(e) {
+        window.location.href = 'login.html?redirect=admin.html';
         return false;
     }
-    
-    document.getElementById('adminUserName').textContent = currentUser.name || currentUser.email;
-    return true;
 }
 
 async function loadPage(page) {

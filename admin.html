@@ -213,27 +213,23 @@
 </head>
 <body>
     <script>
+        // Проверка админа при загрузке страницы
         (async function() {
-            // Ждем apiClient
-            const wait = setInterval(async () => {
-                if (window.apiClient && window.authManager) {
-                    clearInterval(wait);
-                    const user = await window.apiClient.getCurrentUser();
-                    if (!user) {
+            const checkAuth = setInterval(async () => {
+                if (window.apiClient) {
+                    clearInterval(checkAuth);
+                    try {
+                        const user = await window.apiClient.getCurrentUser();
+                        if (!user || user.role !== 'admin') {
+                            window.location.href = 'login.html?redirect=admin.html';
+                        }
+                    } catch(e) {
                         window.location.href = 'login.html?redirect=admin.html';
-                        return;
                     }
-                    if (user.role !== 'admin') {
-                        document.body.innerHTML = '<div style="text-align:center;padding:100px"><h1>⛔ Доступ запрещен</h1><a href="index.html">На главную</a></div>';
-                        return;
-                    }
-                    document.getElementById('adminUserName').textContent = user.name || user.email;
                 }
             }, 100);
-            setTimeout(() => clearInterval(wait), 5000);
         })();
     </script>
-</script>
 
     <header class="header"></header>
     
