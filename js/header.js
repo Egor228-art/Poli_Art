@@ -24,6 +24,13 @@ document.addEventListener('DOMContentLoaded', function() {
     observer.observe(document.body, { childList: true, subtree: true });
 });
 
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function loadHeader() {
     const headerContainer = document.querySelector('header');
     
@@ -596,6 +603,35 @@ function updateHeaderForLoggedInUser(user) {
             <button class="btn btn--secondary" onclick="logout()">Выйти</button>
         </div>
     `;
+}
+
+function renderHeaderUserInfo(container) {
+    const user = this.currentUser;
+    if (!user) return;
+    
+    const firstName = user.name || 'Пользователь';
+    const email = user.email || '';
+    const initials = this.getUserInitials(firstName);
+    const isAdmin = user.role === 'admin';
+    
+    container.innerHTML = `
+        <div class="header-user-info">
+            <a href="personal.html" class="user-profile-link">
+                <div class="user-avatar">${initials}</div>
+                <div class="user-details">
+                    <div class="user-name">${escapeHtml(firstName)}</div>
+                    <div class="user-email" title="${escapeHtml(email)}">${escapeHtml(email)}</div>
+                </div>
+            </a>
+            ${isAdmin ? `<a href="admin.html" class="admin-link" style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; margin: 0 10px;">👑 Админка</a>` : ''}
+            <button class="logout-btn" id="logout-button">
+                <span>Выйти</span>
+                <span class="logout-btn-icon">🚪</span>
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('logout-button')?.addEventListener('click', () => this.logout());
 }
 
 async function logout() {
