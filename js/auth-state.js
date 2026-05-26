@@ -37,9 +37,9 @@ class AuthStateManager {
 
         if (this.currentUser) {
             // Кнопка админки только для админов
-            let adminButtonHtml = '';
-            if (this.currentUser.role === 'admin') {
-                adminButtonHtml = '<a href="admin.html" class="admin-link" style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; margin-right: 10px; font-size: 14px;">👑 Админка</a>';
+            let adminButton = '';
+            if (this.currentUser && this.currentUser.role === 'admin') {
+                adminButton = '<a href="admin.html" style="background:#e74c3c;color:white;padding:8px 15px;border-radius:8px;text-decoration:none;margin-right:10px">👑 Админка</a>';
             }
             
             headerActions.innerHTML = `
