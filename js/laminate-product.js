@@ -507,13 +507,36 @@ function createSimilarCard(product) {
 // ============ МОДАЛЬНОЕ ОКНО ЗАКАЗА ============
 
 function initOrderModal() {
+    console.log('🎯 Инициализация модального окна заказа для ламината');
+    
     const orderBtn = document.getElementById('orderBtn');
     if (orderBtn) {
-        orderBtn.addEventListener('click', openOrderModal);
+        // Удаляем старые обработчики
+        const newOrderBtn = orderBtn.cloneNode(true);
+        orderBtn.parentNode.replaceChild(newOrderBtn, orderBtn);
+        
+        newOrderBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🛒 Кнопка заказа ламината нажата');
+            openOrderModal();
+        });
     }
     
-    document.getElementById('closeOrderModal')?.addEventListener('click', closeOrderModal);
-    document.getElementById('cancelOrder')?.addEventListener('click', closeOrderModal);
+    // Обработчики закрытия
+    const closeModalBtn = document.getElementById('closeOrderModal');
+    if (closeModalBtn) {
+        const newCloseBtn = closeModalBtn.cloneNode(true);
+        closeModalBtn.parentNode.replaceChild(newCloseBtn, closeModalBtn);
+        newCloseBtn.addEventListener('click', closeOrderModal);
+    }
+    
+    const cancelBtn = document.getElementById('cancelOrder');
+    if (cancelBtn) {
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        newCancelBtn.addEventListener('click', closeOrderModal);
+    }
     
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && document.getElementById('orderModal')?.style.display === 'flex') {

@@ -101,10 +101,6 @@ class APIClient {
     async logout() { 
         this.setToken(null); 
     }
-
-    async updateProfile(data) {
-        return this.request('PUT', '/user/profile', data);
-    }
     
     // ============ ЗАКАЗЫ ============
     async getOrders() {
