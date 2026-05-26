@@ -1545,4 +1545,31 @@
         showNotification
     };
 
+
+    // Добавь в конец footer.js, перед последней скобкой
+window.populateMeasureForm = function() {
+    setTimeout(() => {
+        const user = window.authManager?.currentUser;
+        if (!user) return;
+        
+        const nameInput = document.getElementById('measureName');
+        const phoneInput = document.getElementById('measurePhone');
+        const addressInput = document.getElementById('measureAddress');
+        
+        if (nameInput && user.name) {
+            nameInput.value = user.name;
+            nameInput.readOnly = true;
+        }
+        if (phoneInput && user.phone) {
+            const phoneStr = user.phone.toString();
+            if (phoneStr.length >= 10) {
+                phoneInput.value = `+7 (${phoneStr.substring(0, 3)}) ${phoneStr.substring(3, 6)}-${phoneStr.substring(6, 8)}-${phoneStr.substring(8, 10)}`;
+                phoneInput.readOnly = true;
+            }
+        }
+        if (addressInput && user.address) {
+            addressInput.value = user.address;
+        }
+    }, 300);
+};
 })();
