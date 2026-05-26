@@ -70,6 +70,11 @@ async function loadPage(page) {
 }
 
 async function loadDashboard() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
     try {
         const [doors, laminate, orders, users] = await Promise.all([
             window.apiClient.getDoors(),
@@ -103,6 +108,11 @@ async function loadDashboard() {
 }
 
 async function loadProductsList(collection) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
     try {
         const result = await window.apiClient[collection === 'doors' ? 'getDoors' : 'getLaminate']();
         const products = result.items || [];
@@ -130,6 +140,11 @@ async function loadProductsList(collection) {
 }
 
 async function loadOrdersList() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
     try {
         const orders = await window.apiClient.getOrders();
         document.getElementById('pageContent').innerHTML = `
@@ -157,6 +172,11 @@ async function loadOrdersList() {
 }
 
 async function loadUsersList() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
     try {
         const response = await fetch('/api/admin/users');
         const result = await response.json();
@@ -185,6 +205,11 @@ async function loadUsersList() {
 }
 
 async function loadMeasureRequests() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
     try {
         const response = await fetch('/api/admin/measure');
         const result = await response.json();
@@ -213,6 +238,11 @@ async function loadMeasureRequests() {
 }
 
 async function loadReviewsList() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
     try {
         const [doorsReviews, laminateReviews] = await Promise.all([
             fetch('/api/admin/reviews/doors').then(r => r.json()).catch(() => ({ items: [] })),
@@ -241,6 +271,76 @@ async function loadReviewsList() {
             </div>
         `;
     } catch(e) { console.error(e); }
+}
+
+function openEditProductModal(collection, id) {
+    console.log('Редактирование товара:', collection, id);
+    
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        alert('Сессия истекла, войдите заново');
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
+    
+    fetch(`/api/admin/product/${collection}/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(product => {
+        const isLaminate = collection === 'laminate';
+        document.getElementById('modalTitle').textContent = isLaminate ? 'Редактировать ламинат' : 'Редактировать дверь';
+        document.getElementById('modalFormFields').innerHTML = `
+            <input type="hidden" id="productCollection" value="${collection}">
+            <input type="hidden" id="productEditId" value="${product.id}">
+            <div class="form-group"><label>Название *</label><input type="text" id="productName" value="${escapeHtml(product.name || '')}" required></div>
+            <div class="form-group"><label>Описание</label><textarea id="productDescription" rows="3">${escapeHtml(product.description || '')}</textarea></div>
+            <div class="form-row"><div class="form-group"><label>Цена (₽) *</label><input type="number" id="productPrice" value="${product.price || 0}" required></div>
+            ${isLaminate ? '<div class="form-group"><label>Класс</label><input type="text" id="productType" value="' + escapeHtml(product.type || '') + '"></div>' : '<div class="form-group"><label>Тип</label><select id="productType"><option value="Межкомнатная"' + (product.type === 'Межкомнатная' ? ' selected' : '') + '>Межкомнатная</option><option value="Входная"' + (product.type === 'Входная' ? ' selected' : '') + '>Входная</option></select></div>'}</div>
+            ${isLaminate ? '<div class="form-row"><div class="form-group"><label>Толщина (мм)</label><input type="text" id="productThickness" value="' + escapeHtml(product.thickness || '') + '"></div><div class="form-group"><label>Класс износостойкости</label><input type="text" id="productWearClass" value="' + escapeHtml(product.wear_class || '') + '"></div></div>' : '<div class="form-row"><div class="form-group"><label>Материал</label><input type="text" id="productMaterial" value="' + escapeHtml(product.material || '') + '"></div><div class="form-group"><label>Стиль</label><input type="text" id="productStyle" value="' + escapeHtml(product.style || '') + '"></div></div>'}
+            <div class="form-group"><label>Цвета (через запятую)</label><input type="text" id="productColors" value="${Array.isArray(product.color) ? product.color.join(', ') : (product.color || '')}"></div>
+            <div class="form-group"><label>Ссылки на изображения (по одной на строку)</label><textarea id="productImages" rows="2">${Array.isArray(product.pictures || product.picture) ? (product.pictures || product.picture).join('\n') : ''}</textarea></div>
+        `;
+        document.getElementById('adminModal').style.display = 'flex';
+        document.getElementById('adminForm').onsubmit = async (e) => { 
+            e.preventDefault(); 
+            await updateProduct(collection, product.id); 
+        };
+    })
+    .catch(err => console.error('Ошибка загрузки товара:', err));
+}
+
+async function updateProduct(collection, id) {
+    const token = localStorage.getItem('auth_token');
+    const data = {
+        collection, id,
+        name: document.getElementById('productName').value,
+        description: document.getElementById('productDescription').value,
+        price: parseInt(document.getElementById('productPrice').value) || 0,
+        type: document.getElementById('productType')?.value,
+        color: document.getElementById('productColors')?.value.split(',').map(c => c.trim()).filter(c => c),
+        pictures: document.getElementById('productImages')?.value.split('\n').filter(u => u.trim())
+    };
+    if (collection === 'laminate') {
+        data.thickness = document.getElementById('productThickness')?.value;
+        data.wear_class = document.getElementById('productWearClass')?.value;
+    } else {
+        data.material = document.getElementById('productMaterial')?.value;
+        data.style = document.getElementById('productStyle')?.value;
+    }
+    
+    const response = await fetch('/api/admin/product/update', { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+        body: JSON.stringify(data) 
+    });
+    
+    if (response.ok) {
+        closeModal();
+        loadPage(collection);
+    } else {
+        alert('Ошибка обновления товара');
+    }
 }
 
 // CRUD операции
@@ -310,6 +410,13 @@ function openAddProductModal(collection) {
 }
 
 async function createProduct(collection) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        alert('Сессия истекла, войдите заново');
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
+    
     const data = {
         collection,
         name: document.getElementById('productName').value,
@@ -326,9 +433,20 @@ async function createProduct(collection) {
         data.material = document.getElementById('productMaterial')?.value;
         data.style = document.getElementById('productStyle')?.value;
     }
-    await fetch('/api/admin/product/create', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }, body: JSON.stringify(data) });
-    closeModal();
-    loadPage(collection);
+    
+    const response = await fetch('/api/admin/product/create', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+        body: JSON.stringify(data) 
+    });
+    
+    if (response.ok) {
+        closeModal();
+        loadPage(collection);
+    } else {
+        const error = await response.json();
+        alert('Ошибка: ' + (error.error || 'Не удалось создать товар'));
+    }
 }
 
 function closeModal() {

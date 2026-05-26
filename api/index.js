@@ -514,9 +514,8 @@ export default async function handler(req, res) {
             const token = authHeader.split(' ')[1];
             const decoded = verifyToken(token);
             
-            if (!decoded || decoded.role !== 'admin') {
-                return res.status(403).json({ error: 'Нет прав' });
-            }
+            if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+            if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
             
             const result = await sql`SELECT id, email, name, phone, role, created_at FROM users ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
@@ -532,9 +531,8 @@ if (path === '/api/admin/users' && req.method === 'GET') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const result = await sql`SELECT id, email, name, phone, role, created_at FROM users ORDER BY created_at DESC`;
     return res.json({ items: result.rows });
@@ -548,9 +546,8 @@ if (path === '/api/admin/user/role' && req.method === 'PUT') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id, role } = req.body;
     await sql`UPDATE users SET role = ${role} WHERE id = ${id}`;
@@ -565,9 +562,8 @@ if (path === '/api/admin/user/delete' && req.method === 'DELETE') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id } = req.body;
     await sql`DELETE FROM users WHERE id = ${id}`;
@@ -582,9 +578,8 @@ if (path === '/api/admin/order/status' && req.method === 'PUT') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id, status } = req.body;
     await sql`UPDATE orders SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
@@ -599,9 +594,8 @@ if (path === '/api/admin/order/delete' && req.method === 'DELETE') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id } = req.body;
     await sql`DELETE FROM orders WHERE id = ${id}`;
@@ -616,9 +610,8 @@ if (path === '/api/admin/reviews/doors' && req.method === 'GET') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const result = await sql`SELECT *, 'doors' as product_type FROM reviews ORDER BY created_at DESC`;
     return res.json({ items: result.rows });
@@ -632,9 +625,8 @@ if (path === '/api/admin/reviews/laminate' && req.method === 'GET') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const result = await sql`SELECT *, 'laminate' as product_type FROM reviews_laminate ORDER BY created_at DESC`;
     return res.json({ items: result.rows });
@@ -648,9 +640,8 @@ if (path === '/api/admin/review/approve' && req.method === 'PUT') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id, type } = req.body;
     const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
@@ -666,9 +657,8 @@ if (path === '/api/admin/review/delete' && req.method === 'DELETE') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id, type } = req.body;
     const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
@@ -684,9 +674,8 @@ if (path === '/api/admin/measure' && req.method === 'GET') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const result = await sql`SELECT * FROM measure_requests ORDER BY created_at DESC`;
     return res.json({ items: result.rows });
@@ -700,9 +689,8 @@ if (path === '/api/admin/measure/status' && req.method === 'PUT') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id, status } = req.body;
     await sql`UPDATE measure_requests SET status = ${status} WHERE id = ${id}`;
@@ -717,9 +705,8 @@ if (path === '/api/admin/measure/delete' && req.method === 'DELETE') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { id } = req.body;
     await sql`DELETE FROM measure_requests WHERE id = ${id}`;
@@ -734,9 +721,8 @@ if (path === '/api/admin/product/update' && req.method === 'PUT') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { collection, id, name, description, price, type, material, color, style, thickness, wear_class, pictures } = req.body;
     const table = collection === 'laminate' ? 'laminate' : 'doors';
@@ -783,9 +769,8 @@ if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const { collection, id } = req.body;
     const table = collection === 'laminate' ? 'laminate' : 'doors';
@@ -805,9 +790,8 @@ if (path.match(/^\/api\/admin\/product\/[^/]+\/[^/]+$/) && req.method === 'GET')
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
     
-    if (!decoded || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Нет прав' });
-    }
+    if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Нет прав' });
     
     const table = collection === 'laminate' ? 'laminate' : 'doors';
     const result = await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`;
