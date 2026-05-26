@@ -628,7 +628,7 @@ function createProductCard(product) {
     } else if (product.picture && product.picture.length > 0 && product.picture[0]) {
         imageUrl = product.picture[0];
     } else {
-        imageUrl = '/img/no-image.jpg';
+        imageUrl = '/image/no-image.jpg';
     }
     
     let formattedPrice = 'Цена по запросу';
@@ -665,7 +665,7 @@ function createProductCard(product) {
             <img src="${imageUrl}" alt="${escapeHtml(product.name || 'Без названия')}" 
                  class="product-image ${isLaminateMode ? 'laminate-image' : 'door-image'}"
                  onclick="window.location.href='${productLink}'"
-                 onerror="this.src='/img/no-image.jpg'">
+                 onerror="this.src='/image/no-image.jpg'">
         </div>
         <div class="product-info">
             <h3 class="product-title">${escapeHtml(product.name || 'Без названия')}</h3>

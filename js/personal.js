@@ -249,7 +249,7 @@ class UserProfile {
             return `
                 <div class="cart-item" data-index="${index}">
                     <div class="cart-item__image">
-                        <img src="${item.image || '/img/no-image.jpg'}" alt="${this.escapeHtml(item.name || 'Товар')}" onerror="this.src='/img/no-image.jpg'">
+                        <img src="${item.image || '/image/no-image.jpg'}" alt="${this.escapeHtml(item.name || 'Товар')}" onerror="this.src='/image/no-image.jpg'">
                     </div>
                     <div class="cart-item__info">
                         <h3 class="cart-item__title">${this.escapeHtml(item.name || 'Товар без названия')}</h3>
@@ -720,7 +720,7 @@ class UserProfile {
                         ${this.reviewableProducts.map(product => `
                             <div class="reviewable-product-card">
                                 <div class="product-image">
-                                    <img src="${product.image || '/img/no-image.jpg'}" alt="${this.escapeHtml(product.name)}" onerror="this.src='/img/no-image.jpg'">
+                                    <img src="${product.image || '/image/no-image.jpg'}" alt="${this.escapeHtml(product.name)}" onerror="this.src='/image/no-image.jpg'">
                                 </div>
                                 <div class="product-info">
                                     <h4>${this.escapeHtml(product.name)}</h4>

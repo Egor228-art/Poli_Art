@@ -71,7 +71,7 @@ function renderProduct(product, type) {
             <div class="main-image">
                 <img src="${imageUrl}" 
                      alt="${product.name || (isLaminate ? 'Ламинат' : 'Дверь')}" 
-                     onerror="this.onerror=null; this.src='img/no-image.jpg';">
+                     onerror="this.onerror=null; this.src='image/no-image.jpg';">
             </div>
         </div>
         
@@ -295,7 +295,7 @@ function getImageUrl(product, collection) {
     if (product.picture && product.picture.length > 0 && product.picture[0]) {
         return `${PB_URL}/api/files/${collection}/${product.id}/${product.picture[0]}`;
     }
-    return 'img/no-image.jpg';
+    return 'image/no-image.jpg';
 }
 
 function escapeHtml(text) {

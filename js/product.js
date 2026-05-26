@@ -187,7 +187,7 @@ function setupGallery() {
     const pictureList = Array.isArray(pictures) ? pictures : [];
     
     if (pictureList.length === 0) {
-        mainImage.src = '/img/no-image.jpg';
+        mainImage.src = '/image/no-image.jpg';
         mainImage.alt = currentProduct.name || 'Нет изображения';
         galleryThumbs.innerHTML = '<p>Изображения отсутствуют</p>';
         return;
@@ -201,7 +201,7 @@ function setupGallery() {
     pictureList.forEach((imgUrl, index) => {
         const thumbElement = document.createElement('div');
         thumbElement.className = `thumb ${index === 0 ? 'active' : ''}`;
-        thumbElement.innerHTML = `<img src="${imgUrl}" alt="${currentProduct.name} - ${index + 1}" loading="lazy" onerror="this.src='/img/no-image.jpg'">`;
+        thumbElement.innerHTML = `<img src="${imgUrl}" alt="${currentProduct.name} - ${index + 1}" loading="lazy" onerror="this.src='/image/no-image.jpg'">`;
         thumbElement.addEventListener('click', () => {
             document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
             thumbElement.classList.add('active');
@@ -523,14 +523,14 @@ function createSimilarCard(product) {
     const card = document.createElement('div');
     card.className = 'product-card similar-card';
     
-    const imageUrl = (product.pictures || product.picture)?.[0] || '/img/no-image.jpg';
+    const imageUrl = (product.pictures || product.picture)?.[0] || '/image/no-image.jpg';
     const priceValue = product.price || product.prise;
     const priceDisplay = priceValue ? `${parsePrice(priceValue).toLocaleString()} ₽` : 'Цена по запросу';
     const productPage = isLaminateMode ? 'laminate-product.html' : 'product.html';
     
     card.innerHTML = `
         <div class="product-image-container">
-            <img src="${imageUrl}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" onerror="this.src='/img/no-image.jpg'" onclick="window.location.href='${productPage}?id=${product.id}'">
+            <img src="${imageUrl}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" onerror="this.src='/image/no-image.jpg'" onclick="window.location.href='${productPage}?id=${product.id}'">
         </div>
         <div class="product-info">
             <h3 class="product-title">${escapeHtml(product.name)}</h3>
