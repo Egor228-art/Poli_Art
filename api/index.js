@@ -336,43 +336,135 @@ export default async function handler(req, res) {
         }
         
         if (path === '/api/admin/product/create' && req.method === 'POST') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'No token' });
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Invalid token' });
+            
+            // Проверяем права администратора
+            const userResult = await sql`SELECT role FROM users WHERE id = ${decoded.id}`;
+            if (userResult.rows[0]?.role !== 'admin') {
+                return res.status(403).json({ error: 'Access denied' });
+            }
+            
             const { collection, name, description, price, type, material, color, style, thickness, wear_class, pictures } = req.body;
             
-            if (collection === 'laminate') {
-                await sql`
-                    INSERT INTO laminate (name, description, price, type, thickness, wear_class, color, pictures)
-                    VALUES (${name}, ${description}, ${price}, ${type}, ${thickness}, ${wear_class}, ${color}, ${pictures})
-                `;
-            } else {
-                await sql`
-                    INSERT INTO doors (name, description, price, type, material, style, color, pictures)
-                    VALUES (${name}, ${description}, ${price}, ${type}, ${material}, ${style}, ${color}, ${pictures})
-                `;
+            console.log('Создание товара:', { collection, name, price, type });
+            
+            try {
+                if (collection === 'laminate') {
+                    // Для ламината - pictures храним как JSON массив
+                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
+                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
+                    
+                    await sql`
+                        INSERT INTO laminate (
+                            name, description, price, type, 
+                            thickness, wear_class, color, pictures, 
+                            created_at
+                        ) VALUES (
+                            ${name || ''}, 
+                            ${description || ''}, 
+                            ${parseInt(price) || 0}, 
+                            ${type || ''}, 
+                            ${thickness || ''}, 
+                            ${wear_class || ''}, 
+                            ${colorJson}, 
+                            ${picturesJson},
+                            NOW()
+                        )
+                    `;
+                } else {
+                    // Для дверей
+                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
+                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
+                    
+                    await sql`
+                        INSERT INTO doors (
+                            name, description, price, type, 
+                            material, style, color, pictures, 
+                            created_at
+                        ) VALUES (
+                            ${name || ''}, 
+                            ${description || ''}, 
+                            ${parseInt(price) || 0}, 
+                            ${type || ''}, 
+                            ${material || ''}, 
+                            ${style || ''}, 
+                            ${colorJson}, 
+                            ${picturesJson},
+                            NOW()
+                        )
+                    `;
+                }
+                
+                return res.json({ success: true });
+            } catch (error) {
+                console.error('Ошибка создания товара:', error);
+                return res.status(500).json({ error: error.message });
             }
-            return res.json({ success: true });
         }
-        
+                
         if (path === '/api/admin/product/update' && req.method === 'PUT') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'No token' });
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Invalid token' });
+            
+            // Проверяем права администратора
+            const userResult = await sql`SELECT role FROM users WHERE id = ${decoded.id}`;
+            if (userResult.rows[0]?.role !== 'admin') {
+                return res.status(403).json({ error: 'Access denied' });
+            }
+            
             const { collection, id, name, description, price, type, material, color, style, thickness, wear_class, pictures } = req.body;
             
-            if (collection === 'laminate') {
-                await sql`
-                    UPDATE laminate 
-                    SET name = ${name}, description = ${description}, price = ${price}, 
-                        type = ${type}, thickness = ${thickness}, wear_class = ${wear_class}, 
-                        color = ${color}, pictures = ${pictures}
-                    WHERE id = ${id}
-                `;
-            } else {
-                await sql`
-                    UPDATE doors 
-                    SET name = ${name}, description = ${description}, price = ${price}, 
-                        type = ${type}, material = ${material}, style = ${style}, 
-                        color = ${color}, pictures = ${pictures}
-                    WHERE id = ${id}
-                `;
+            console.log('Обновление товара:', { collection, id, name, price });
+            
+            try {
+                if (collection === 'laminate') {
+                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
+                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
+                    
+                    await sql`
+                        UPDATE laminate 
+                        SET name = ${name || ''},
+                            description = ${description || ''},
+                            price = ${parseInt(price) || 0},
+                            type = ${type || ''},
+                            thickness = ${thickness || ''},
+                            wear_class = ${wear_class || ''},
+                            color = ${colorJson},
+                            pictures = ${picturesJson},
+                            updated_at = NOW()
+                        WHERE id = ${id}
+                    `;
+                } else {
+                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
+                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
+                    
+                    await sql`
+                        UPDATE doors 
+                        SET name = ${name || ''},
+                            description = ${description || ''},
+                            price = ${parseInt(price) || 0},
+                            type = ${type || ''},
+                            material = ${material || ''},
+                            style = ${style || ''},
+                            color = ${colorJson},
+                            pictures = ${picturesJson},
+                            updated_at = NOW()
+                        WHERE id = ${id}
+                    `;
+                }
+                
+                return res.json({ success: true });
+            } catch (error) {
+                console.error('Ошибка обновления товара:', error);
+                return res.status(500).json({ error: error.message });
             }
-            return res.json({ success: true });
         }
         
         if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
