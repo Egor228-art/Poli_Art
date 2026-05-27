@@ -61,9 +61,21 @@ async function loadColorOptions() {
         doorsResult.items?.forEach(product => {
             if (product.color) {
                 if (Array.isArray(product.color)) {
-                    product.color.forEach(c => doorsColors.add(c));
+                    product.color.forEach(c => {
+                        if (c && typeof c === 'string') doorsColors.add(c.trim());
+                    });
                 } else if (typeof product.color === 'string') {
-                    doorsColors.add(product.color);
+                    // Если строка в формате JSON массива
+                    try {
+                        const parsed = JSON.parse(product.color);
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(c => doorsColors.add(c.trim()));
+                        } else {
+                            doorsColors.add(product.color.trim());
+                        }
+                    } catch (e) {
+                        doorsColors.add(product.color.trim());
+                    }
                 }
             }
         });
@@ -74,12 +86,26 @@ async function loadColorOptions() {
         laminateResult.items?.forEach(product => {
             if (product.color) {
                 if (Array.isArray(product.color)) {
-                    product.color.forEach(c => laminateColors.add(c));
+                    product.color.forEach(c => {
+                        if (c && typeof c === 'string') laminateColors.add(c.trim());
+                    });
                 } else if (typeof product.color === 'string') {
-                    laminateColors.add(product.color);
+                    try {
+                        const parsed = JSON.parse(product.color);
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(c => laminateColors.add(c.trim()));
+                        } else {
+                            laminateColors.add(product.color.trim());
+                        }
+                    } catch (e) {
+                        laminateColors.add(product.color.trim());
+                    }
                 }
             }
         });
+        
+        console.log('Загружены цвета дверей:', Array.from(doorsColors));
+        console.log('Загружены цвета ламината:', Array.from(laminateColors));
         
         return {
             doors: Array.from(doorsColors),
@@ -96,23 +122,56 @@ async function updateColorFilters() {
     const colors = await loadColorOptions();
     const currentColors = isLaminateMode ? colors.laminate : colors.doors;
     
-    const colorContainer = document.querySelector('.color-options');
+    const colorContainer = document.querySelector('.filter-section:has(.color-options) .color-options');
     if (!colorContainer) return;
     
-    // Маппинг цветов для отображения
-    const colorMap = {
-        'Коричневый': '#8B4513', 'Бежевый': '#F5DEB3', 'Серый': '#808080',
-        'Белый': '#FFFFFF', 'Чёрный': '#000000', 'Черный': '#000000',
-        'Темный дуб': '#654321', 'Золотистый': '#FFD700', 'Красный': '#FF0000',
-        'Синий': '#0000FF', 'Зеленый': '#008000'
+    if (!currentColors || currentColors.length === 0) {
+        colorContainer.innerHTML = '<div class="no-colors">Нет доступных цветов</div>';
+        return;
+    }
+    
+    // Маппинг цветов для отображения (цвет фона)
+    const colorBackgroundMap = {
+        'белый': '#FFFFFF', 'белая': '#FFFFFF', 'white': '#FFFFFF',
+        'черный': '#000000', 'черная': '#000000', 'чёрный': '#000000', 'чёрная': '#000000', 'black': '#000000',
+        'серый': '#808080', 'серая': '#808080', 'gray': '#808080', 'grey': '#808080',
+        'коричневый': '#8B4513', 'коричневая': '#8B4513', 'brown': '#8B4513',
+        'бежевый': '#F5DEB3', 'бежевая': '#F5DEB3', 'beige': '#F5DEB3',
+        'дуб': '#C19A6B', 'темный дуб': '#654321', 'светлый дуб': '#D2B48C',
+        'орех': '#773F1A', 'ясень': '#E8D0A9', 'бук': '#DEB887',
+        'венге': '#3C2F23', 'золотистый': '#FFD700', 'красный': '#FF0000',
+        'синий': '#0000FF', 'зеленый': '#008000', 'розовый': '#FFC0CB'
     };
     
     // Генерируем HTML для цветов
     let colorsHtml = '';
     currentColors.forEach(color => {
-        const hexColor = colorMap[color] || getColorHex(color);
+        const colorName = typeof color === 'string' ? color : (color.name || String(color));
+        const normalizedName = colorName.toLowerCase().trim();
+        
+        // Определяем цвет фона
+        let bgColor = colorBackgroundMap[normalizedName];
+        if (!bgColor) {
+            // Пробуем найти частичное совпадение
+            for (const [key, value] of Object.entries(colorBackgroundMap)) {
+                if (normalizedName.includes(key) || key.includes(normalizedName)) {
+                    bgColor = value;
+                    break;
+                }
+            }
+        }
+        if (!bgColor) {
+            // Генерируем цвет из названия
+            let hash = 0;
+            for (let i = 0; i < colorName.length; i++) {
+                hash = colorName.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            bgColor = `hsl(${(hash % 30) + 20}, ${(hash % 30) + 40}%, ${(hash % 40) + 40}%)`;
+        }
+        
         colorsHtml += `
-            <div class="color-option" style="background-color: ${hexColor};" data-color="${color}" title="${color}">
+            <div class="color-option" style="background-color: ${bgColor}; border: ${bgColor === '#FFFFFF' ? '1px solid #ccc' : 'none'};" data-color="${escapeHtml(colorName)}" title="${escapeHtml(colorName)}">
+                <span class="color-name-tooltip">${escapeHtml(colorName)}</span>
                 <div class="color-checkmark" style="display: none;">✓</div>
             </div>
         `;
@@ -122,12 +181,32 @@ async function updateColorFilters() {
     
     // Переинициализируем обработчики
     document.querySelectorAll('.color-option').forEach(option => {
-        option.addEventListener('click', function() {
+        // Удаляем старый обработчик и создаем новый
+        const newOption = option.cloneNode(true);
+        option.parentNode.replaceChild(newOption, option);
+        
+        newOption.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Переключаем класс selected
             this.classList.toggle('selected');
-            const checkmark = this.querySelector('.color-checkmark');
-            if (checkmark) {
-                checkmark.style.display = this.classList.contains('selected') ? 'block' : 'none';
+            
+            // Добавляем/убираем галочку
+            let checkmark = this.querySelector('.color-checkmark');
+            if (this.classList.contains('selected')) {
+                if (!checkmark) {
+                    checkmark = document.createElement('div');
+                    checkmark.className = 'color-checkmark';
+                    checkmark.innerHTML = '✓';
+                    this.appendChild(checkmark);
+                }
+                checkmark.style.display = 'flex';
+            } else {
+                if (checkmark) checkmark.style.display = 'none';
             }
+            
+            // Обновляем фильтры и применяем
             updateFiltersFromUI();
             applyFilters();
         });
@@ -508,17 +587,15 @@ function updateFiltersFromUI() {
         
         document.querySelectorAll('.color-option.selected').forEach(option => {
             const colorName = option.dataset.color;
-            if (colorName) {
-                // Добавляем оригинальное название цвета (как в БД)
-                if (isLaminateMode) {
-                    if (!selectedFilters.laminateColors.includes(colorName)) {
-                        selectedFilters.laminateColors.push(colorName);
-                    }
-                } else {
-                    if (!selectedFilters.doorColors.includes(colorName)) {
-                        selectedFilters.doorColors.push(colorName);
-                    }
-                }
+            if (colorName && !selectedFilters.doorColors.includes(colorName)) {
+                selectedFilters.doorColors.push(colorName);
+            }
+        });
+
+        document.querySelectorAll('.color-option.selected').forEach(option => {
+            const colorName = option.dataset.color;
+            if (colorName && !selectedFilters.laminateColors.includes(colorName)) {
+                selectedFilters.laminateColors.push(colorName);
             }
         });
         
@@ -538,16 +615,6 @@ function updateFiltersFromUI() {
         
         document.querySelectorAll('input[name="door-material"]:checked').forEach(cb => {
             selectedFilters.doorMaterials.push(cb.value);
-        });
-        
-        document.querySelectorAll('.color-option.selected').forEach(option => {
-            const colorMap = {
-                'brown': 'Коричневый', 'beige': 'Бежевый',
-                'gray': 'Серый', 'white': 'Белый', 'black': 'Чёрный'
-            };
-            if (colorMap[option.dataset.color]) {
-                selectedFilters.doorColors.push(colorMap[option.dataset.color]);
-            }
         });
         
         document.querySelectorAll('input[name="door-style"]:checked').forEach(cb => {
@@ -609,10 +676,20 @@ function applyFilters() {
                 
                 if (selectedFilters.laminateColors.length > 0 && product.color) {
                     let productColors = [];
+                    
                     if (Array.isArray(product.color)) {
-                        productColors = product.color.map(c => c.toLowerCase().trim());
+                        productColors = product.color.map(c => c.toString().toLowerCase().trim());
                     } else if (typeof product.color === 'string') {
-                        productColors = [product.color.toLowerCase().trim()];
+                        try {
+                            const parsed = JSON.parse(product.color);
+                            if (Array.isArray(parsed)) {
+                                productColors = parsed.map(c => c.toString().toLowerCase().trim());
+                            } else {
+                                productColors = [product.color.toLowerCase().trim()];
+                            }
+                        } catch (e) {
+                            productColors = [product.color.toLowerCase().trim()];
+                        }
                     }
                     
                     const hasColor = selectedFilters.laminateColors.some(filterColor => {
@@ -657,12 +734,22 @@ function applyFilters() {
                 }
                 
                 if (selectedFilters.doorColors.length > 0 && product.color) {
-                    // product.color - это массив, например ["Черная шагрень", "белый", "матовый черный"]
                     let productColors = [];
+                    
+                    // Парсим цвета товара (могут быть в разных форматах)
                     if (Array.isArray(product.color)) {
-                        productColors = product.color.map(c => c.toLowerCase().trim());
+                        productColors = product.color.map(c => c.toString().toLowerCase().trim());
                     } else if (typeof product.color === 'string') {
-                        productColors = [product.color.toLowerCase().trim()];
+                        try {
+                            const parsed = JSON.parse(product.color);
+                            if (Array.isArray(parsed)) {
+                                productColors = parsed.map(c => c.toString().toLowerCase().trim());
+                            } else {
+                                productColors = [product.color.toLowerCase().trim()];
+                            }
+                        } catch (e) {
+                            productColors = [product.color.toLowerCase().trim()];
+                        }
                     }
                     
                     // Проверяем, есть ли хоть один выбранный цвет в массиве цветов товара
