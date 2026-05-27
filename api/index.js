@@ -335,6 +335,7 @@ export default async function handler(req, res) {
             return res.json({ success: true });
         }
         
+        // ============ АДМИНКА - СОЗДАНИЕ ТОВАРА ============
         if (path === '/api/admin/product/create' && req.method === 'POST') {
             const authHeader = req.headers.authorization;
             if (!authHeader) return res.status(401).json({ error: 'No token' });
@@ -353,11 +354,22 @@ export default async function handler(req, res) {
             console.log('Создание товара:', { collection, name, price, type });
             
             try {
+                // Преобразуем массивы в формат PostgreSQL
+                let colorArray = '{}'; // Пустой массив по умолчанию
+                if (color && Array.isArray(color) && color.length > 0) {
+                    colorArray = `{${color.map(c => `"${c.replace(/"/g, '\\"')}"`).join(',')}}`;
+                } else if (color && typeof color === 'string' && color.trim()) {
+                    colorArray = `{"${color.trim()}"}`;
+                }
+                
+                let picturesArray = '{}';
+                if (pictures && Array.isArray(pictures) && pictures.length > 0) {
+                    picturesArray = `{${pictures.map(p => `"${p.replace(/"/g, '\\"')}"`).join(',')}}`;
+                } else if (pictures && typeof pictures === 'string' && pictures.trim()) {
+                    picturesArray = `{"${pictures.trim()}"}`;
+                }
+                
                 if (collection === 'laminate') {
-                    // Для ламината - pictures храним как JSON массив
-                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
-                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
-                    
                     await sql`
                         INSERT INTO laminate (
                             name, description, price, type, 
@@ -370,16 +382,12 @@ export default async function handler(req, res) {
                             ${type || ''}, 
                             ${thickness || ''}, 
                             ${wear_class || ''}, 
-                            ${colorJson}, 
-                            ${picturesJson},
+                            ${colorArray}::text[], 
+                            ${picturesArray}::text[],
                             NOW()
                         )
                     `;
                 } else {
-                    // Для дверей
-                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
-                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
-                    
                     await sql`
                         INSERT INTO doors (
                             name, description, price, type, 
@@ -392,8 +400,8 @@ export default async function handler(req, res) {
                             ${type || ''}, 
                             ${material || ''}, 
                             ${style || ''}, 
-                            ${colorJson}, 
-                            ${picturesJson},
+                            ${colorArray}::text[], 
+                            ${picturesArray}::text[],
                             NOW()
                         )
                     `;
@@ -405,7 +413,8 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: error.message });
             }
         }
-                
+
+        // ============ АДМИНКА - ОБНОВЛЕНИЕ ТОВАРА ============
         if (path === '/api/admin/product/update' && req.method === 'PUT') {
             const authHeader = req.headers.authorization;
             if (!authHeader) return res.status(401).json({ error: 'No token' });
@@ -424,10 +433,22 @@ export default async function handler(req, res) {
             console.log('Обновление товара:', { collection, id, name, price });
             
             try {
+                // Преобразуем массивы в формат PostgreSQL
+                let colorArray = '{}';
+                if (color && Array.isArray(color) && color.length > 0) {
+                    colorArray = `{${color.map(c => `"${c.replace(/"/g, '\\"')}"`).join(',')}}`;
+                } else if (color && typeof color === 'string' && color.trim()) {
+                    colorArray = `{"${color.trim()}"}`;
+                }
+                
+                let picturesArray = '{}';
+                if (pictures && Array.isArray(pictures) && pictures.length > 0) {
+                    picturesArray = `{${pictures.map(p => `"${p.replace(/"/g, '\\"')}"`).join(',')}}`;
+                } else if (pictures && typeof pictures === 'string' && pictures.trim()) {
+                    picturesArray = `{"${pictures.trim()}"}`;
+                }
+                
                 if (collection === 'laminate') {
-                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
-                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
-                    
                     await sql`
                         UPDATE laminate 
                         SET name = ${name || ''},
@@ -436,15 +457,12 @@ export default async function handler(req, res) {
                             type = ${type || ''},
                             thickness = ${thickness || ''},
                             wear_class = ${wear_class || ''},
-                            color = ${colorJson},
-                            pictures = ${picturesJson},
+                            color = ${colorArray}::text[],
+                            pictures = ${picturesArray}::text[],
                             updated_at = NOW()
                         WHERE id = ${id}
                     `;
                 } else {
-                    const picturesJson = pictures && Array.isArray(pictures) ? JSON.stringify(pictures) : (pictures ? JSON.stringify([pictures]) : '[]');
-                    const colorJson = color && Array.isArray(color) ? JSON.stringify(color) : (color ? JSON.stringify([color]) : '[]');
-                    
                     await sql`
                         UPDATE doors 
                         SET name = ${name || ''},
@@ -453,8 +471,8 @@ export default async function handler(req, res) {
                             type = ${type || ''},
                             material = ${material || ''},
                             style = ${style || ''},
-                            color = ${colorJson},
-                            pictures = ${picturesJson},
+                            color = ${colorArray}::text[],
+                            pictures = ${picturesArray}::text[],
                             updated_at = NOW()
                         WHERE id = ${id}
                     `;
@@ -477,19 +495,63 @@ export default async function handler(req, res) {
             return res.json({ success: true });
         }
         
+        // ============ ПОЛУЧЕНИЕ ТОВАРА ДЛЯ РЕДАКТИРОВАНИЯ ============
         const productGetMatch = path.match(/^\/api\/admin\/product\/(doors|laminate)\/([^/]+)$/);
         if (productGetMatch && req.method === 'GET') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'No token' });
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Invalid token' });
+            
             const collection = productGetMatch[1];
             const id = productGetMatch[2];
             
-            if (collection === 'laminate') {
-                const result = await sql`SELECT * FROM laminate WHERE id = ${id}`;
-                if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
-                return res.json(result.rows[0]);
-            } else {
-                const result = await sql`SELECT * FROM doors WHERE id = ${id}`;
-                if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
-                return res.json(result.rows[0]);
+            try {
+                if (collection === 'laminate') {
+                    const result = await sql`SELECT * FROM laminate WHERE id = ${id}`;
+                    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+                    
+                    // Преобразуем массивы PostgreSQL в обычные JS массивы
+                    const product = result.rows[0];
+                    if (product.color && typeof product.color === 'string') {
+                        // Парсим строку массива PostgreSQL типа {"дуб","орех"}
+                        const match = product.color.match(/^{(.*)}$/);
+                        if (match) {
+                            product.color = match[1].split(',').map(c => c.replace(/^"(.*)"$/, '$1'));
+                        }
+                    }
+                    if (product.pictures && typeof product.pictures === 'string') {
+                        const match = product.pictures.match(/^{(.*)}$/);
+                        if (match) {
+                            product.pictures = match[1].split(',').map(p => p.replace(/^"(.*)"$/, '$1'));
+                        }
+                    }
+                    
+                    return res.json(product);
+                } else {
+                    const result = await sql`SELECT * FROM doors WHERE id = ${id}`;
+                    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+                    
+                    const product = result.rows[0];
+                    if (product.color && typeof product.color === 'string') {
+                        const match = product.color.match(/^{(.*)}$/);
+                        if (match) {
+                            product.color = match[1].split(',').map(c => c.replace(/^"(.*)"$/, '$1'));
+                        }
+                    }
+                    if (product.pictures && typeof product.pictures === 'string') {
+                        const match = product.pictures.match(/^{(.*)}$/);
+                        if (match) {
+                            product.pictures = match[1].split(',').map(p => p.replace(/^"(.*)"$/, '$1'));
+                        }
+                    }
+                    
+                    return res.json(product);
+                }
+            } catch (error) {
+                console.error('Ошибка получения товара:', error);
+                return res.status(500).json({ error: error.message });
             }
         }
         
