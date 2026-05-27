@@ -1200,14 +1200,38 @@ class UserProfile {
             return;
         }
         
-        if (newPassword.length < 8) {
-            this.showNotification('Пароль должен быть не менее 8 символов', 'error');
+        if (newPassword.length < 6) {
+            this.showNotification('Пароль должен быть не менее 6 символов', 'error');
             return;
         }
         
-        // Здесь должен быть API вызов для смены пароля
-        this.showNotification('Пароль успешно изменен', 'success');
-        document.getElementById('securityForm')?.reset();
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch('/api/user/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    currentPassword: currentPassword,
+                    newPassword: newPassword
+                })
+            });
+            
+            if (response.ok) {
+                this.showNotification('Пароль успешно изменен!', 'success');
+                document.getElementById('securityForm').reset();
+                document.querySelector('.password-strength').className = 'password-strength weak';
+                document.getElementById('passwordMatch').innerHTML = '';
+            } else {
+                const error = await response.json();
+                this.showNotification(error.error || 'Ошибка смены пароля', 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            this.showNotification('Ошибка смены пароля', 'error');
+        }
     }
 
     checkPasswordStrength(password) {

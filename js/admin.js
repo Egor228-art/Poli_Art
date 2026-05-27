@@ -56,6 +56,64 @@ async function checkAdminAccess() {
     }
 }
 
+async function loadContactMessages() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
+    try {
+        const response = await fetch('/api/admin/contacts', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await response.json();
+        const messages = result.items || [];
+        
+        document.getElementById('pageContent').innerHTML = `
+            <div class="section-card">
+                <div class="section-title"><h2>Сообщения из формы контактов</h2></div>
+                ${messages.length === 0 ? '<div class="no-data">Нет сообщений</div>' : `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Имя</th>
+                                <th>Телефон</th>
+                                <th>Email</th>
+                                <th>Сообщение</th>
+                                <th>Дата</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${messages.map(m => `
+                                <tr>
+                                    <td>${escapeHtml(m.name)}</td>
+                                    <td>${m.phone || '-'}</td>
+                                    <td>${m.email || '-'}</td>
+                                    <td style="max-width:300px;">${escapeHtml(m.message?.substring(0, 100) || '')}${m.message?.length > 100 ? '...' : ''}</td>
+                                    <td>${new Date(m.created_at).toLocaleDateString()} ${new Date(m.created_at).toLocaleTimeString()}</td>
+                                    <td><button class="action-btn action-delete" onclick="deleteContactMessage('${m.id}')">🗑️</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `}
+            </div>
+        `;
+    } catch(e) { console.error(e); }
+}
+
+async function deleteContactMessage(id) {
+    if (!confirm('Удалить сообщение?')) return;
+    const token = localStorage.getItem('auth_token');
+    await fetch('/api/admin/contacts/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id })
+    });
+    loadContactMessages();
+}
+
 async function loadPage(page) {
     currentPage = page;
     const titles = {
@@ -75,6 +133,7 @@ async function loadPage(page) {
         case 'reviews': await loadReviewsList(); break;
         case 'users': await loadUsersList(); break;
         case 'measure': await loadMeasureRequests(); break;
+        case 'contacts': await loadContactMessages(); break;
     }
 }
 

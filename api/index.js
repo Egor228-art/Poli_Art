@@ -234,7 +234,48 @@ export default async function handler(req, res) {
             
             return res.json(allReviews);
         }
-        
+
+        // ============ КОНТАКТЫ ============
+
+        // POST /api/contacts
+        if (path === '/api/contacts' && req.method === 'POST') {
+            const { name, phone, email, message } = req.body;
+            
+            let userId = null;
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader !== 'Bearer null') {
+                const token = authHeader.split(' ')[1];
+                const decoded = verifyToken(token);
+                if (decoded) userId = decoded.id;
+            }
+            
+            try {
+                // Создаём таблицу если нет
+                await sql`
+                    CREATE TABLE IF NOT EXISTS contact_messages (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(255) NOT NULL,
+                        phone VARCHAR(50),
+                        email VARCHAR(255),
+                        message TEXT,
+                        user_id UUID,
+                        is_read BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                `;
+                
+                await sql`
+                    INSERT INTO contact_messages (name, phone, email, message, user_id, created_at)
+                    VALUES (${name}, ${phone || null}, ${email || null}, ${message}, ${userId}, NOW())
+                `;
+                
+                return res.json({ success: true, message: 'Сообщение отправлено' });
+            } catch (error) {
+                console.error('Error saving contact:', error);
+                return res.status(500).json({ error: 'Ошибка сохранения сообщения' });
+            }
+        }
+                
         // ============ АДМИНКА ============
         
         if (path === '/api/admin/order/delete' && req.method === 'DELETE') {
@@ -332,6 +373,69 @@ export default async function handler(req, res) {
         if (path === '/api/admin/order/status' && req.method === 'PUT') {
             const { id, status } = req.body;
             await sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+
+        // GET /api/admin/contacts
+        if (path === '/api/admin/contacts' && req.method === 'GET') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded || decoded.role !== 'admin') {
+                return res.status(403).json({ error: 'Нет прав' });
+            }
+            
+            const result = await sql`SELECT * FROM contact_messages ORDER BY created_at DESC`;
+            return res.json({ items: result.rows });
+        }
+
+        // DELETE /api/admin/contacts/delete
+        if (path === '/api/admin/contacts/delete' && req.method === 'DELETE') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded || decoded.role !== 'admin') {
+                return res.status(403).json({ error: 'Нет прав' });
+            }
+            
+            const { id } = req.body;
+            await sql`DELETE FROM contact_messages WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+        
+        // POST /api/user/change-password
+        if (path === '/api/user/change-password' && req.method === 'POST') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+            
+            const { currentPassword, newPassword } = req.body;
+            
+            // Получаем пользователя с паролем
+            const userResult = await sql`SELECT password_hash FROM users WHERE id = ${decoded.id}`;
+            if (userResult.rows.length === 0) {
+                return res.status(404).json({ error: 'Пользователь не найден' });
+            }
+            
+            // Проверяем текущий пароль
+            const isValid = await bcrypt.compare(currentPassword, userResult.rows[0].password_hash);
+            if (!isValid) {
+                return res.status(401).json({ error: 'Неверный текущий пароль' });
+            }
+            
+            // Хешируем новый пароль
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            
+            // Обновляем пароль
+            await sql`UPDATE users SET password_hash = ${hashedPassword} WHERE id = ${decoded.id}`;
+            
             return res.json({ success: true });
         }
         

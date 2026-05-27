@@ -52,6 +52,109 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
+// Загрузка уникальных цветов для фильтрации
+async function loadColorOptions() {
+    try {
+        // Получаем цвета из дверей
+        const doorsResult = await window.apiClient.getDoors();
+        const doorsColors = new Set();
+        doorsResult.items?.forEach(product => {
+            if (product.color) {
+                if (Array.isArray(product.color)) {
+                    product.color.forEach(c => doorsColors.add(c));
+                } else if (typeof product.color === 'string') {
+                    doorsColors.add(product.color);
+                }
+            }
+        });
+        
+        // Получаем цвета из ламината
+        const laminateResult = await window.apiClient.getLaminate();
+        const laminateColors = new Set();
+        laminateResult.items?.forEach(product => {
+            if (product.color) {
+                if (Array.isArray(product.color)) {
+                    product.color.forEach(c => laminateColors.add(c));
+                } else if (typeof product.color === 'string') {
+                    laminateColors.add(product.color);
+                }
+            }
+        });
+        
+        return {
+            doors: Array.from(doorsColors),
+            laminate: Array.from(laminateColors)
+        };
+    } catch (error) {
+        console.error('Ошибка загрузки цветов:', error);
+        return { doors: [], laminate: [] };
+    }
+}
+
+// Обновление UI фильтров цветов
+async function updateColorFilters() {
+    const colors = await loadColorOptions();
+    const currentColors = isLaminateMode ? colors.laminate : colors.doors;
+    
+    const colorContainer = document.querySelector('.color-options');
+    if (!colorContainer) return;
+    
+    // Маппинг цветов для отображения
+    const colorMap = {
+        'Коричневый': '#8B4513', 'Бежевый': '#F5DEB3', 'Серый': '#808080',
+        'Белый': '#FFFFFF', 'Чёрный': '#000000', 'Черный': '#000000',
+        'Темный дуб': '#654321', 'Золотистый': '#FFD700', 'Красный': '#FF0000',
+        'Синий': '#0000FF', 'Зеленый': '#008000'
+    };
+    
+    // Генерируем HTML для цветов
+    let colorsHtml = '';
+    currentColors.forEach(color => {
+        const hexColor = colorMap[color] || getColorHex(color);
+        colorsHtml += `
+            <div class="color-option" style="background-color: ${hexColor};" data-color="${color}" title="${color}">
+                <div class="color-checkmark" style="display: none;">✓</div>
+            </div>
+        `;
+    });
+    
+    colorContainer.innerHTML = colorsHtml;
+    
+    // Переинициализируем обработчики
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+            this.classList.toggle('selected');
+            const checkmark = this.querySelector('.color-checkmark');
+            if (checkmark) {
+                checkmark.style.display = this.classList.contains('selected') ? 'block' : 'none';
+            }
+            updateFiltersFromUI();
+            applyFilters();
+        });
+    });
+}
+
+function getColorHex(colorName) {
+    const colorMap = {
+        'белый': '#FFFFFF', 'черный': '#000000', 'чёрный': '#000000',
+        'серый': '#808080', 'коричневый': '#8B4513', 'дуб': '#C19A6B',
+        'орех': '#773F1A', 'ясень': '#F5EBDC', 'бук': '#F5E1C8',
+        'венге': '#645452', 'бежевый': '#F5F5DC', 'золотой': '#FFD700',
+        'темный дуб': '#654321', 'красный': '#FF0000', 'синий': '#0000FF',
+        'зеленый': '#008000'
+    };
+    
+    const lowerName = colorName.toString().toLowerCase().trim();
+    if (colorMap[lowerName]) return colorMap[lowerName];
+    
+    // Генерация цвета из названия
+    let hash = 0;
+    for (let i = 0; i < colorName.length; i++) {
+        hash = colorName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return `hsl(${(hash % 30) + 20}, ${(hash % 30) + 40}%, ${(hash % 40) + 40}%)`;
+}
+
 // Загрузка начальных данных через API
 async function loadInitialData() {
     console.log('Начало загрузки данных...');
@@ -72,6 +175,7 @@ async function loadInitialData() {
     
     updateToggleButtonState();
     updateFilterUI();
+    await updateColorFilters();
     
     currentPage = 1;
     renderAllProducts();
