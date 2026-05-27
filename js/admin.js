@@ -158,26 +158,47 @@ async function loadOrdersList() {
         const orders = await window.apiClient.getOrders();
         document.getElementById('pageContent').innerHTML = `
             <div class="section-card">
-                <div class="section-title"><h2>Все заказы</h2></div>
+                <div class="section-title">
+                    <h2>Все заказы</h2>
+                    <button class="btn-refresh" onclick="loadOrdersList()" style="padding:8px 16px; background:#3498db; color:white; border:none; border-radius:6px; cursor:pointer;">🔄 Обновить</button>
+                </div>
                 ${orders.length === 0 ? '<div class="no-data">Нет заказов</div>' : `
-                    <table class="data-table"><thead><tr><th>№</th><th>Клиент</th><th>Телефон</th><th>Сумма</th><th>Статус</th><th>Доставка</th><th>Дата</th><th>Действия</th></tr></thead><tbody>
-                        ${orders.map(o => `
-                            <tr>
-                                <td>${o.order_number || o.id.slice(0,8)}</td>
-                                <td>${escapeHtml(o.customer_name || '-')}</td>
-                                <td>${o.customer_phone || '-'}</td>
-                                <td>${(o.total_price || 0).toLocaleString()} ₽</td>
-                                <td><select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:5px; border-radius:4px;"><option value="ожидает" ${o.status === 'ожидает' ? 'selected' : ''}>Ожидает</option><option value="обрабатывается" ${o.status === 'обрабатывается' ? 'selected' : ''}>Обрабатывается</option><option value="отправлен" ${o.status === 'отправлен' ? 'selected' : ''}>Отправлен</option><option value="доставлен" ${o.status === 'доставлен' ? 'selected' : ''}>Доставлен</option><option value="отменен" ${o.status === 'отменен' ? 'selected' : ''}>Отменен</option></select></td>
-                                <td>${o.delivery_type || 'самовывоз'}</td>
-                                <td>${new Date(o.created_at).toLocaleDateString()}</td>
-                                <td><button class="action-btn action-delete" onclick="deleteOrder('${o.id}')">🗑️</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody></table>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>№</th><th>Клиент</th><th>Телефон</th><th>Сумма</th><th>Статус</th><th>Доставка</th><th>Дата</th><th>Действия</th></tr>
+                        </thead>
+                        <tbody>
+                            ${orders.map(o => `
+                                <tr>
+                                    <td>${o.order_number || o.id.slice(0,8)}</td>
+                                    <td>${escapeHtml(o.customer_name || '-')}</td>
+                                    <td>${o.customer_phone || '-'}</td>
+                                    <td>${(o.total_price || 0).toLocaleString()} ₽</td>
+                                    <td>
+                                        <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:5px; border-radius:4px;">
+                                            <option value="ожидает" ${o.status === 'ожидает' ? 'selected' : ''}>Ожидает</option>
+                                            <option value="обрабатывается" ${o.status === 'обрабатывается' ? 'selected' : ''}>Обрабатывается</option>
+                                            <option value="отправлен" ${o.status === 'отправлен' ? 'selected' : ''}>Отправлен</option>
+                                            <option value="доставлен" ${o.status === 'доставлен' ? 'selected' : ''}>Доставлен</option>
+                                            <option value="отменен" ${o.status === 'отменен' ? 'selected' : ''}>Отменен</option>
+                                        </select>
+                                    </td>
+                                    <td>${o.delivery_type || 'самовывоз'}</td>
+                                    <td>${new Date(o.created_at).toLocaleDateString()}</td>
+                                    <td class="action-btns">
+                                        <button class="action-btn action-delete" onclick="deleteOrder('${o.id}')" title="Удалить заказ">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 `}
             </div>
         `;
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+        console.error(e);
+        document.getElementById('pageContent').innerHTML = '<div class="error">Ошибка загрузки заказов</div>';
+    }
 }
 
 async function loadUsersList() {
@@ -417,13 +438,54 @@ async function deleteProduct(collection, id) {
 }
 
 async function updateOrderStatus(id, status) {
-    await fetch('/api/admin/order/status', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }, body: JSON.stringify({ id, status }) });
+    const token = localStorage.getItem('auth_token');
+    try {
+        await fetch('/api/admin/order/status', { 
+            method: 'PUT', 
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            }, 
+            body: JSON.stringify({ id, status }) 
+        });
+        // Можно показать уведомление
+        console.log('Статус обновлен');
+    } catch (error) {
+        console.error('Ошибка обновления статуса:', error);
+    }
 }
 
 async function deleteOrder(id) {
-    if (!confirm('Удалить заказ?')) return;
-    await fetch('/api/admin/order/delete', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }, body: JSON.stringify({ id }) });
-    loadPage('orders');
+    if (!confirm('🗑️ Удалить заказ? Это действие нельзя отменить.')) return;
+    
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        alert('Сессия истекла, войдите заново');
+        window.location.href = 'login.html?redirect=admin.html';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/order/delete', { 
+            method: 'DELETE', 
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            }, 
+            body: JSON.stringify({ id }) 
+        });
+        
+        if (response.ok) {
+            alert('✅ Заказ удален');
+            loadPage('orders'); // Перезагружаем список заказов
+        } else {
+            const error = await response.json();
+            alert('❌ Ошибка: ' + (error.error || 'Не удалось удалить заказ'));
+        }
+    } catch (error) {
+        console.error('Ошибка удаления заказа:', error);
+        alert('❌ Ошибка при удалении заказа');
+    }
 }
 
 async function updateUserRole(id, role) {

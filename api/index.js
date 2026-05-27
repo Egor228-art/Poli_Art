@@ -237,6 +237,28 @@ export default async function handler(req, res) {
         
         // ============ АДМИНКА ============
         
+        if (path === '/api/admin/order/delete' && req.method === 'DELETE') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'No token' });
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Invalid token' });
+            
+            // Проверяем права администратора
+            const userResult = await sql`SELECT role FROM users WHERE id = ${decoded.id}`;
+            if (userResult.rows[0]?.role !== 'admin') {
+                return res.status(403).json({ error: 'Access denied' });
+            }
+            
+            const { id } = req.body;
+            if (!id) {
+                return res.status(400).json({ error: 'Order ID required' });
+            }
+            
+            await sql`DELETE FROM orders WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+
         if (path === '/api/admin/users' && req.method === 'GET') {
             const result = await sql`SELECT id, email, name, phone, role, created_at FROM users ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
