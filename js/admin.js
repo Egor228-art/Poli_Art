@@ -266,10 +266,10 @@ async function loadReviewsList() {
                     <table class="data-table"><thead><tr><th>Товар</th><th>Автор</th><th>Рейтинг</th><th>Отзыв</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead><tbody>
                         ${allReviews.map(r => `
                             <tr>
-                                <td>${escapeHtml(r.product_name || r.product_id?.slice(0,8) || '-')}</td>
-                                <td>${escapeHtml(r.author_name || '-')}</td>
+                                <td>${escapeHtml(r.product_name || r.product_id?.slice(0,8) || 'Ошибка')}</td>
+                                <td>${escapeHtml(r.author_name || 'Ошибка')}</td>
                                 <td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
-                                <td style="max-width:250px;">${escapeHtml(r.text?.substring(0, 60) || '')}${r.text?.length > 60 ? '...' : ''}</td>
+                                <td style="max-width:250px;">${escapeHtml(r.text?.substring(0, 60) || 'Ошибка')}${r.text?.length > 60 ? '...' : ''}</td>
                                 <td><span class="status-badge ${r.approved ? 'status-delivered' : 'status-new'}">${r.approved ? 'Одобрен' : 'На модерации'}</span></td>
                                 <td>${new Date(r.created_at).toLocaleDateString()}</td>
                                 <td class="action-btns">${!r.approved ? `<button class="action-btn action-approve" onclick="approveReview('${r.id}', '${r.product_type || 'doors'}')">✓</button>` : ''}<button class="action-btn action-delete" onclick="deleteReview('${r.id}', '${r.product_type || 'doors'}')">🗑️</button></td>
@@ -399,8 +399,28 @@ async function deleteMeasureRequest(id) {
 }
 
 async function approveReview(id, type) {
-    await fetch('/api/admin/review/approve', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }, body: JSON.stringify({ id, type }) });
-    loadPage('reviews');
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch('/api/admin/review/approve', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ id, type })
+        });
+        
+        if (response.ok) {
+            // Перезагружаем текущую страницу отзывов
+            await loadPage('reviews');
+        } else {
+            const error = await response.json();
+            alert('Ошибка: ' + (error.error || 'Не удалось одобрить отзыв'));
+        }
+    } catch (error) {
+        console.error('Ошибка одобрения отзыва:', error);
+        alert('Ошибка одобрения отзыва');
+    }
 }
 
 async function deleteReview(id, type) {

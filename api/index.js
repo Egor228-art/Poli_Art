@@ -180,8 +180,8 @@ export default async function handler(req, res) {
             
             if (isLaminate) {
                 await sql`
-                    INSERT INTO reviews_laminate (product_id, product_name, rating, text, author_name, author_email, approved)
-                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${decoded.name}, ${decoded.email}, false)
+                    INSERT INTO ${sql(table)} (product_id, product_name, rating, text, pros, cons, author_name, author_email, approved)
+                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${pros}, ${cons}, ${decoded.name}, ${decoded.email}, false)
                 `;
             } else {
                 await sql`
@@ -251,12 +251,18 @@ export default async function handler(req, res) {
         
         if (path === '/api/admin/review/approve' && req.method === 'PUT') {
             const { id, type } = req.body;
-            if (type === 'laminate') {
-                await sql`UPDATE reviews_laminate SET approved = true WHERE id = ${id}`;
-            } else {
-                await sql`UPDATE reviews SET approved = true WHERE id = ${id}`;
+            console.log(`Approving review: id=${id}, type=${type}`);
+            try {
+                if (type === 'laminate') {
+                    await sql`UPDATE reviews_laminate SET approved = true WHERE id = ${id}`;
+                } else {
+                    await sql`UPDATE reviews SET approved = true WHERE id = ${id}`;
+                }
+                return res.json({ success: true });
+            } catch (error) {
+                console.error('Approve error:', error);
+                return res.status(500).json({ error: error.message });
             }
-            return res.json({ success: true });
         }
         
         if (path === '/api/admin/review/delete' && req.method === 'DELETE') {
