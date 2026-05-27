@@ -254,8 +254,12 @@ async function loadReviewsList() {
     }
     try {
         const [doorsReviews, laminateReviews] = await Promise.all([
-            fetch('/api/admin/reviews/doors').then(r => r.json()).catch(() => ({ items: [] })),
-            fetch('/api/admin/reviews/laminate').then(r => r.json()).catch(() => ({ items: [] }))
+            fetch('/api/admin/reviews/doors', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(r => r.json()).catch(() => ({ items: [] })),
+            fetch('/api/admin/reviews/laminate', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(r => r.json()).catch(() => ({ items: [] }))
         ]);
         const allReviews = [...(doorsReviews.items || []), ...(laminateReviews.items || [])];
         
@@ -263,23 +267,46 @@ async function loadReviewsList() {
             <div class="section-card">
                 <div class="section-title"><h2>Все отзывы</h2></div>
                 ${allReviews.length === 0 ? '<div class="no-data">Нет отзывов</div>' : `
-                    <table class="data-table"><thead><tr><th>Товар</th><th>Автор</th><th>Рейтинг</th><th>Отзыв</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead><tbody>
-                        ${allReviews.map(r => `
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                <td>${escapeHtml(r.product_name || r.product_id?.slice(0,8) || 'Ошибка')}</td>
-                                <td>${escapeHtml(r.author_name || 'Ошибка')}</td>
-                                <td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
-                                <td style="max-width:250px;">${escapeHtml(r.text?.substring(0, 60) || 'Ошибка')}${r.text?.length > 60 ? '...' : ''}</td>
-                                <td><span class="status-badge ${r.approved ? 'status-delivered' : 'status-new'}">${r.approved ? 'Одобрен' : 'На модерации'}</span></td>
-                                <td>${new Date(r.created_at).toLocaleDateString()}</td>
-                                <td class="action-btns">${!r.approved ? `<button class="action-btn action-approve" onclick="approveReview('${r.id}', '${r.product_type || 'doors'}')">✓</button>` : ''}<button class="action-btn action-delete" onclick="deleteReview('${r.id}', '${r.product_type || 'doors'}')">🗑️</button></td>
+                                <th>Товар</th>
+                                <th>Автор</th>
+                                <th>Рейтинг</th>
+                                <th>Отзыв</th>
+                                <th>Статус</th>
+                                <th>Дата</th>
+                                <th>Действия</th>
                             </tr>
-                        `).join('')}
-                    </tbody></table>
+                        </thead>
+                        <tbody>
+                            ${allReviews.map(r => `
+                                <tr>
+                                    <td>${escapeHtml(r.product_name || r.product_id?.slice(0,8) || '-')}</td>
+                                    <td>${escapeHtml(r.author_name || '-')}</td>
+                                    <td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
+                                    <td style="max-width:300px;">${escapeHtml(r.text?.substring(0, 80) || '')}${r.text?.length > 80 ? '...' : ''}</td>
+                                    <td><span class="status-badge ${r.approved ? 'status-delivered' : 'status-new'}">${r.approved ? 'Одобрен' : 'На модерации'}</span></td>
+                                    <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                                    <td class="action-btns">
+                                        ${!r.approved ? `<button class="action-btn action-approve" onclick="approveReview('${r.id}', '${r.product_type || 'doors'}')">✓ Одобрить</button>` : ''}
+                                        ${r.approved ? `<button class="action-btn action-approve" onclick="rejectReview('${r.id}', '${r.product_type || 'doors'}')">✗ Отклонить</button>` : ''}
+                                        <button class="action-btn action-delete" onclick="deleteReview('${r.id}', '${r.product_type || 'doors'}')">🗑️ Удалить</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 `}
             </div>
         `;
     } catch(e) { console.error(e); }
+}
+
+// Добавь функцию rejectReview
+async function rejectReview(id, type) {
+    if (!confirm('Отклонить отзыв? Он будет удален.')) return;
+    await deleteReview(id, type);
 }
 
 function openEditProductModal(collection, id) {

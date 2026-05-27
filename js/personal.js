@@ -612,7 +612,7 @@ class UserProfile {
             const statusText = this.getOrderStatusText(order.status);
             const statusClass = this.getOrderStatusClass(order.status);
             
-            // Разрешаем отзыв для доставленных заказов
+            // Разрешаем отзыв только для доставленных заказов
             const canReview = order.status === 'доставлен' || order.status === 'delivered';
             
             let products = [];
@@ -642,6 +642,7 @@ class UserProfile {
                         <div class="order-products">
                             <h4>Товары в заказе:</h4>
                             ${products.map((product, idx) => {
+                                // Проверяем, оставлял ли уже отзыв на этот товар
                                 const hasReviewed = this.userReviews.some(review => 
                                     review.product_id === product.id
                                 );
@@ -675,7 +676,6 @@ class UserProfile {
     }
 
     openReviewForProduct(productId, productName, productType) {
-        // Сохраняем контекст
         const self = this;
         const productIdValue = productId;
         const productNameValue = productName;
@@ -788,7 +788,7 @@ class UserProfile {
                 alert('✅ Отзыв отправлен на модерацию!');
                 window.closeReviewModalWindow();
                 
-                // Перезагружаем отзывы и заказы
+                // Перезагружаем отзывы и заказы (кнопка пропадёт)
                 await this.loadUserReviews();
                 await this.loadOrders();
                 
@@ -845,24 +845,19 @@ class UserProfile {
         
         if (!reviewsContainer) return;
         
-        let html = `
-            <div style="margin-bottom: 30px;">
-                <button id="openReviewBtn" class="btn btn--primary" style="background: #27ae60; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; color: white;">
-                    ✍️ Оставить отзыв
-                </button>
-            </div>
-        `;
+        // Убираем кнопку "Оставить отзыв" — она теперь только в заказах
+        let html = '';
         
         if (this.userReviews.length === 0) {
-            html += `
+            html = `
                 <div class="reviews-empty">
                     <div class="empty-icon">⭐</div>
                     <h3>Отзывов пока нет</h3>
-                    <p>Оставьте свой первый отзыв о товаре!</p>
+                    <p>Оставьте отзыв на товар из доставленного заказа</p>
                 </div>
             `;
         } else {
-            html += `<h3>Ваши отзывы</h3>`;
+            html = `<h3>Ваши отзывы</h3>`;
             html += this.userReviews.map(review => {
                 const date = new Date(review.created_at).toLocaleDateString('ru-RU');
                 const ratingStars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
@@ -880,9 +875,9 @@ class UserProfile {
                             </div>
                             <div class="review-rating" title="${review.rating} из 5">${ratingStars}</div>
                         </div>
-                        <div class="review-text">${this.escapeHtml(review.text)}</div>
                         ${review.pros ? `<div class="review-pros"><strong>Достоинства:</strong> ${this.escapeHtml(review.pros)}</div>` : ''}
                         ${review.cons ? `<div class="review-cons"><strong>Недостатки:</strong> ${this.escapeHtml(review.cons)}</div>` : ''}
+                        <div class="review-text">${this.escapeHtml(review.text)}</div>
                         <div class="review-status ${statusClass}">${statusText}</div>
                         ${review.approved ? `
                             <div style="margin-top: 10px;">
@@ -895,8 +890,6 @@ class UserProfile {
         }
         
         reviewsContainer.innerHTML = html;
-        
-        document.getElementById('openReviewBtn')?.addEventListener('click', () => this.openReviewModal());
         
         if (reviewsCount) reviewsCount.textContent = this.userReviews.length.toString();
     }
