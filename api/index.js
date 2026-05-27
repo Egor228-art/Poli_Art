@@ -314,6 +314,7 @@ export default async function handler(req, res) {
         if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
             const { collection, id } = req.body;
             const table = collection === 'laminate' ? 'laminate' : 'doors';
+            console.log(`Deleting from ${table} where id = ${id}`);
             await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
             return res.json({ success: true });
         }

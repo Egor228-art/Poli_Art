@@ -355,8 +355,17 @@ async function updateProduct(collection, id) {
 // CRUD операции
 async function deleteProduct(collection, id) {
     if (!confirm('Удалить товар?')) return;
-    await fetch('/api/admin/product/delete', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }, body: JSON.stringify({ collection, id }) });
-    loadPage(collection);
+    const token = localStorage.getItem('auth_token');
+    const response = await fetch('/api/admin/product/delete', { 
+        method: 'DELETE', 
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+        body: JSON.stringify({ collection, id }) 
+    });
+    if (response.ok) {
+        loadPage(collection);
+    } else {
+        alert('Ошибка удаления');
+    }
 }
 
 async function updateOrderStatus(id, status) {
