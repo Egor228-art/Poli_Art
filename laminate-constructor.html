@@ -128,9 +128,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     <script src="js/api-client.js"></script>
-<script src="js/auth-state.js"></script>
-<script src="js/header.js"></script>
-<script src="js/footer.js"></script>
+    <script src="js/auth-state.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
     
     <script>
         // ============ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ============
@@ -823,22 +823,34 @@
             });
             
             document.getElementById('thresholds').addEventListener('change', calculateCost);
-            document.getElementById('order-btn').addEventListener('click', showOrderModal);
+            document.getElementById('order-btn').addEventListener('click', function() {
+                const modal = document.getElementById('orderModal');
+                if (modal) {
+                    modal.style.display = 'flex';  // Меняем block на flex
+                    document.body.style.overflow = 'hidden';  // Запрещаем скролл страницы
+                }
+            });
             document.getElementById('confirmOrderBtn').addEventListener('click', submitOrder);
             document.getElementById('measure-btn').addEventListener('click', function() {
-                document.getElementById('measureModal').style.display = 'block';
+                const modal = document.getElementById('measureModal');
+                if (modal) {
+                    modal.style.display = 'flex';  // Меняем block на flex
+                    document.body.style.overflow = 'hidden';
+                }
             });
             
             document.querySelectorAll('.close, .close-modal').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.getElementById('orderModal').style.display = 'none';
                     document.getElementById('measureModal').style.display = 'none';
+                    document.body.style.overflow = '';  // Возвращаем скролл
                 });
             });
             
             window.addEventListener('click', function(event) {
                 if (event.target.classList.contains('modal')) {
                     event.target.style.display = 'none';
+                    document.body.style.overflow = '';
                 }
             });
             

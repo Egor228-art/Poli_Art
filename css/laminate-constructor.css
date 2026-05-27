@@ -112,10 +112,6 @@ body {
     background: #fff;
 }
 
-.color-group {
-    display: contents; /* Убираем отдельные группы */
-}
-
 .textures-container::-webkit-scrollbar {
     width: 6px;
 }
@@ -130,43 +126,65 @@ body {
     border-radius: 3px;
 }
 
-.texture-option {
-    width: 80px;
-    height: 90px;
+/* Стили для цветовых опций в конструкторе */
+.colors-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
+}
+
+.color-circle-option {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
     cursor: pointer;
-    transition: transform 0.2s;
+    padding: 5px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    min-width: 70px;
 }
 
-.texture-option:hover {
-    transform: scale(1.05);
+.color-circle-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background-color: #e0e0e0;
 }
 
-.texture-option.selected .texture-preview {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px var(--accent-color);
+.color-circle-option.selected {
+    background-color: #e3f2fd;
+    border: 2px solid #2196f3;
 }
 
-.texture-preview {
-    width: 60px;
-    height: 60px;
-    border-radius: 4px;
-    border: 2px solid #ddd;
-    transition: all 0.2s;
-    overflow: hidden;
-    background-size: cover;
-    background-position: center;
+.color-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-bottom: 5px;
+    position: relative;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-.texture-name {
+.color-checkmark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    display: none;
+}
+
+.color-circle-name {
     font-size: 11px;
     text-align: center;
-    line-height: 1.2;
-    height: 30px;
-    overflow: hidden;
+    max-width: 60px;
+    word-wrap: break-word;
+    color: #333;
 }
 
 .checkbox-group {
@@ -192,6 +210,12 @@ body {
     margin-bottom: 8px;
     padding-bottom: 8px;
     border-bottom: 1px dashed #eee;
+    transition: all 0.3s ease;
+}
+
+.cost-item.hidden {
+    opacity: 0.5;
+    transform: translateX(-10px);
 }
 
 .cost-total {
@@ -223,7 +247,7 @@ body {
 
 .btn-primary {
     border: none !important;
-    background: var(--secondary-color);
+    background: #3498db;
     color: white;
 }
 
@@ -304,50 +328,45 @@ body {
     padding: 20px;
 }
 
-.cost-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px dashed #eee;
-    transition: all 0.3s ease;
-}
-
-.cost-item.hidden {
-    opacity: 0.5;
-    transform: translateX(-10px);
-}
-
-.cost-breakdown {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-}
-
-/* Стили модальных окон - НАЧАЛО */
+/* ============================================ */
+/* СТИЛИ МОДАЛЬНЫХ ОКОН - ИСПРАВЛЕННЫЕ */
+/* ============================================ */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 10000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
+    margin: 0 auto;
+    padding: 30px;
     border: none;
-    border-radius: 10px;
+    border-radius: 16px;
     width: 90%;
-    max-width: 500px;
+    max-width: 550px;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .close {
@@ -358,51 +377,82 @@ body {
     cursor: pointer;
     line-height: 1;
     position: absolute;
-    top: 10px;
-    right: 15px;
+    top: 15px;
+    right: 20px;
+    transition: all 0.2s;
 }
 
 .close:hover,
 .close:focus {
-    color: black;
+    color: #e74c3c;
+    transform: rotate(90deg);
 }
 
 .modal-body {
-    margin-top: 30px;
-    margin-bottom: 20px;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.modal-body p {
+    margin-bottom: 12px;
+    line-height: 1.5;
 }
 
 .modal-footer {
     text-align: right;
     border-top: 1px solid #eee;
-    padding-top: 15px;
+    padding-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
 }
 
 .modal-btn {
-    padding: 10px 20px;
-    margin-left: 10px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
 }
 
 .modal-btn-primary {
-    background-color: var(--secondary-color);
+    background-color: #3498db;
     color: white;
+}
+
+.modal-btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
 }
 
 .modal-btn-accent {
-    background-color: var(--accent-color);
+    background-color: #e74c3c;
     color: white;
 }
 
-.modal-btn-default {
-    background-color: #ccc;
-    color: #333;
+.modal-btn-accent:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
 }
-/* Стили модальных окон - КОНЕЦ */
 
+.modal-btn-default {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.modal-btn-default:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+/* ============================================ */
+/* АДАПТИВНЫЕ СТИЛИ */
+/* ============================================ */
 @media (max-width: 1024px) {
     .constructor-container {
         flex-direction: column;
@@ -416,5 +466,49 @@ body {
     
     #room-3d {
         height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        margin: 20px auto;
+    }
+    
+    .modal-body {
+        max-height: 70vh;
+    }
+    
+    .modal-btn {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        border-radius: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .modal-body {
+        max-height: none;
+        flex: 1;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
     }
 }
