@@ -171,7 +171,6 @@ async function updateColorFilters() {
         
         colorsHtml += `
             <div class="color-option" style="background-color: ${bgColor}; border: ${bgColor === '#FFFFFF' ? '1px solid #ccc' : 'none'};" data-color="${escapeHtml(colorName)}" title="${escapeHtml(colorName)}">
-                <span class="color-name-tooltip">${escapeHtml(colorName)}</span>
                 <div class="color-checkmark" style="display: none;">✓</div>
             </div>
         `;
@@ -211,6 +210,8 @@ async function updateColorFilters() {
             applyFilters();
         });
     });
+    console.log('Цвета для отображения:', currentColors);
+    console.log('HTML цветов сгенерирован');
 }
 
 function getColorHex(colorName) {
@@ -585,13 +586,7 @@ function updateFiltersFromUI() {
             selectedFilters.laminateThickness.push(cb.value);
         });
         
-        document.querySelectorAll('.color-option.selected').forEach(option => {
-            const colorName = option.dataset.color;
-            if (colorName && !selectedFilters.doorColors.includes(colorName)) {
-                selectedFilters.doorColors.push(colorName);
-            }
-        });
-
+        // ЦВЕТА ДЛЯ ЛАМИНАТА - ИСПРАВЛЕНО
         document.querySelectorAll('.color-option.selected').forEach(option => {
             const colorName = option.dataset.color;
             if (colorName && !selectedFilters.laminateColors.includes(colorName)) {
@@ -617,6 +612,14 @@ function updateFiltersFromUI() {
             selectedFilters.doorMaterials.push(cb.value);
         });
         
+        // ЦВЕТА ДЛЯ ДВЕРЕЙ - ИСПРАВЛЕНО
+        document.querySelectorAll('.color-option.selected').forEach(option => {
+            const colorName = option.dataset.color;
+            if (colorName && !selectedFilters.doorColors.includes(colorName)) {
+                selectedFilters.doorColors.push(colorName);
+            }
+        });
+        
         document.querySelectorAll('input[name="door-style"]:checked').forEach(cb => {
             selectedFilters.doorStyles.push(cb.value);
         });
@@ -631,6 +634,8 @@ function updateFiltersFromUI() {
     if (priceMax && priceMax.value) {
         selectedFilters.priceMax = parseInt(priceMax.value);
     }
+    
+    console.log('Обновленные фильтры:', selectedFilters);
 }
 
 // Применение фильтров (локальная фильтрация)
@@ -644,6 +649,7 @@ function applyFilters() {
         }
         
         const filteredProducts = currentProducts.filter(product => {
+            // Поиск по названию/описанию
             if (selectedFilters.search) {
                 const searchLower = selectedFilters.search.toLowerCase();
                 const nameMatch = product.name?.toLowerCase().includes(searchLower) || false;
@@ -651,12 +657,15 @@ function applyFilters() {
                 if (!nameMatch && !descMatch) return false;
             }
             
+            // Фильтр по цене
             const productPrice = parsePrice(product.price || product.prise || '0');
-            
             if (selectedFilters.priceMin !== null && productPrice < selectedFilters.priceMin) return false;
             if (selectedFilters.priceMax !== null && productPrice > selectedFilters.priceMax) return false;
             
             if (isLaminateMode) {
+                // ========== ФИЛЬТРЫ ДЛЯ ЛАМИНАТА ==========
+                
+                // Фильтр по классу
                 if (selectedFilters.laminateTypes.length > 0 && product.type) {
                     const productType = product.type.toLowerCase();
                     const hasType = selectedFilters.laminateTypes.some(type => 
@@ -665,32 +674,21 @@ function applyFilters() {
                     if (!hasType) return false;
                 }
                 
+                // Фильтр по толщине
                 if (selectedFilters.laminateThickness.length > 0) {
                     if (!product.thickness) return false;
                     const productThickness = product.thickness.toString();
                     const hasThickness = selectedFilters.laminateThickness.some(thickness => 
-                        productThickness === thickness || productThickness.includes(thickness) || thickness.includes(productThickness)
+                        productThickness === thickness || productThickness.includes(thickness)
                     );
                     if (!hasThickness) return false;
                 }
                 
-                if (selectedFilters.laminateColors.length > 0 && product.color) {
-                    let productColors = [];
-                    
-                    if (Array.isArray(product.color)) {
-                        productColors = product.color.map(c => c.toString().toLowerCase().trim());
-                    } else if (typeof product.color === 'string') {
-                        try {
-                            const parsed = JSON.parse(product.color);
-                            if (Array.isArray(parsed)) {
-                                productColors = parsed.map(c => c.toString().toLowerCase().trim());
-                            } else {
-                                productColors = [product.color.toLowerCase().trim()];
-                            }
-                        } catch (e) {
-                            productColors = [product.color.toLowerCase().trim()];
-                        }
-                    }
+                // ФИЛЬТР ПО ЦВЕТАМ (ЛАМИНАТ) - ИСПРАВЛЕНО
+                if (selectedFilters.laminateColors.length > 0) {
+                    let productColors = getProductColors(product);
+                    console.log('Товар:', product.name, 'Цвета в БД:', product.color, 'Распарсено:', productColors);
+                    console.log('Выбранные цвета фильтра:', selectedFilters.laminateColors);
                     
                     const hasColor = selectedFilters.laminateColors.some(filterColor => {
                         const filterLower = filterColor.toLowerCase().trim();
@@ -704,19 +702,25 @@ function applyFilters() {
                     if (!hasColor) return false;
                 }
                 
+                // Фильтр по помещению
                 if (selectedFilters.laminateRooms.length > 0) {
-                    if (!product.type_room || !Array.isArray(product.type_room)) return false;
-                    const productRooms = product.type_room;
+                    if (!product.type_room) return false;
+                    let productRooms = [];
+                    if (Array.isArray(product.type_room)) {
+                        productRooms = product.type_room.map(r => r.toLowerCase());
+                    } else if (typeof product.type_room === 'string') {
+                        productRooms = [product.type_room.toLowerCase()];
+                    }
                     const hasRoom = selectedFilters.laminateRooms.some(room =>
-                        productRooms.some(productRoom =>
-                            productRoom && typeof productRoom === 'string' &&
-                            productRoom.toLowerCase().includes(room.toLowerCase())
-                        )
+                        productRooms.some(productRoom => productRoom.includes(room.toLowerCase()))
                     );
                     if (!hasRoom) return false;
                 }
                 
             } else {
+                // ========== ФИЛЬТРЫ ДЛЯ ДВЕРЕЙ ==========
+                
+                // Фильтр по типу двери
                 if (selectedFilters.doorTypes.length > 0 && product.type) {
                     const productType = product.type.toLowerCase();
                     const hasType = selectedFilters.doorTypes.some(type => 
@@ -725,6 +729,7 @@ function applyFilters() {
                     if (!hasType) return false;
                 }
                 
+                // Фильтр по материалу
                 if (selectedFilters.doorMaterials.length > 0 && product.material) {
                     const productMaterial = product.material.toLowerCase();
                     const hasMaterial = selectedFilters.doorMaterials.some(material => 
@@ -733,26 +738,12 @@ function applyFilters() {
                     if (!hasMaterial) return false;
                 }
                 
-                if (selectedFilters.doorColors.length > 0 && product.color) {
-                    let productColors = [];
+                // ФИЛЬТР ПО ЦВЕТАМ (ДВЕРИ) - ИСПРАВЛЕНО
+                if (selectedFilters.doorColors.length > 0) {
+                    let productColors = getProductColors(product);
+                    console.log('Товар:', product.name, 'Цвета в БД:', product.color, 'Распарсено:', productColors);
+                    console.log('Выбранные цвета фильтра:', selectedFilters.doorColors);
                     
-                    // Парсим цвета товара (могут быть в разных форматах)
-                    if (Array.isArray(product.color)) {
-                        productColors = product.color.map(c => c.toString().toLowerCase().trim());
-                    } else if (typeof product.color === 'string') {
-                        try {
-                            const parsed = JSON.parse(product.color);
-                            if (Array.isArray(parsed)) {
-                                productColors = parsed.map(c => c.toString().toLowerCase().trim());
-                            } else {
-                                productColors = [product.color.toLowerCase().trim()];
-                            }
-                        } catch (e) {
-                            productColors = [product.color.toLowerCase().trim()];
-                        }
-                    }
-                    
-                    // Проверяем, есть ли хоть один выбранный цвет в массиве цветов товара
                     const hasColor = selectedFilters.doorColors.some(filterColor => {
                         const filterLower = filterColor.toLowerCase().trim();
                         return productColors.some(productColor => 
@@ -765,6 +756,7 @@ function applyFilters() {
                     if (!hasColor) return false;
                 }
                 
+                // Фильтр по стилю
                 if (selectedFilters.doorStyles.length > 0 && product.style) {
                     const productStyle = product.style?.toLowerCase() || '';
                     const hasStyle = selectedFilters.doorStyles.some(style => 
@@ -793,6 +785,40 @@ function applyFilters() {
     } finally {
         hideLoading();
     }
+}
+
+function getProductColors(product) {
+    let productColors = [];
+    
+    if (!product.color) return productColors;
+    
+    if (Array.isArray(product.color)) {
+        productColors = product.color.map(c => c.toString().toLowerCase().trim());
+    } else if (typeof product.color === 'string') {
+        // Проверяем, не является ли строка JSON массивом
+        if (product.color.startsWith('[') || product.color.startsWith('{')) {
+            try {
+                const parsed = JSON.parse(product.color);
+                if (Array.isArray(parsed)) {
+                    productColors = parsed.map(c => c.toString().toLowerCase().trim());
+                } else {
+                    productColors = [product.color.toLowerCase().trim()];
+                }
+            } catch (e) {
+                // Если JSON не парсится, то это обычная строка
+                productColors = [product.color.toLowerCase().trim()];
+            }
+        } else {
+            // Обычная строка, возможно с запятыми
+            if (product.color.includes(',')) {
+                productColors = product.color.split(',').map(c => c.trim().toLowerCase());
+            } else {
+                productColors = [product.color.toLowerCase().trim()];
+            }
+        }
+    }
+    
+    return productColors;
 }
 
 // Сброс всех фильтров
