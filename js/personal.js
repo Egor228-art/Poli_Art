@@ -612,6 +612,7 @@ class UserProfile {
             const statusText = this.getOrderStatusText(order.status);
             const statusClass = this.getOrderStatusClass(order.status);
             
+            // Разрешаем отзыв для доставленных заказов
             const canReview = order.status === 'доставлен' || order.status === 'delivered';
             
             let products = [];
@@ -645,7 +646,6 @@ class UserProfile {
                                     review.product_id === product.id
                                 );
                                 const productType = product.collection === 'laminate' ? 'laminate' : 'door';
-                                const productPage = productType === 'laminate' ? 'laminate-product.html' : 'product.html';
                                 
                                 return `
                                     <div class="order-product">
@@ -655,7 +655,9 @@ class UserProfile {
                                         </div>
                                         <div class="product-price">${((product.price || 0) * (product.quantity || 1)).toLocaleString()} ₽</div>
                                         ${canReview && !hasReviewed ? `
-                                            <a href="${productPage}?id=${product.id}#reviews" class="btn-review-small">✍️ Оставить отзыв</a>
+                                            <button class="btn-review-small" onclick="userProfile.openReviewForProduct('${product.id}', '${this.escapeHtml(product.name || 'Товар')}', '${productType}')">
+                                                ✍️ Оставить отзыв
+                                            </button>
                                         ` : ''}
                                         ${hasReviewed ? `<span class="reviewed-badge">✓ Отзыв оставлен</span>` : ''}
                                     </div>
@@ -670,6 +672,121 @@ class UserProfile {
         }).join('');
 
         ordersContainer.innerHTML = ordersHTML;
+    }
+
+    openReviewForProduct(productId, productName, productType) {
+        // Создаём модальное окно с отзывом для конкретного товара
+        const modalHTML = `
+            <div id="reviewModalWindow" style="position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:100000; display:flex; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:20px; padding:30px; max-width:550px; width:90%; max-height:90vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                        <h2 style="margin:0; color:#2c3e50;">Оставить отзыв</h2>
+                        <button onclick="closeReviewModalWindow()" style="background:none; border:none; font-size:28px; cursor:pointer; color:#999;">&times;</button>
+                    </div>
+                    
+                    <div style="background:#f8f9fa; padding:15px; border-radius:12px; margin-bottom:20px;">
+                        <strong>${this.escapeHtml(productName)}</strong>
+                    </div>
+                    
+                    <input type="hidden" id="reviewProductId" value="${productId}">
+                    <input type="hidden" id="reviewProductType" value="${productType}">
+                    
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; margin-bottom:10px; font-weight:600;">Ваша оценка *</label>
+                        <div style="display:flex; gap:15px;" id="ratingStarsSelector">
+                            ${[1,2,3,4,5].map(i => `<span onclick="setRatingValue(${i})" data-rating="${i}" style="font-size:36px; cursor:pointer; color:#ddd;">☆</span>`).join('')}
+                        </div>
+                        <input type="hidden" id="reviewRatingValue" value="5">
+                    </div>
+                    
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; margin-bottom:10px; font-weight:600;">Достоинства</label>
+                        <textarea id="reviewProsValue" rows="2" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:10px; resize:vertical;" placeholder="Что вам понравилось?"></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; margin-bottom:10px; font-weight:600;">Недостатки</label>
+                        <textarea id="reviewConsValue" rows="2" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:10px; resize:vertical;" placeholder="Что можно улучшить?"></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; margin-bottom:10px; font-weight:600;">Ваш отзыв *</label>
+                        <textarea id="reviewTextValue" rows="5" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:10px; resize:vertical;" placeholder="Поделитесь впечатлениями о товаре..." required></textarea>
+                    </div>
+                    
+                    <div style="background:#e8f5e9; padding:15px; border-radius:12px; margin-bottom:25px;">
+                        <p style="margin:0; font-size:14px; color:#2e7d32;">📝 Отзыв будет опубликован после проверки модератором</p>
+                    </div>
+                    
+                    <div style="display:flex; gap:15px; justify-content:flex-end;">
+                        <button type="button" onclick="closeReviewModalWindow()" style="padding:12px 24px; background:#f0f0f0; border:none; border-radius:10px; cursor:pointer;">Отмена</button>
+                        <button id="submitReviewBtn" style="padding:12px 24px; background:#27ae60; color:white; border:none; border-radius:10px; cursor:pointer;">✍️ Отправить отзыв</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        document.body.style.overflow = 'hidden';
+        
+        // Глобальные функции для модального окна
+        window.setRatingValue = (rating) => {
+            const stars = document.querySelectorAll('#ratingStarsSelector span');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.textContent = '★';
+                    star.style.color = '#f1c40f';
+                } else {
+                    star.textContent = '☆';
+                    star.style.color = '#ddd';
+                }
+            });
+            document.getElementById('reviewRatingValue').value = rating;
+        };
+        window.setRatingValue(5);
+        
+        window.closeReviewModalWindow = () => {
+            const modal = document.getElementById('reviewModalWindow');
+            if (modal) {
+                modal.remove();
+                document.body.style.overflow = '';
+            }
+        };
+        
+        document.getElementById('submitReviewBtn').addEventListener('click', async () => {
+            const productId = document.getElementById('reviewProductId').value;
+            const productType = document.getElementById('reviewProductType').value;
+            const rating = parseInt(document.getElementById('reviewRatingValue').value);
+            const pros = document.getElementById('reviewProsValue').value.trim();
+            const cons = document.getElementById('reviewConsValue').value.trim();
+            const text = document.getElementById('reviewTextValue').value.trim();
+            
+            if (!text) {
+                alert('Напишите отзыв');
+                return;
+            }
+            
+            try {
+                await window.apiClient.createReview({
+                    product_id: productId,
+                    product_name: productName,
+                    rating: rating,
+                    text: text,
+                    pros: pros,
+                    cons: cons,
+                    isLaminate: productType === 'laminate'
+                });
+                
+                alert('✅ Отзыв отправлен на модерацию!');
+                window.closeReviewModalWindow();
+                await this.loadUserReviews();
+                await this.loadOrders();
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('❌ Ошибка отправки отзыва');
+            }
+        });
     }
 
     getOrderStatusText(status) {
