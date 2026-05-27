@@ -332,7 +332,7 @@ async function loadReviews() {
         let canReview = false;
         let statusText = '🔒 Отзыв только для купивших товар';
         
-        if (window.authManager?.isAuthenticated()) {
+        if (window.authManager && window.authManager.currentUser) {
             const hasPurchased = await checkUserPurchased();
             if (hasPurchased) {
                 canReview = true;

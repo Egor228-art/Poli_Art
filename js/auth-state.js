@@ -17,16 +17,17 @@ class AuthStateManager {
         try {
             this.currentUser = await window.apiClient.getCurrentUser();
             if (this.currentUser) {
-                console.log('👤 Авторизован:', this.currentUser.email);
+                console.log('👤 Авторизован:', this.currentUser.email, 'Роль:', this.currentUser.role);
             } else {
                 console.log('🚪 Не авторизован');
             }
         } catch (error) {
+            console.error('Ошибка проверки авторизации:', error);
             this.currentUser = null;
         }
     }
 
-    // ДОБАВЬ ЭТОТ МЕТОД:
+    // ГЛАВНЫЙ МЕТОД - ПРОВЕРКА АВТОРИЗАЦИИ
     isAuthenticated() {
         return !!this.currentUser;
     }
@@ -37,15 +38,19 @@ class AuthStateManager {
 
         if (this.currentUser) {
             const isAdmin = this.currentUser.role === 'admin';
-            const adminBtn = isAdmin ? '<a href="admin.html" style="background:#e74c3c;color:white;padding:8px 15px;border-radius:8px;text-decoration:none;margin-right:10px">👑 Админка</a>' : '';
+            const adminButton = isAdmin ? '<a href="admin.html" class="admin-link" style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; margin-right: 10px; font-size: 14px;">👑 Админка</a>' : '';
             
             headerActions.innerHTML = `
                 <div class="user-profile">
-                    ${adminBtn}
+                    ${adminButton}
                     <a href="personal.html" class="user-name">${this.escapeHtml(this.currentUser.name || 'Пользователь')}</a>
                     <button class="btn btn--secondary" id="logoutBtn">Выйти</button>
                 </div>
             `;
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => this.logout());
+            }
         } else {
             headerActions.innerHTML = `
                 <div class="auth-buttons">
@@ -79,6 +84,7 @@ class AuthStateManager {
     }
 }
 
+// Глобальный экземпляр
 let authManager = null;
 
 document.addEventListener('DOMContentLoaded', () => {
