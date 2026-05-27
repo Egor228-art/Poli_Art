@@ -350,6 +350,8 @@ body {
     align-items: center;
     backdrop-filter: blur(5px);
     scrollbar-width: none; 
+    max-width: none;
+        max-height: none;
 }
 
 .modal-content {
