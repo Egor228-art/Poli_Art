@@ -265,22 +265,45 @@ export default async function handler(req, res) {
             }
             return res.json({ success: true });
         }
+
+        // DELETE /api/admin/user/delete
+        if (path === '/api/admin/user/delete' && req.method === 'DELETE') {
+            const { id } = req.body;
+            await sql`DELETE FROM users WHERE id = ${id}::uuid`;
+            return res.json({ success: true });
+        }
+
+        // PUT /api/admin/measure/status
+        if (path === '/api/admin/measure/status' && req.method === 'PUT') {
+            const { id, status } = req.body;
+            await sql`UPDATE measure_requests SET status = ${status} WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+
+        // DELETE /api/admin/measure/delete
+        if (path === '/api/admin/measure/delete' && req.method === 'DELETE') {
+            const { id } = req.body;
+            await sql`DELETE FROM measure_requests WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
         
         // DELETE /api/admin/product/delete
         if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
             const { collection, id } = req.body;
             const table = collection === 'laminate' ? 'laminate' : 'doors';
-            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
+            console.log(`Deleting from ${table} where id = ${id}`);
+            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}::uuid`;
             return res.json({ success: true });
         }
         
         // GET /api/admin/product/:collection/:id
-        const productGetMatch = path.match(/^\/api\/admin\/product\/([^/]+)\/([^/]+)$/);
+        const productGetMatch = path.match(/^\/api\/admin\/product\/(doors|laminate)\/([^/]+)$/);
         if (productGetMatch && req.method === 'GET') {
             const collection = productGetMatch[1];
             const id = productGetMatch[2];
             const table = collection === 'laminate' ? 'laminate' : 'doors';
-            const result = await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`;
+            console.log(`Getting product from ${table} with id ${id}`);
+            const result = await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}::uuid`;
             if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
             return res.json(result.rows[0]);
         }
