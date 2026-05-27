@@ -350,11 +350,12 @@ body {
     align-items: center;
     backdrop-filter: blur(5px);
     scrollbar-width: none; 
-    max-width: none;
-        max-height: none;
+    max-width: none !important;
+    max-height: none !important;
 }
 
 .modal-content {
+    max-width: 600px;
     background-color: white;
     border-radius: 20px;
     width: 90%;
