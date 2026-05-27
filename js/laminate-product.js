@@ -3,6 +3,7 @@
 let currentProduct = null;
 let currentProductPrice = 0;
 let currentProductId = null;
+let isLaminateMode = true;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', async function() {
@@ -322,17 +323,16 @@ function initConstructorButton() {
 
 // Загрузка отзывов
 async function loadReviews() {
-    const reviewsList = document.querySelector('.reviews-list');
+    const reviewsList = document.querySelector('#reviews .reviews-list');
     if (!reviewsList) return;
     
     try {
-        const reviews = await window.apiClient.getReviews(currentProductId, isLaminateMode);
+        const reviews = await window.apiClient.getReviews(currentProductId, true);
         
         let html = '';
         let canReview = false;
         let statusText = '🔒 Отзыв только для купивших товар';
         
-        // ИСПРАВЛЕННАЯ ПРОВЕРКА
         if (window.authManager && window.authManager.currentUser) {
             const hasPurchased = await checkUserPurchased();
             if (hasPurchased) {
@@ -355,7 +355,7 @@ async function loadReviews() {
             </div>
             <div class="reviews-actions" style="margin-bottom: 30px;">
                 ${canReview ? 
-                    `<button class="btn btn--primary" onclick="window.openReviewModal('${currentProductId}', ${isLaminateMode})" style="background: #27ae60; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; color: white;">✍️ ${statusText}</button>` :
+                    `<button class="btn btn--primary" onclick="openLaminateReviewModal('${currentProductId}')" style="background: #27ae60; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; color: white;">✍️ ${statusText}</button>` :
                     `<button class="btn" disabled style="background: #f0f0f0; color: #999; padding: 12px 24px; border-radius: 8px; cursor: not-allowed;">${statusText}</button>`
                 }
             </div>
@@ -408,12 +408,10 @@ async function checkUserPurchased() {
             const isPaid = PAID_STATUSES.some(s => status.includes(s.toLowerCase()));
             if (!isPaid) continue;
             
-            // Проверяем поле product
             if (order.product && order.product.toString() === currentProductId) {
                 return true;
             }
             
-            // Проверяем поле products
             let products = [];
             if (typeof order.products === 'string') {
                 try { products = JSON.parse(order.products); } catch(e) {}
