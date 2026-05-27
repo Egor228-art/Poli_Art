@@ -436,13 +436,21 @@ async function checkUserPurchased() {
         
         const orders = await window.apiClient.getOrders();
         
-        const PAID_STATUSES = ['оплачено', 'доставлено', 'delivered', 'оплачен', 'выполнен'];
+        // Статусы оплаченных заказов
+        const PAID_STATUSES = ['оплачено', 'доставлено', 'delivered', 'оплачен', 'выполнен', 'доставлен'];
         
         for (const order of orders) {
             const status = (order.status || '').toLowerCase();
             const isPaid = PAID_STATUSES.some(s => status.includes(s.toLowerCase()));
             if (!isPaid) continue;
             
+            // Проверяем поле product (если товар один)
+            if (order.product && order.product.toString() === currentProductId) {
+                console.log('✅ Товар найден в поле product');
+                return true;
+            }
+            
+            // Проверяем поле products (массив)
             let products = [];
             if (typeof order.products === 'string') {
                 try { products = JSON.parse(order.products); } catch(e) {}
@@ -450,11 +458,21 @@ async function checkUserPurchased() {
                 products = order.products;
             }
             
-            const found = products.find(p => p.id === currentProductId);
-            if (found) return true;
+            // Проверяем каждый товар в заказе
+            const found = products.find(p => {
+                const itemId = p.id || p.product_id || p.item_id || p.product;
+                return itemId && itemId.toString() === currentProductId;
+            });
+            
+            if (found) {
+                console.log('✅ Товар найден в поле products');
+                return true;
+            }
         }
         
+        console.log('❌ Товар не найден в оплаченных заказах');
         return false;
+        
     } catch (error) {
         console.error('Ошибка проверки покупки:', error);
         return false;
