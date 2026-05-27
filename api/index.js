@@ -51,7 +51,7 @@ export default async function handler(req, res) {
             return res.json({ items: result.rows });
         }
         
-        // Товар по ID
+        // Товар по ID для сайта
         const doorsIdMatch = path.match(/^\/api\/products\/doors\/([^/]+)$/);
         if (doorsIdMatch && req.method === 'GET') {
             const id = doorsIdMatch[1];
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
             const hashedPassword = await bcrypt.hash(password, 10);
             const result = await sql`
                 INSERT INTO users (email, password_hash, name, phone, address, role)
-                VALUES (${email}, ${hashedPassword}, ${name}, ${phone || null}, ${address || null}, 'user')
+                VALUES (${email}, ${hashedPassword}, ${name}, ${phone}, ${address}, 'user')
                 RETURNING id, email, name, role, phone, address
             `;
             const user = result.rows[0];
@@ -199,10 +199,38 @@ export default async function handler(req, res) {
             return res.json({ items: result.rows });
         }
         
+        // PUT /api/admin/user/role
+        if (path === '/api/admin/user/role' && req.method === 'PUT') {
+            const { id, role } = req.body;
+            await sql`UPDATE users SET role = ${role} WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+        
+        // DELETE /api/admin/user/delete
+        if (path === '/api/admin/user/delete' && req.method === 'DELETE') {
+            const { id } = req.body;
+            await sql`DELETE FROM users WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+        
         // GET /api/admin/measure
         if (path === '/api/admin/measure' && req.method === 'GET') {
             const result = await sql`SELECT * FROM measure_requests ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
+        }
+        
+        // PUT /api/admin/measure/status
+        if (path === '/api/admin/measure/status' && req.method === 'PUT') {
+            const { id, status } = req.body;
+            await sql`UPDATE measure_requests SET status = ${status} WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+        
+        // DELETE /api/admin/measure/delete
+        if (path === '/api/admin/measure/delete' && req.method === 'DELETE') {
+            const { id } = req.body;
+            await sql`DELETE FROM measure_requests WHERE id = ${id}`;
+            return res.json({ success: true });
         }
         
         // GET /api/admin/reviews/doors
@@ -215,6 +243,22 @@ export default async function handler(req, res) {
         if (path === '/api/admin/reviews/laminate' && req.method === 'GET') {
             const result = await sql`SELECT * FROM reviews_laminate ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
+        }
+        
+        // PUT /api/admin/review/approve
+        if (path === '/api/admin/review/approve' && req.method === 'PUT') {
+            const { id, type } = req.body;
+            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
+            await sql`UPDATE ${sql(table)} SET approved = true WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+        
+        // DELETE /api/admin/review/delete
+        if (path === '/api/admin/review/delete' && req.method === 'DELETE') {
+            const { id, type } = req.body;
+            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
+            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
+            return res.json({ success: true });
         }
         
         // PUT /api/admin/order/status
@@ -265,34 +309,12 @@ export default async function handler(req, res) {
             }
             return res.json({ success: true });
         }
-
-        // DELETE /api/admin/user/delete
-        if (path === '/api/admin/user/delete' && req.method === 'DELETE') {
-            const { id } = req.body;
-            await sql`DELETE FROM users WHERE id = ${id}::uuid`;
-            return res.json({ success: true });
-        }
-
-        // PUT /api/admin/measure/status
-        if (path === '/api/admin/measure/status' && req.method === 'PUT') {
-            const { id, status } = req.body;
-            await sql`UPDATE measure_requests SET status = ${status} WHERE id = ${id}`;
-            return res.json({ success: true });
-        }
-
-        // DELETE /api/admin/measure/delete
-        if (path === '/api/admin/measure/delete' && req.method === 'DELETE') {
-            const { id } = req.body;
-            await sql`DELETE FROM measure_requests WHERE id = ${id}`;
-            return res.json({ success: true });
-        }
         
         // DELETE /api/admin/product/delete
         if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
             const { collection, id } = req.body;
             const table = collection === 'laminate' ? 'laminate' : 'doors';
-            console.log(`Deleting from ${table} where id = ${id}`);
-            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}::uuid`;
+            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
             return res.json({ success: true });
         }
         
@@ -302,33 +324,9 @@ export default async function handler(req, res) {
             const collection = productGetMatch[1];
             const id = productGetMatch[2];
             const table = collection === 'laminate' ? 'laminate' : 'doors';
-            console.log(`Getting product from ${table} with id ${id}`);
-            const result = await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}::uuid`;
+            const result = await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`;
             if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
             return res.json(result.rows[0]);
-        }
-        
-        // PUT /api/admin/user/role
-        if (path === '/api/admin/user/role' && req.method === 'PUT') {
-            const { id, role } = req.body;
-            await sql`UPDATE users SET role = ${role} WHERE id = ${id}`;
-            return res.json({ success: true });
-        }
-        
-        // PUT /api/admin/review/approve
-        if (path === '/api/admin/review/approve' && req.method === 'PUT') {
-            const { id, type } = req.body;
-            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
-            await sql`UPDATE ${sql(table)} SET approved = true WHERE id = ${id}`;
-            return res.json({ success: true });
-        }
-        
-        // DELETE /api/admin/review/delete
-        if (path === '/api/admin/review/delete' && req.method === 'DELETE') {
-            const { id, type } = req.body;
-            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
-            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
-            return res.json({ success: true });
         }
         
         // 404
