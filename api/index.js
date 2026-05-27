@@ -176,17 +176,22 @@ export default async function handler(req, res) {
             const decoded = verifyToken(token);
             if (!decoded) return res.status(401).json({ error: 'Invalid token' });
             
-            const { product_id, product_name, rating, text, isLaminate } = req.body;
+            const { product_id, product_name, rating, text, pros, cons, isLaminate } = req.body;
+            
+            // Получаем имя пользователя из БД (на случай если в токене нет)
+            const userResult = await sql`SELECT name, email FROM users WHERE id = ${decoded.id}`;
+            const userName = userResult.rows[0]?.name || decoded.name || 'Пользователь';
+            const userEmail = userResult.rows[0]?.email || decoded.email;
             
             if (isLaminate) {
                 await sql`
-                    INSERT INTO ${sql(table)} (product_id, product_name, rating, text, pros, cons, author_name, author_email, approved)
-                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${pros}, ${cons}, ${decoded.name}, ${decoded.email}, false)
+                    INSERT INTO reviews_laminate (product_id, product_name, rating, text, pros, cons, author_name, author_email, approved)
+                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${pros || null}, ${cons || null}, ${userName}, ${userEmail}, false)
                 `;
             } else {
                 await sql`
-                    INSERT INTO reviews (product_id, product_name, rating, text, author_name, author_email, approved)
-                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${decoded.name}, ${decoded.email}, false)
+                    INSERT INTO reviews (product_id, product_name, rating, text, pros, cons, author_name, author_email, approved)
+                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${pros || null}, ${cons || null}, ${userName}, ${userEmail}, false)
                 `;
             }
             return res.json({ success: true });

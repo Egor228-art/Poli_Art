@@ -675,7 +675,12 @@ class UserProfile {
     }
 
     openReviewForProduct(productId, productName, productType) {
-        // Создаём модальное окно с отзывом для конкретного товара
+        // Сохраняем контекст
+        const self = this;
+        const productIdValue = productId;
+        const productNameValue = productName;
+        const productTypeValue = productType;
+        
         const modalHTML = `
             <div id="reviewModalWindow" style="position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:100000; display:flex; align-items:center; justify-content:center;">
                 <div style="background:white; border-radius:20px; padding:30px; max-width:550px; width:90%; max-height:90vh; overflow-y:auto;">
@@ -685,11 +690,11 @@ class UserProfile {
                     </div>
                     
                     <div style="background:#f8f9fa; padding:15px; border-radius:12px; margin-bottom:20px;">
-                        <strong>${this.escapeHtml(productName)}</strong>
+                        <strong>${this.escapeHtml(productNameValue)}</strong>
                     </div>
                     
-                    <input type="hidden" id="reviewProductId" value="${productId}">
-                    <input type="hidden" id="reviewProductType" value="${productType}">
+                    <input type="hidden" id="reviewProductId" value="${productIdValue}">
+                    <input type="hidden" id="reviewProductType" value="${productTypeValue}">
                     
                     <div style="margin-bottom:20px;">
                         <label style="display:block; margin-bottom:10px; font-weight:600;">Ваша оценка *</label>
@@ -729,7 +734,6 @@ class UserProfile {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         document.body.style.overflow = 'hidden';
         
-        // Глобальные функции для модального окна
         window.setRatingValue = (rating) => {
             const stars = document.querySelectorAll('#ratingStarsSelector span');
             stars.forEach((star, index) => {
@@ -766,10 +770,14 @@ class UserProfile {
                 return;
             }
             
+            const submitBtn = document.getElementById('submitReviewBtn');
+            submitBtn.textContent = '⏳ Отправка...';
+            submitBtn.disabled = true;
+            
             try {
                 await window.apiClient.createReview({
                     product_id: productId,
-                    product_name: productName,
+                    product_name: productNameValue,
                     rating: rating,
                     text: text,
                     pros: pros,
@@ -779,12 +787,16 @@ class UserProfile {
                 
                 alert('✅ Отзыв отправлен на модерацию!');
                 window.closeReviewModalWindow();
+                
+                // Перезагружаем отзывы и заказы
                 await this.loadUserReviews();
                 await this.loadOrders();
                 
             } catch (error) {
                 console.error('Ошибка:', error);
                 alert('❌ Ошибка отправки отзыва');
+                submitBtn.textContent = '✍️ Отправить отзыв';
+                submitBtn.disabled = false;
             }
         });
     }
@@ -833,7 +845,6 @@ class UserProfile {
         
         if (!reviewsContainer) return;
         
-        // Добавляем кнопку "Оставить отзыв"
         let html = `
             <div style="margin-bottom: 30px;">
                 <button id="openReviewBtn" class="btn btn--primary" style="background: #27ae60; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; color: white;">
@@ -842,7 +853,6 @@ class UserProfile {
             </div>
         `;
         
-        // Показываем отзывы пользователя
         if (this.userReviews.length === 0) {
             html += `
                 <div class="reviews-empty">
@@ -858,6 +868,8 @@ class UserProfile {
                 const ratingStars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
                 const statusClass = review.approved ? 'status-approved' : 'status-pending';
                 const statusText = review.approved ? 'Одобрен' : 'На модерации';
+                const productType = review.product_type === 'laminate' ? 'laminate' : 'door';
+                const productPage = productType === 'laminate' ? 'laminate-product.html' : 'product.html';
                 
                 return `
                     <div class="review-item">
@@ -869,7 +881,14 @@ class UserProfile {
                             <div class="review-rating" title="${review.rating} из 5">${ratingStars}</div>
                         </div>
                         <div class="review-text">${this.escapeHtml(review.text)}</div>
+                        ${review.pros ? `<div class="review-pros"><strong>Достоинства:</strong> ${this.escapeHtml(review.pros)}</div>` : ''}
+                        ${review.cons ? `<div class="review-cons"><strong>Недостатки:</strong> ${this.escapeHtml(review.cons)}</div>` : ''}
                         <div class="review-status ${statusClass}">${statusText}</div>
+                        ${review.approved ? `
+                            <div style="margin-top: 10px;">
+                                <a href="${productPage}?id=${review.product_id}#reviews" class="btn-review-small" style="background: #3498db;">🔗 К отзыву на сайте</a>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }).join('');
@@ -877,7 +896,6 @@ class UserProfile {
         
         reviewsContainer.innerHTML = html;
         
-        // Добавляем обработчик на кнопку
         document.getElementById('openReviewBtn')?.addEventListener('click', () => this.openReviewModal());
         
         if (reviewsCount) reviewsCount.textContent = this.userReviews.length.toString();
