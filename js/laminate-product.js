@@ -331,31 +331,11 @@ async function loadReviews() {
         
         let html = '';
         
-        // Кнопка всегда видна для авторизованных пользователей
-        if (window.authManager && window.authManager.currentUser) {
-            html = `
-                <div class="reviews-actions" style="margin-bottom: 30px;">
-                    <button class="btn btn--primary" onclick="openReviewModal()" style="background: #27ae60; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; color: white;">
-                        ✍️ Оставить отзыв
-                    </button>
-                </div>
-            `;
-        } else {
-            html = `
-                <div class="reviews-actions" style="margin-bottom: 30px;">
-                    <button class="btn" disabled style="background: #f0f0f0; color: #999; padding: 12px 24px; border-radius: 8px; cursor: not-allowed;">
-                        🔒 Войдите, чтобы оставить отзыв
-                    </button>
-                </div>
-            `;
-        }
-        
         const approvedReviews = reviews.filter(r => r.approved);
         
         if (approvedReviews.length === 0) {
-            html += `<div class="no-reviews"><div class="no-reviews__icon">💬</div><div class="no-reviews__text">Пока нет отзывов. Будьте первым!</div></div>`;
+            html = `<div class="no-reviews"><div class="no-reviews__icon">💬</div><div class="no-reviews__text">Пока нет отзывов</div></div>`;
         } else {
-            html += `<div style="margin-top: 20px;">`;
             approvedReviews.forEach(review => {
                 const date = new Date(review.created_at).toLocaleDateString('ru-RU');
                 const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
@@ -372,7 +352,6 @@ async function loadReviews() {
                     </div>
                 `;
             });
-            html += `</div>`;
         }
         
         reviewsList.innerHTML = html;

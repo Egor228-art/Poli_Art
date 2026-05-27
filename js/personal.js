@@ -716,51 +716,25 @@ class UserProfile {
         
         if (!reviewsContainer) return;
         
-        if (this.userReviews.length === 0 && (!this.reviewableProducts || this.reviewableProducts.length === 0)) {
-            reviewsContainer.innerHTML = `
+        // Добавляем кнопку "Оставить отзыв"
+        let html = `
+            <div style="margin-bottom: 30px;">
+                <button id="openReviewBtn" class="btn btn--primary" style="background: #27ae60; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; color: white;">
+                    ✍️ Оставить отзыв
+                </button>
+            </div>
+        `;
+        
+        // Показываем отзывы пользователя
+        if (this.userReviews.length === 0) {
+            html += `
                 <div class="reviews-empty">
                     <div class="empty-icon">⭐</div>
                     <h3>Отзывов пока нет</h3>
-                    <p>Оплатите заказ, чтобы оставить отзыв</p>
-                    ${this.orders.length > 0 ? 
-                        '<a href="#orders" class="btn btn--primary" onclick="userProfile.switchTab(\'orders\')">Перейти к заказам</a>' : 
-                        '<p>У вас пока нет заказов</p>'
-                    }
+                    <p>Оставьте свой первый отзыв о товаре!</p>
                 </div>
             `;
-            if (reviewsCount) reviewsCount.textContent = '0';
-            return;
-        }
-        
-        let html = '';
-        
-        if (this.reviewableProducts && this.reviewableProducts.length > 0) {
-            html += `
-                <div class="reviewable-products-section">
-                    <h3>Товары для отзыва</h3>
-                    <div class="reviewable-products-grid">
-                        ${this.reviewableProducts.map(product => `
-                            <div class="reviewable-product-card">
-                                <div class="product-image">
-                                    <img src="${product.image || '/image/no-image.jpg'}" alt="${this.escapeHtml(product.name)}" onerror="this.src='/image/no-image.jpg'">
-                                </div>
-                                <div class="product-info">
-                                    <h4>${this.escapeHtml(product.name)}</h4>
-                                    <div class="product-details">
-                                        <span class="order-info">Заказ #${product.order_number}</span>
-                                    </div>
-                                    <button class="btn btn--primary btn--small" onclick="userProfile.openReviewModal('${product.id}', '${this.escapeHtml(product.name).replace(/'/g, "\\'")}', '${product.product_type}')">
-                                        Оставить отзыв
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        if (this.userReviews.length > 0) {
+        } else {
             html += `<h3>Ваши отзывы</h3>`;
             html += this.userReviews.map(review => {
                 const date = new Date(review.created_at).toLocaleDateString('ru-RU');
@@ -785,55 +759,181 @@ class UserProfile {
         }
         
         reviewsContainer.innerHTML = html;
+        
+        // Добавляем обработчик на кнопку
+        document.getElementById('openReviewBtn')?.addEventListener('click', () => this.openReviewModal());
+        
         if (reviewsCount) reviewsCount.textContent = this.userReviews.length.toString();
     }
 
-    openReviewModal(productId, productName, productType = 'door') {
-        const modalHTML = `
-            <div class="modal-overlay" id="reviewModal" style="display: flex;">
-                <div class="modal modal--review">
-                    <button class="modal-close" id="closeReviewModal">&times;</button>
-                    <h2>Оставить отзыв</h2>
-                    <div class="modal-content">
-                        <div class="product-info-review">
-                            <h3>${this.escapeHtml(productName)}</h3>
+    openReviewModal() {
+        // Получаем список товаров, которые пользователь покупал
+        this.getPurchasedProducts().then(products => {
+            if (products.length === 0) {
+                alert('У вас нет оплаченных заказов. Чтобы оставить отзыв, необходимо купить товар.');
+                return;
+            }
+            
+            // Создаём модальное окно с выбором товара
+            const modalHTML = `
+                <div id="reviewModalWindow" style="position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:100000; display:flex; align-items:center; justify-content:center;">
+                    <div style="background:white; border-radius:20px; padding:30px; max-width:550px; width:90%; max-height:90vh; overflow-y:auto;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                            <h2 style="margin:0; color:#2c3e50;">Оставить отзыв</h2>
+                            <button onclick="closeReviewModalWindow()" style="background:none; border:none; font-size:28px; cursor:pointer; color:#999;">&times;</button>
                         </div>
-                        <form id="reviewForm" class="review-form">
-                            <input type="hidden" id="reviewProductId" value="${productId}">
-                            <input type="hidden" id="reviewProductName" value="${this.escapeHtml(productName)}">
-                            <input type="hidden" id="reviewProductType" value="${productType}">
-                            
-                            <div class="form-group">
-                                <label>Оценка *</label>
-                                <div class="rating-stars" id="ratingStars">
-                                    <span class="star" data-rating="1">☆</span>
-                                    <span class="star" data-rating="2">☆</span>
-                                    <span class="star" data-rating="3">☆</span>
-                                    <span class="star" data-rating="4">☆</span>
-                                    <span class="star" data-rating="5">☆</span>
-                                </div>
-                                <input type="hidden" id="reviewRating" name="rating" value="5" required>
+                        
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block; margin-bottom:10px; font-weight:600;">Выберите товар *</label>
+                            <select id="reviewProductSelect" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:10px;">
+                                <option value="">-- Выберите товар --</option>
+                                ${products.map(p => `<option value="${p.id}" data-type="${p.type}">${this.escapeHtml(p.name)}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block; margin-bottom:10px; font-weight:600;">Ваша оценка *</label>
+                            <div style="display:flex; gap:15px;" id="ratingStarsSelector">
+                                ${[1,2,3,4,5].map(i => `<span onclick="setRatingValue(${i})" data-rating="${i}" style="font-size:36px; cursor:pointer; color:#ddd;">☆</span>`).join('')}
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="reviewText">Отзыв *</label>
-                                <textarea id="reviewText" name="text" rows="5" placeholder="Поделитесь вашим мнением о товаре..." required></textarea>
-                            </div>
-                            
-                            <div class="form-actions">
-                                <button type="button" class="btn btn--secondary" id="cancelReview">Отмена</button>
-                                <button type="submit" class="btn btn--primary">Отправить отзыв</button>
-                            </div>
-                        </form>
+                            <input type="hidden" id="reviewRatingValue" value="5">
+                        </div>
+                        
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block; margin-bottom:10px; font-weight:600;">Достоинства</label>
+                            <textarea id="reviewProsValue" rows="2" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:10px; resize:vertical;" placeholder="Что вам понравилось?"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block; margin-bottom:10px; font-weight:600;">Недостатки</label>
+                            <textarea id="reviewConsValue" rows="2" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:10px; resize:vertical;" placeholder="Что можно улучшить?"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block; margin-bottom:10px; font-weight:600;">Ваш отзыв *</label>
+                            <textarea id="reviewTextValue" rows="5" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:10px; resize:vertical;" placeholder="Поделитесь впечатлениями о товаре..." required></textarea>
+                        </div>
+                        
+                        <div style="background:#e8f5e9; padding:15px; border-radius:12px; margin-bottom:25px;">
+                            <p style="margin:0; font-size:14px; color:#2e7d32;">📝 Отзыв будет опубликован после проверки модератором</p>
+                        </div>
+                        
+                        <div style="display:flex; gap:15px; justify-content:flex-end;">
+                            <button type="button" onclick="closeReviewModalWindow()" style="padding:12px 24px; background:#f0f0f0; border:none; border-radius:10px; cursor:pointer;">Отмена</button>
+                            <button id="submitReviewBtn" style="padding:12px 24px; background:#27ae60; color:white; border:none; border-radius:10px; cursor:pointer;">✍️ Отправить отзыв</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.body.style.overflow = 'hidden';
-        
-        this.setupReviewModalListeners();
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            document.body.style.overflow = 'hidden';
+            
+            window.setRatingValue = (rating) => {
+                const stars = document.querySelectorAll('#ratingStarsSelector span');
+                stars.forEach((star, index) => {
+                    if (index < rating) {
+                        star.textContent = '★';
+                        star.style.color = '#f1c40f';
+                    } else {
+                        star.textContent = '☆';
+                        star.style.color = '#ddd';
+                    }
+                });
+                document.getElementById('reviewRatingValue').value = rating;
+            };
+            window.setRatingValue(5);
+            
+            window.closeReviewModalWindow = () => {
+                const modal = document.getElementById('reviewModalWindow');
+                if (modal) {
+                    modal.remove();
+                    document.body.style.overflow = '';
+                }
+            };
+            
+            document.getElementById('submitReviewBtn').addEventListener('click', async () => {
+                const productId = document.getElementById('reviewProductSelect').value;
+                const productName = document.getElementById('reviewProductSelect').selectedOptions[0]?.text;
+                const productType = document.getElementById('reviewProductSelect').selectedOptions[0]?.dataset.type;
+                const rating = parseInt(document.getElementById('reviewRatingValue').value);
+                const pros = document.getElementById('reviewProsValue').value.trim();
+                const cons = document.getElementById('reviewConsValue').value.trim();
+                const text = document.getElementById('reviewTextValue').value.trim();
+                
+                if (!productId) {
+                    alert('Выберите товар');
+                    return;
+                }
+                if (!text) {
+                    alert('Напишите отзыв');
+                    return;
+                }
+                
+                try {
+                    await window.apiClient.createReview({
+                        product_id: productId,
+                        product_name: productName,
+                        rating: rating,
+                        text: text,
+                        pros: pros,
+                        cons: cons,
+                        isLaminate: productType === 'laminate'
+                    });
+                    
+                    alert('✅ Отзыв отправлен на модерацию!');
+                    window.closeReviewModalWindow();
+                    await this.loadUserReviews();
+                    await this.loadOrders();
+                    
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка отправки отзыва');
+                }
+            });
+        });
+    }
+
+    async getPurchasedProducts() {
+        try {
+            if (!this.currentUser) return [];
+            
+            const orders = await window.apiClient.getOrders();
+            const purchasedProducts = [];
+            const seen = new Set();
+            
+            const PAID_STATUSES = ['оплачено', 'доставлено', 'delivered', 'оплачен', 'выполнен', 'доставлен'];
+            
+            for (const order of orders) {
+                const status = (order.status || '').toLowerCase();
+                const isPaid = PAID_STATUSES.some(s => status.includes(s.toLowerCase()));
+                if (!isPaid) continue;
+                
+                let products = [];
+                if (typeof order.products === 'string') {
+                    try { products = JSON.parse(order.products); } catch(e) {}
+                } else if (Array.isArray(order.products)) {
+                    products = order.products;
+                }
+                
+                for (const p of products) {
+                    const productId = p.id || p.product_id || p.item_id || p.product;
+                    if (productId && !seen.has(productId)) {
+                        seen.add(productId);
+                        purchasedProducts.push({
+                            id: productId,
+                            name: p.name || 'Товар',
+                            type: p.collection === 'laminate' ? 'laminate' : 'doors'
+                        });
+                    }
+                }
+            }
+            
+            return purchasedProducts;
+        } catch (error) {
+            console.error('Ошибка получения купленных товаров:', error);
+            return [];
+        }
     }
 
     setupReviewModalListeners() {
