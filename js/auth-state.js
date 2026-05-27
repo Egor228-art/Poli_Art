@@ -57,10 +57,18 @@ class AuthStateManager {
     }
 
     async logout() {
-        await window.apiClient.logout();
-        this.currentUser = null;
-        this.updateUI();
-        window.location.href = 'index.html';
+        try {
+            if (window.apiClient) {
+                window.apiClient.setToken(null);
+            }
+            localStorage.removeItem('auth_token');
+            this.currentUser = null;
+            this.updateUI();
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Ошибка выхода:', error);
+            window.location.href = 'index.html';
+        }
     }
 
     escapeHtml(text) {

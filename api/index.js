@@ -285,7 +285,7 @@ export default async function handler(req, res) {
             }
             return res.json({ success: true });
         }
-        
+
         // PUT /api/admin/product/update
         if (path === '/api/admin/product/update' && req.method === 'PUT') {
             const { collection, id, name, description, price, type, material, color, style, thickness, wear_class, pictures } = req.body;
@@ -313,9 +313,12 @@ export default async function handler(req, res) {
         // DELETE /api/admin/product/delete
         if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
             const { collection, id } = req.body;
-            const table = collection === 'laminate' ? 'laminate' : 'doors';
-            console.log(`Deleting from ${table} where id = ${id}`);
-            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
+            
+            if (collection === 'laminate') {
+                await sql`DELETE FROM laminate WHERE id = ${id}`;
+            } else {
+                await sql`DELETE FROM doors WHERE id = ${id}`;
+            }
             return res.json({ success: true });
         }
         
@@ -324,10 +327,16 @@ export default async function handler(req, res) {
         if (productGetMatch && req.method === 'GET') {
             const collection = productGetMatch[1];
             const id = productGetMatch[2];
-            const table = collection === 'laminate' ? 'laminate' : 'doors';
-            const result = await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`;
-            if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
-            return res.json(result.rows[0]);
+            
+            if (collection === 'laminate') {
+                const result = await sql`SELECT * FROM laminate WHERE id = ${id}`;
+                if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+                return res.json(result.rows[0]);
+            } else {
+                const result = await sql`SELECT * FROM doors WHERE id = ${id}`;
+                if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+                return res.json(result.rows[0]);
+            }
         }
         
         // 404
