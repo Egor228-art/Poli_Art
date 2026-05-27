@@ -2,6 +2,15 @@
 let currentUser = null;
 let currentPage = 'dashboard';
 
+function getAuthToken() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html?redirect=admin.html';
+        return null;
+    }
+    return token;
+}
+
 async function checkAdminAccess() {
     // Ждем загрузку apiClient и authManager
     await new Promise(resolve => {
