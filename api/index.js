@@ -51,7 +51,6 @@ export default async function handler(req, res) {
             return res.json({ items: result.rows });
         }
         
-        // Товар по ID для сайта
         const doorsIdMatch = path.match(/^\/api\/products\/doors\/([^/]+)$/);
         if (doorsIdMatch && req.method === 'GET') {
             const id = doorsIdMatch[1];
@@ -74,7 +73,7 @@ export default async function handler(req, res) {
             const hashedPassword = await bcrypt.hash(password, 10);
             const result = await sql`
                 INSERT INTO users (email, password_hash, name, phone, address, role)
-                VALUES (${email}, ${hashedPassword}, ${name}, ${phone}, ${address}, 'user')
+                VALUES (${email}, ${hashedPassword}, ${name}, ${phone || null}, ${address || null}, 'user')
                 RETURNING id, email, name, role, phone, address
             `;
             const user = result.rows[0];
@@ -152,32 +151,44 @@ export default async function handler(req, res) {
             return res.json(result.rows[0]);
         }
         
-        // ============ ОТЗЫВЫ ============
+        // ============ ОТЗЫВЫ (ИСПРАВЛЕННЫЕ) ============
+        
+        // GET /api/reviews/:productId
         const reviewsMatch = path.match(/^\/api\/reviews\/([^?]+)/);
         if (reviewsMatch && req.method === 'GET') {
             const productId = reviewsMatch[1];
             const type = url.searchParams.get('type');
-            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
-            try {
-                const result = await sql`SELECT * FROM ${sql(table)} WHERE product_id = ${productId} ORDER BY created_at DESC`;
+            
+            if (type === 'laminate') {
+                const result = await sql`SELECT * FROM reviews_laminate WHERE product_id = ${productId} ORDER BY created_at DESC`;
                 return res.json(result.rows);
-            } catch {
-                return res.json([]);
+            } else {
+                const result = await sql`SELECT * FROM reviews WHERE product_id = ${productId} ORDER BY created_at DESC`;
+                return res.json(result.rows);
             }
         }
         
+        // POST /api/reviews
         if (path === '/api/reviews' && req.method === 'POST') {
             const authHeader = req.headers.authorization;
             if (!authHeader) return res.status(401).json({ error: 'No token' });
             const token = authHeader.split(' ')[1];
             const decoded = verifyToken(token);
             if (!decoded) return res.status(401).json({ error: 'Invalid token' });
+            
             const { product_id, product_name, rating, text, isLaminate } = req.body;
-            const table = isLaminate ? 'reviews_laminate' : 'reviews';
-            await sql`
-                INSERT INTO ${sql(table)} (product_id, product_name, rating, text, author_name, author_email, approved)
-                VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${decoded.name}, ${decoded.email}, false)
-            `;
+            
+            if (isLaminate) {
+                await sql`
+                    INSERT INTO reviews_laminate (product_id, product_name, rating, text, author_name, author_email, approved)
+                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${decoded.name}, ${decoded.email}, false)
+                `;
+            } else {
+                await sql`
+                    INSERT INTO reviews (product_id, product_name, rating, text, author_name, author_email, approved)
+                    VALUES (${product_id}, ${product_name}, ${rating}, ${text}, ${decoded.name}, ${decoded.email}, false)
+                `;
+            }
             return res.json({ success: true });
         }
         
@@ -193,82 +204,77 @@ export default async function handler(req, res) {
         
         // ============ АДМИНКА ============
         
-        // GET /api/admin/users
         if (path === '/api/admin/users' && req.method === 'GET') {
             const result = await sql`SELECT id, email, name, phone, role, created_at FROM users ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
         }
         
-        // PUT /api/admin/user/role
         if (path === '/api/admin/user/role' && req.method === 'PUT') {
             const { id, role } = req.body;
             await sql`UPDATE users SET role = ${role} WHERE id = ${id}`;
             return res.json({ success: true });
         }
         
-        // DELETE /api/admin/user/delete
         if (path === '/api/admin/user/delete' && req.method === 'DELETE') {
             const { id } = req.body;
             await sql`DELETE FROM users WHERE id = ${id}`;
             return res.json({ success: true });
         }
         
-        // GET /api/admin/measure
         if (path === '/api/admin/measure' && req.method === 'GET') {
             const result = await sql`SELECT * FROM measure_requests ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
         }
         
-        // PUT /api/admin/measure/status
         if (path === '/api/admin/measure/status' && req.method === 'PUT') {
             const { id, status } = req.body;
             await sql`UPDATE measure_requests SET status = ${status} WHERE id = ${id}`;
             return res.json({ success: true });
         }
         
-        // DELETE /api/admin/measure/delete
         if (path === '/api/admin/measure/delete' && req.method === 'DELETE') {
             const { id } = req.body;
             await sql`DELETE FROM measure_requests WHERE id = ${id}`;
             return res.json({ success: true });
         }
         
-        // GET /api/admin/reviews/doors
+        // ИСПРАВЛЕННЫЕ АДМИН-ЭНДПОИНТЫ ДЛЯ ОТЗЫВОВ
         if (path === '/api/admin/reviews/doors' && req.method === 'GET') {
             const result = await sql`SELECT * FROM reviews ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
         }
         
-        // GET /api/admin/reviews/laminate
         if (path === '/api/admin/reviews/laminate' && req.method === 'GET') {
             const result = await sql`SELECT * FROM reviews_laminate ORDER BY created_at DESC`;
             return res.json({ items: result.rows });
         }
         
-        // PUT /api/admin/review/approve
         if (path === '/api/admin/review/approve' && req.method === 'PUT') {
             const { id, type } = req.body;
-            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
-            await sql`UPDATE ${sql(table)} SET approved = true WHERE id = ${id}`;
+            if (type === 'laminate') {
+                await sql`UPDATE reviews_laminate SET approved = true WHERE id = ${id}`;
+            } else {
+                await sql`UPDATE reviews SET approved = true WHERE id = ${id}`;
+            }
             return res.json({ success: true });
         }
         
-        // DELETE /api/admin/review/delete
         if (path === '/api/admin/review/delete' && req.method === 'DELETE') {
             const { id, type } = req.body;
-            const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
-            await sql`DELETE FROM ${sql(table)} WHERE id = ${id}`;
+            if (type === 'laminate') {
+                await sql`DELETE FROM reviews_laminate WHERE id = ${id}`;
+            } else {
+                await sql`DELETE FROM reviews WHERE id = ${id}`;
+            }
             return res.json({ success: true });
         }
         
-        // PUT /api/admin/order/status
         if (path === '/api/admin/order/status' && req.method === 'PUT') {
             const { id, status } = req.body;
             await sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
             return res.json({ success: true });
         }
         
-        // POST /api/admin/product/create
         if (path === '/api/admin/product/create' && req.method === 'POST') {
             const { collection, name, description, price, type, material, color, style, thickness, wear_class, pictures } = req.body;
             
@@ -285,8 +291,7 @@ export default async function handler(req, res) {
             }
             return res.json({ success: true });
         }
-
-        // PUT /api/admin/product/update
+        
         if (path === '/api/admin/product/update' && req.method === 'PUT') {
             const { collection, id, name, description, price, type, material, color, style, thickness, wear_class, pictures } = req.body;
             
@@ -310,10 +315,8 @@ export default async function handler(req, res) {
             return res.json({ success: true });
         }
         
-        // DELETE /api/admin/product/delete
         if (path === '/api/admin/product/delete' && req.method === 'DELETE') {
             const { collection, id } = req.body;
-            
             if (collection === 'laminate') {
                 await sql`DELETE FROM laminate WHERE id = ${id}`;
             } else {
@@ -322,7 +325,6 @@ export default async function handler(req, res) {
             return res.json({ success: true });
         }
         
-        // GET /api/admin/product/:collection/:id
         const productGetMatch = path.match(/^\/api\/admin\/product\/(doors|laminate)\/([^/]+)$/);
         if (productGetMatch && req.method === 'GET') {
             const collection = productGetMatch[1];

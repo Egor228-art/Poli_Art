@@ -322,16 +322,17 @@ function initConstructorButton() {
 
 // Загрузка отзывов
 async function loadReviews() {
-    const reviewsList = document.querySelector('#reviews .reviews-list');
+    const reviewsList = document.querySelector('.reviews-list');
     if (!reviewsList) return;
     
     try {
-        const reviews = await window.apiClient.getReviews(currentProductId, true);
+        const reviews = await window.apiClient.getReviews(currentProductId, isLaminateMode);
         
         let html = '';
         let canReview = false;
         let statusText = '🔒 Отзыв только для купивших товар';
         
+        // ИСПРАВЛЕННАЯ ПРОВЕРКА
         if (window.authManager && window.authManager.currentUser) {
             const hasPurchased = await checkUserPurchased();
             if (hasPurchased) {
@@ -354,8 +355,8 @@ async function loadReviews() {
             </div>
             <div class="reviews-actions" style="margin-bottom: 30px;">
                 ${canReview ? 
-                    `<button class="btn btn--primary" onclick="openLaminateReviewModal('${currentProductId}')" style="background: #27ae60;">✍️ ${statusText}</button>` :
-                    `<button class="btn" disabled style="background: #f0f0f0; color: #999;">${statusText}</button>`
+                    `<button class="btn btn--primary" onclick="window.openReviewModal('${currentProductId}', ${isLaminateMode})" style="background: #27ae60; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; color: white;">✍️ ${statusText}</button>` :
+                    `<button class="btn" disabled style="background: #f0f0f0; color: #999; padding: 12px 24px; border-radius: 8px; cursor: not-allowed;">${statusText}</button>`
                 }
             </div>
         `;
