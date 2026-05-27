@@ -823,34 +823,22 @@
             });
             
             document.getElementById('thresholds').addEventListener('change', calculateCost);
-            document.getElementById('order-btn').addEventListener('click', function() {
-                const modal = document.getElementById('orderModal');
-                if (modal) {
-                    modal.style.display = 'flex';  // Меняем block на flex
-                    document.body.style.overflow = 'hidden';  // Запрещаем скролл страницы
-                }
-            });
+            document.getElementById('order-btn').addEventListener('click', showOrderModal);
             document.getElementById('confirmOrderBtn').addEventListener('click', submitOrder);
             document.getElementById('measure-btn').addEventListener('click', function() {
-                const modal = document.getElementById('measureModal');
-                if (modal) {
-                    modal.style.display = 'flex';  // Меняем block на flex
-                    document.body.style.overflow = 'hidden';
-                }
+                document.getElementById('measureModal').style.display = 'block';
             });
             
             document.querySelectorAll('.close, .close-modal').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.getElementById('orderModal').style.display = 'none';
                     document.getElementById('measureModal').style.display = 'none';
-                    document.body.style.overflow = '';  // Возвращаем скролл
                 });
             });
             
             window.addEventListener('click', function(event) {
                 if (event.target.classList.contains('modal')) {
                     event.target.style.display = 'none';
-                    document.body.style.overflow = '';
                 }
             });
             
