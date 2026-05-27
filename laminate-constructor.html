@@ -10,35 +10,6 @@
     <script src="js/api-client.js"></script>
     <script src="js/auth-state.js"></script>
     <style>
-    /* Центрирование модальных окон */
-    #orderModal, #measureModal {
-        display: none;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background: rgba(0, 0, 0, 0.8) !important;
-        z-index: 9999999 !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
-    
-    #orderModal .modal-content,
-    #measureModal .modal-content {
-        position: relative !important;
-        margin: 0 auto !important;
-        left: auto !important;
-        right: auto !important;
-        top: auto !important;
-        transform: none !important;
-        width: 90%;
-        max-width: 500px;
-    }
-</style>
-    <style>
         .color-groups-container { display: contents; width: 500px; max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
         .color-group:last-child { margin-bottom: 0; }
         .color-group-title { font-weight: bold; font-size: 14px; color: #333; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #eee; }
@@ -459,6 +430,11 @@
             
             return found;
         }
+
+        const block = document.getElementById('modal-content'); // Замените на ваш селектор
+        block.addEventListener('wheel', function(e) {
+            e.preventDefault();
+        }, { passive: false });
         
         // ============ 3D СЦЕНА ============
         function init3D() {
