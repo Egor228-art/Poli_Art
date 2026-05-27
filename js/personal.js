@@ -825,16 +825,11 @@ class UserProfile {
 
     async loadUserReviews() {
         try {
-            // Здесь нужно загрузить отзывы пользователя
-            // Пока оставляем пустым, так как API для этого пока нет
-            this.userReviews = [];
-            this.reviewableProducts = [];
+            this.userReviews = await window.apiClient.getUserReviews();
             this.updateReviewsUI();
-            
         } catch (error) {
             console.error('❌ Ошибка загрузки отзывов:', error);
             this.userReviews = [];
-            this.reviewableProducts = [];
             this.updateReviewsUI();
         }
     }
@@ -845,7 +840,6 @@ class UserProfile {
         
         if (!reviewsContainer) return;
         
-        // Убираем кнопку "Оставить отзыв" — она теперь только в заказах
         let html = '';
         
         if (this.userReviews.length === 0) {
@@ -890,7 +884,6 @@ class UserProfile {
         }
         
         reviewsContainer.innerHTML = html;
-        
         if (reviewsCount) reviewsCount.textContent = this.userReviews.length.toString();
     }
 

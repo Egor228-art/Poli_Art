@@ -425,28 +425,34 @@ async function deleteMeasureRequest(id) {
     loadPage('measure');
 }
 
+// Одобрение отзыва
 async function approveReview(id, type) {
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch('/api/admin/review/approve', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ id, type })
-        });
-        
-        if (response.ok) {
-            // Перезагружаем текущую страницу отзывов
-            await loadPage('reviews');
-        } else {
-            const error = await response.json();
-            alert('Ошибка: ' + (error.error || 'Не удалось одобрить отзыв'));
-        }
-    } catch (error) {
-        console.error('Ошибка одобрения отзыва:', error);
-        alert('Ошибка одобрения отзыва');
+    const token = localStorage.getItem('auth_token');
+    const response = await fetch('/api/admin/review/approve', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id, type })
+    });
+    if (response.ok) {
+        loadPage('reviews');
+    } else {
+        alert('Ошибка одобрения');
+    }
+}
+
+// Отклонение отзыва (удаление)
+async function rejectReview(id, type) {
+    if (!confirm('Отклонить отзыв? Он будет удален.')) return;
+    const token = localStorage.getItem('auth_token');
+    const response = await fetch('/api/admin/review/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id, type })
+    });
+    if (response.ok) {
+        loadPage('reviews');
+    } else {
+        alert('Ошибка отклонения');
     }
 }
 

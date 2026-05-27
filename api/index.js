@@ -256,18 +256,12 @@ export default async function handler(req, res) {
         
         if (path === '/api/admin/review/approve' && req.method === 'PUT') {
             const { id, type } = req.body;
-            console.log(`Approving review: id=${id}, type=${type}`);
-            try {
-                if (type === 'laminate') {
-                    await sql`UPDATE reviews_laminate SET approved = true WHERE id = ${id}`;
-                } else {
-                    await sql`UPDATE reviews SET approved = true WHERE id = ${id}`;
-                }
-                return res.json({ success: true });
-            } catch (error) {
-                console.error('Approve error:', error);
-                return res.status(500).json({ error: error.message });
+            if (type === 'laminate') {
+                await sql`UPDATE reviews_laminate SET approved = true WHERE id = ${id}`;
+            } else {
+                await sql`UPDATE reviews SET approved = true WHERE id = ${id}`;
             }
+            return res.json({ success: true });
         }
         
         if (path === '/api/admin/review/delete' && req.method === 'DELETE') {

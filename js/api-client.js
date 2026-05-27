@@ -103,6 +103,10 @@ class APIClient {
     async updateProfile(data) { 
         return this.request('PUT', '/user/profile', data); 
     }
+
+    async getUserReviews() {
+        return this.request('GET', '/user/reviews');
+    }
     
     // ============ ЗАКАЗЫ ============
     async getOrders() { 
