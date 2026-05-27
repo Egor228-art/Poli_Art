@@ -507,12 +507,13 @@ function updateFiltersFromUI() {
         });
         
         document.querySelectorAll('.color-option.selected').forEach(option => {
-            const colorMap = {
-                'brown': 'Коричневый', 'beige': 'Бежевый', 'gray': 'Серый',
-                'white': 'Белый', 'black': 'Чёрный', 'dark-brown': 'Темный дуб'
-            };
-            if (colorMap[option.dataset.color]) {
-                selectedFilters.laminateColors.push(colorMap[option.dataset.color]);
+            const colorName = option.dataset.color;
+            if (colorName) {
+                if (isLaminateMode) {
+                    selectedFilters.laminateColors.push(colorName);
+                } else {
+                    selectedFilters.doorColors.push(colorName);
+                }
             }
         });
         
@@ -603,11 +604,15 @@ function applyFilters() {
                 
                 if (selectedFilters.laminateColors.length > 0) {
                     if (!product.color || !Array.isArray(product.color)) return false;
-                    const productColors = product.color;
-                    const hasColor = selectedFilters.laminateColors.some(filterColor =>
-                        productColors.some(productColor =>
-                            productColor && typeof productColor === 'string' &&
-                            productColor.toLowerCase().includes(filterColor.toLowerCase())
+                    
+                    const productColors = product.color.map(c => c.toLowerCase().trim());
+                    const normalizedFilters = selectedFilters.laminateColors.map(c => c.toLowerCase().trim());
+                    
+                    const hasColor = normalizedFilters.some(filterColor =>
+                        productColors.some(productColor => 
+                            productColor === filterColor || 
+                            productColor.includes(filterColor) || 
+                            filterColor.includes(productColor)
                         )
                     );
                     if (!hasColor) return false;
@@ -645,13 +650,20 @@ function applyFilters() {
                 if (selectedFilters.doorColors.length > 0 && product.color) {
                     let productColors = [];
                     if (Array.isArray(product.color)) {
-                        productColors = product.color.map(c => c.toLowerCase());
+                        productColors = product.color.map(c => c.toLowerCase().trim());
                     } else if (typeof product.color === 'string') {
-                        productColors = [product.color.toLowerCase()];
+                        productColors = [product.color.toLowerCase().trim()];
                     }
                     
-                    const hasColor = selectedFilters.doorColors.some(color =>
-                        productColors.some(productColor => productColor.includes(color.toLowerCase()))
+                    // Нормализуем выбранные цвета
+                    const normalizedFilters = selectedFilters.doorColors.map(c => c.toLowerCase().trim());
+                    
+                    const hasColor = normalizedFilters.some(filterColor =>
+                        productColors.some(productColor => 
+                            productColor === filterColor || 
+                            productColor.includes(filterColor) || 
+                            filterColor.includes(productColor)
+                        )
                     );
                     if (!hasColor) return false;
                 }
