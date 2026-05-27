@@ -509,10 +509,15 @@ function updateFiltersFromUI() {
         document.querySelectorAll('.color-option.selected').forEach(option => {
             const colorName = option.dataset.color;
             if (colorName) {
+                // Добавляем оригинальное название цвета (как в БД)
                 if (isLaminateMode) {
-                    selectedFilters.laminateColors.push(colorName);
+                    if (!selectedFilters.laminateColors.includes(colorName)) {
+                        selectedFilters.laminateColors.push(colorName);
+                    }
                 } else {
-                    selectedFilters.doorColors.push(colorName);
+                    if (!selectedFilters.doorColors.includes(colorName)) {
+                        selectedFilters.doorColors.push(colorName);
+                    }
                 }
             }
         });
@@ -602,19 +607,23 @@ function applyFilters() {
                     if (!hasThickness) return false;
                 }
                 
-                if (selectedFilters.laminateColors.length > 0) {
-                    if (!product.color || !Array.isArray(product.color)) return false;
+                if (selectedFilters.laminateColors.length > 0 && product.color) {
+                    let productColors = [];
+                    if (Array.isArray(product.color)) {
+                        productColors = product.color.map(c => c.toLowerCase().trim());
+                    } else if (typeof product.color === 'string') {
+                        productColors = [product.color.toLowerCase().trim()];
+                    }
                     
-                    const productColors = product.color.map(c => c.toLowerCase().trim());
-                    const normalizedFilters = selectedFilters.laminateColors.map(c => c.toLowerCase().trim());
+                    const hasColor = selectedFilters.laminateColors.some(filterColor => {
+                        const filterLower = filterColor.toLowerCase().trim();
+                        return productColors.some(productColor => 
+                            productColor === filterLower || 
+                            productColor.includes(filterLower) || 
+                            filterLower.includes(productColor)
+                        );
+                    });
                     
-                    const hasColor = normalizedFilters.some(filterColor =>
-                        productColors.some(productColor => 
-                            productColor === filterColor || 
-                            productColor.includes(filterColor) || 
-                            filterColor.includes(productColor)
-                        )
-                    );
                     if (!hasColor) return false;
                 }
                 
@@ -648,6 +657,7 @@ function applyFilters() {
                 }
                 
                 if (selectedFilters.doorColors.length > 0 && product.color) {
+                    // product.color - это массив, например ["Черная шагрень", "белый", "матовый черный"]
                     let productColors = [];
                     if (Array.isArray(product.color)) {
                         productColors = product.color.map(c => c.toLowerCase().trim());
@@ -655,16 +665,16 @@ function applyFilters() {
                         productColors = [product.color.toLowerCase().trim()];
                     }
                     
-                    // Нормализуем выбранные цвета
-                    const normalizedFilters = selectedFilters.doorColors.map(c => c.toLowerCase().trim());
+                    // Проверяем, есть ли хоть один выбранный цвет в массиве цветов товара
+                    const hasColor = selectedFilters.doorColors.some(filterColor => {
+                        const filterLower = filterColor.toLowerCase().trim();
+                        return productColors.some(productColor => 
+                            productColor === filterLower || 
+                            productColor.includes(filterLower) || 
+                            filterLower.includes(productColor)
+                        );
+                    });
                     
-                    const hasColor = normalizedFilters.some(filterColor =>
-                        productColors.some(productColor => 
-                            productColor === filterColor || 
-                            productColor.includes(filterColor) || 
-                            filterColor.includes(productColor)
-                        )
-                    );
                     if (!hasColor) return false;
                 }
                 
