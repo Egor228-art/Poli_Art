@@ -54,15 +54,18 @@ export default async function handler(req, res) {
             return res.json({ items: result.rows });
         }
         
-        if (path.match(/^\/api\/products\/laminate\/[^/]+$/) && req.method === 'GET') {
-            const id = path.split('/').pop();
+        // Товар по ID
+        const laminateMatch = path.match(/^\/api\/products\/laminate\/([^/]+)$/);
+        if (laminateMatch && req.method === 'GET') {
+            const id = laminateMatch[1];
             const result = await sql`SELECT * FROM laminate WHERE id = ${id}`;
             if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
             return res.json(result.rows[0]);
         }
         
-        if (path.match(/^\/api\/products\/doors\/[^/]+$/) && req.method === 'GET') {
-            const id = path.split('/').pop();
+        const doorsMatch = path.match(/^\/api\/products\/doors\/([^/]+)$/);
+        if (doorsMatch && req.method === 'GET') {
+            const id = doorsMatch[1];
             const result = await sql`SELECT * FROM doors WHERE id = ${id}`;
             if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
             return res.json(result.rows[0]);
@@ -153,8 +156,9 @@ export default async function handler(req, res) {
         }
         
         // Отзывы
-        if (path.match(/^\/api\/reviews\/[^/]+$/) && req.method === 'GET') {
-            const productId = path.split('/').pop();
+        const reviewsMatch = path.match(/^\/api\/reviews\/([^?]+)/);
+        if (reviewsMatch && req.method === 'GET') {
+            const productId = reviewsMatch[1];
             const type = url.searchParams.get('type');
             const table = type === 'laminate' ? 'reviews_laminate' : 'reviews';
             const result = await sql`SELECT * FROM ${sql(table)} WHERE product_id = ${productId} ORDER BY created_at DESC`;
@@ -177,9 +181,35 @@ export default async function handler(req, res) {
             return res.json(result.rows[0]);
         }
         
+        // Контакты
+        if (path === '/api/contacts' && req.method === 'POST') {
+            const { name, phone, email, message } = req.body;
+            await sql`
+                INSERT INTO contact_messages (name, phone, email, message, created_at)
+                VALUES (${name}, ${phone}, ${email}, ${message}, NOW())
+            `;
+            return res.json({ success: true });
+        }
+        
+        // Замеры
+        if (path === '/api/measure' && req.method === 'POST') {
+            const { name, phone, address, comment } = req.body;
+            let userId = null;
+            const authHeader = req.headers.authorization;
+            if (authHeader) {
+                const token = authHeader.split(' ')[1];
+                const decoded = verifyToken(token);
+                if (decoded) userId = decoded.id;
+            }
+            await sql`
+                INSERT INTO measure_requests (user_id, name, phone, address, comment, created_at)
+                VALUES (${userId}, ${name}, ${phone}, ${address}, ${comment}, NOW())
+            `;
+            return res.json({ success: true });
+        }
+        
         // ============ АДМИН ЭНДПОИНТЫ ============
         
-        // Проверка админа
         async function isAdmin(authHeader) {
             if (!authHeader) return false;
             const token = authHeader.split(' ')[1];
@@ -214,7 +244,7 @@ export default async function handler(req, res) {
                 return res.status(403).json({ error: 'Forbidden' });
             }
             const { id, status } = req.body;
-            await sql`UPDATE orders SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
+            await sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
             return res.json({ success: true });
         }
         
@@ -267,6 +297,26 @@ export default async function handler(req, res) {
             return res.json({ items: result.rows });
         }
         
+        // PUT /api/admin/measure/status
+        if (path === '/api/admin/measure/status' && req.method === 'PUT') {
+            if (!(await isAdmin(req.headers.authorization))) {
+                return res.status(403).json({ error: 'Forbidden' });
+            }
+            const { id, status } = req.body;
+            await sql`UPDATE measure_requests SET status = ${status} WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+        
+        // DELETE /api/admin/measure/delete
+        if (path === '/api/admin/measure/delete' && req.method === 'DELETE') {
+            if (!(await isAdmin(req.headers.authorization))) {
+                return res.status(403).json({ error: 'Forbidden' });
+            }
+            const { id } = req.body;
+            await sql`DELETE FROM measure_requests WHERE id = ${id}`;
+            return res.json({ success: true });
+        }
+        
         // PUT /api/admin/product/update
         if (path === '/api/admin/product/update' && req.method === 'PUT') {
             if (!(await isAdmin(req.headers.authorization))) {
@@ -279,7 +329,7 @@ export default async function handler(req, res) {
                 SET name = ${name}, description = ${description}, price = ${price}, 
                     type = ${type}, material = ${material}, color = ${color}, 
                     style = ${style}, thickness = ${thickness}, wear_class = ${wear_class}, 
-                    pictures = ${pictures}, updated_at = NOW()
+                    pictures = ${pictures}
                 WHERE id = ${id}
             `;
             return res.json({ success: true });
@@ -311,13 +361,13 @@ export default async function handler(req, res) {
         }
         
         // GET /api/admin/product/:collection/:id
-        if (path.match(/^\/api\/admin\/product\/[^/]+\/[^/]+$/) && req.method === 'GET') {
+        const adminProductMatch = path.match(/^\/api\/admin\/product\/([^/]+)\/([^/]+)$/);
+        if (adminProductMatch && req.method === 'GET') {
             if (!(await isAdmin(req.headers.authorization))) {
                 return res.status(403).json({ error: 'Forbidden' });
             }
-            const parts = path.split('/');
-            const collection = parts[4];
-            const id = parts[5];
+            const collection = adminProductMatch[1];
+            const id = adminProductMatch[2];
             const table = collection === 'laminate' ? 'laminate' : 'doors';
             const result = await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`;
             if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
