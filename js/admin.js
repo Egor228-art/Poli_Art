@@ -289,8 +289,8 @@ async function loadReviewsList() {
                                     <td><span class="status-badge ${r.approved ? 'status-delivered' : 'status-new'}">${r.approved ? 'Одобрен' : 'На модерации'}</span></td>
                                     <td>${new Date(r.created_at).toLocaleDateString()}</td>
                                     <td class="action-btns">
-                                        ${!r.approved ? `<button class="action-btn action-approve" onclick="approveReview('${r.id}', '${r.product_type || 'doors'}')">✓ Одобрить</button>` : ''}
-                                        ${r.approved ? `<button class="action-btn action-approve" onclick="rejectReview('${r.id}', '${r.product_type || 'doors'}')">✗ Отклонить</button>` : ''}
+                                        ${!r.approved ? `<button class="action-btn action-approve" onclick="approveReview(${r.id}, '${r.product_type || 'doors'}')">✓ Одобрить</button>` : ''}
+                                        ${r.approved ? `<button class="action-btn action-approve" onclick="rejectReview(${r.id}, '${r.product_type || 'doors'}')">✗ Отклонить</button>` : ''}
                                         <button class="action-btn action-delete" onclick="deleteReview('${r.id}', '${r.product_type || 'doors'}')">🗑️ Удалить</button>
                                     </td>
                                 </tr>
@@ -427,16 +427,25 @@ async function deleteMeasureRequest(id) {
 
 // Одобрение отзыва
 async function approveReview(id, type) {
+    // id должен быть числом
+    const numericId = parseInt(id);
+    if (isNaN(numericId)) {
+        alert('Неверный ID отзыва');
+        return;
+    }
+    
     const token = localStorage.getItem('auth_token');
     const response = await fetch('/api/admin/review/approve', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id, type })
+        body: JSON.stringify({ id: numericId, type })
     });
+    
     if (response.ok) {
         loadPage('reviews');
     } else {
-        alert('Ошибка одобрения');
+        const error = await response.json();
+        alert('Ошибка: ' + error.error);
     }
 }
 

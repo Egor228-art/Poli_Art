@@ -256,10 +256,15 @@ export default async function handler(req, res) {
         
         if (path === '/api/admin/review/approve' && req.method === 'PUT') {
             const { id, type } = req.body;
+            const numericId = parseInt(id);
+            if (isNaN(numericId)) {
+                return res.status(400).json({ error: 'Invalid id' });
+            }
+            
             if (type === 'laminate') {
-                await sql`UPDATE reviews_laminate SET approved = true WHERE id = ${id}`;
+                await sql`UPDATE reviews_laminate SET approved = true WHERE id = ${numericId}`;
             } else {
-                await sql`UPDATE reviews SET approved = true WHERE id = ${id}`;
+                await sql`UPDATE reviews SET approved = true WHERE id = ${numericId}`;
             }
             return res.json({ success: true });
         }
