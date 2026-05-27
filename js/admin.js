@@ -261,7 +261,12 @@ async function loadReviewsList() {
                 headers: { 'Authorization': `Bearer ${token}` }
             }).then(r => r.json()).catch(() => ({ items: [] }))
         ]);
-        const allReviews = [...(doorsReviews.items || []), ...(laminateReviews.items || [])];
+        
+        // Добавляем тип товара
+        const doorsWithType = (doorsReviews.items || []).map(r => ({ ...r, product_type: 'doors' }));
+        const laminateWithType = (laminateReviews.items || []).map(r => ({ ...r, product_type: 'laminate' }));
+        const allReviews = [...doorsWithType, ...laminateWithType];
+        allReviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         document.getElementById('pageContent').innerHTML = `
             <div class="section-card">
@@ -269,29 +274,22 @@ async function loadReviewsList() {
                 ${allReviews.length === 0 ? '<div class="no-data">Нет отзывов</div>' : `
                     <table class="data-table">
                         <thead>
-                            <tr>
-                                <th>Товар</th>
-                                <th>Автор</th>
-                                <th>Рейтинг</th>
-                                <th>Отзыв</th>
-                                <th>Статус</th>
-                                <th>Дата</th>
-                                <th>Действия</th>
-                            </tr>
+                            <tr><th>Товар</th><th>Автор</th><th>Рейтинг</th><th>Достоинства</th><th>Недостатки</th><th>Отзыв</th><th>Статус</th><th>Дата</th><th>Действия</th></tr>
                         </thead>
                         <tbody>
                             ${allReviews.map(r => `
                                 <tr>
-                                    <td>${escapeHtml(r.product_name || r.product_id?.slice(0,8) || '-')}</td>
+                                    <td>${escapeHtml(r.product_name || r.product_id?.slice(0,8) || '-')} <small style="color:#999">(${r.product_type === 'laminate' ? 'ламинат' : 'дверь'})</small></td>
                                     <td>${escapeHtml(r.author_name || '-')}</td>
                                     <td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
-                                    <td style="max-width:300px;">${escapeHtml(r.text?.substring(0, 80) || '')}${r.text?.length > 80 ? '...' : ''}</td>
+                                    <td style="max-width:200px;">${escapeHtml(r.pros?.substring(0, 50) || '-')}${r.pros?.length > 50 ? '...' : ''}</td>
+                                    <td style="max-width:200px;">${escapeHtml(r.cons?.substring(0, 50) || '-')}${r.cons?.length > 50 ? '...' : ''}</td>
+                                    <td style="max-width:200px;">${escapeHtml(r.text?.substring(0, 50) || '-')}${r.text?.length > 50 ? '...' : ''}</td>
                                     <td><span class="status-badge ${r.approved ? 'status-delivered' : 'status-new'}">${r.approved ? 'Одобрен' : 'На модерации'}</span></td>
                                     <td>${new Date(r.created_at).toLocaleDateString()}</td>
                                     <td class="action-btns">
-                                        ${!r.approved ? `<button class="action-btn action-approve" onclick="approveReview(${r.id}, '${r.product_type || 'doors'}')">✓ Одобрить</button>` : ''}
-                                        ${r.approved ? `<button class="action-btn action-approve" onclick="rejectReview(${r.id}, '${r.product_type || 'doors'}')">✗ Отклонить</button>` : ''}
-                                        <button class="action-btn action-delete" onclick="deleteReview('${r.id}', '${r.product_type || 'doors'}')">🗑️ Удалить</button>
+                                        ${!r.approved ? `<button class="action-btn action-approve" onclick="approveReview(${r.id}, '${r.product_type}')">✓ Одобрить</button>` : ''}
+                                        <button class="action-btn action-delete" onclick="deleteReview(${r.id}, '${r.product_type}')">🗑️ Удалить</button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -301,6 +299,29 @@ async function loadReviewsList() {
             </div>
         `;
     } catch(e) { console.error(e); }
+}
+
+// Исправляем approveReview - id должен быть числом
+async function approveReview(id, type) {
+    const numericId = parseInt(id);
+    if (isNaN(numericId)) {
+        alert('Неверный ID отзыва');
+        return;
+    }
+    
+    const token = localStorage.getItem('auth_token');
+    const response = await fetch('/api/admin/review/approve', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: numericId, type })
+    });
+    
+    if (response.ok) {
+        loadPage('reviews');
+    } else {
+        const error = await response.json();
+        alert('Ошибка: ' + (error.error || 'Не удалось одобрить отзыв'));
+    }
 }
 
 // Добавь функцию rejectReview

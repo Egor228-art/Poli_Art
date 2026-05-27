@@ -206,6 +206,34 @@ export default async function handler(req, res) {
             `;
             return res.json({ success: true });
         }
+
+        // ============ ОТЗЫВЫ ПОЛЬЗОВАТЕЛЯ ============
+        if (path === '/api/user/reviews' && req.method === 'GET') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'No token' });
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Invalid token' });
+            
+            // Получаем отзывы пользователя из двух таблиц
+            const userResult = await sql`SELECT name, email FROM users WHERE id = ${decoded.id}`;
+            const userEmail = userResult.rows[0]?.email || decoded.email;
+            const userName = userResult.rows[0]?.name || decoded.name || 'Пользователь';
+            
+            const doorsReviews = await sql`
+                SELECT id, product_id, product_name, rating, text, pros, cons, approved, created_at, 'doors' as product_type 
+                FROM reviews WHERE author_email = ${userEmail} OR author_name = ${userName}
+            `;
+            const laminateReviews = await sql`
+                SELECT id, product_id, product_name, rating, text, pros, cons, approved, created_at, 'laminate' as product_type 
+                FROM reviews_laminate WHERE author_email = ${userEmail} OR author_name = ${userName}
+            `;
+            
+            const allReviews = [...doorsReviews.rows, ...laminateReviews.rows];
+            allReviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            return res.json(allReviews);
+        }
         
         // ============ АДМИНКА ============
         

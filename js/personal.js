@@ -597,13 +597,7 @@ class UserProfile {
         if (!ordersContainer) return;
         
         if (this.orders.length === 0) {
-            ordersContainer.innerHTML = `
-                <div class="orders-empty">
-                    <div class="empty-icon">📦</div>
-                    <h3>Заказов пока нет</h3>
-                    <p>Совершите свой первый заказ!</p>
-                </div>
-            `;
+            ordersContainer.innerHTML = `...`;
             return;
         }
 
@@ -612,8 +606,8 @@ class UserProfile {
             const statusText = this.getOrderStatusText(order.status);
             const statusClass = this.getOrderStatusClass(order.status);
             
-            // Разрешаем отзыв только для доставленных заказов
-            const canReview = order.status === 'доставлен' || order.status === 'delivered';
+            // Разрешаем отзыв только для доставленных заказов И если отзыв ещё не оставлен
+            const canReview = (order.status === 'доставлен' || order.status === 'delivered');
             
             let products = [];
             if (typeof order.products === 'string') {
@@ -642,25 +636,30 @@ class UserProfile {
                         <div class="order-products">
                             <h4>Товары в заказе:</h4>
                             ${products.map((product, idx) => {
-                                // Проверяем, оставлял ли уже отзыв на этот товар
+                                // ПРОВЕРКА: оставлял ли уже отзыв на этот товар
                                 const hasReviewed = this.userReviews.some(review => 
                                     review.product_id === product.id
                                 );
-                                const productType = product.collection === 'laminate' ? 'laminate' : 'door';
+                                const productType = product.collection === 'laminate' ? 'laminate' : 'doors';
+                                const productPage = productType === 'laminate' ? 'laminate-product.html' : 'product.html';
                                 
                                 return `
                                     <div class="order-product">
                                         <div>
                                             <span>${this.escapeHtml(product.name || 'Товар ' + (idx + 1))}</span>
                                             <span class="product-quantity">${product.quantity || 1} шт.</span>
+                                            <a href="${productPage}?id=${product.id}" class="product-link" target="_blank">🔗</a>
                                         </div>
                                         <div class="product-price">${((product.price || 0) * (product.quantity || 1)).toLocaleString()} ₽</div>
-                                        ${canReview && !hasReviewed ? `
-                                            <button class="btn-review-small" onclick="userProfile.openReviewForProduct('${product.id}', '${this.escapeHtml(product.name || 'Товар')}', '${productType}')">
-                                                ✍️ Оставить отзыв
-                                            </button>
-                                        ` : ''}
-                                        ${hasReviewed ? `<span class="reviewed-badge">✓ Отзыв оставлен</span>` : ''}
+                                        <div class="order-product-actions">
+                                            ${canReview && !hasReviewed ? `
+                                                <button class="btn-review-small" onclick="userProfile.openReviewForProduct('${product.id}', '${this.escapeHtml(product.name || 'Товар')}', '${productType}')">
+                                                    ✍️ Оставить отзыв
+                                                </button>
+                                            ` : ''}
+                                            ${hasReviewed ? `<span class="reviewed-badge">✓ Отзыв оставлен</span>` : ''}
+                                            ${!canReview && order.status !== 'доставлен' ? `<span class="review-disabled-badge">🔒 Отзыв после доставки</span>` : ''}
+                                        </div>
                                     </div>
                                 `;
                             }).join('')}
@@ -825,7 +824,23 @@ class UserProfile {
 
     async loadUserReviews() {
         try {
-            this.userReviews = await window.apiClient.getUserReviews();
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                this.userReviews = [];
+                this.updateReviewsUI();
+                return;
+            }
+            
+            const response = await fetch('/api/user/reviews', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                this.userReviews = await response.json();
+            } else {
+                this.userReviews = [];
+            }
+            
             this.updateReviewsUI();
         } catch (error) {
             console.error('❌ Ошибка загрузки отзывов:', error);
@@ -851,12 +866,12 @@ class UserProfile {
                 </div>
             `;
         } else {
-            html = `<h3>Ваши отзывы</h3>`;
+            html = `<div class="reviews-list">`;
             html += this.userReviews.map(review => {
                 const date = new Date(review.created_at).toLocaleDateString('ru-RU');
                 const ratingStars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
                 const statusClass = review.approved ? 'status-approved' : 'status-pending';
-                const statusText = review.approved ? 'Одобрен' : 'На модерации';
+                const statusText = review.approved ? '✓ Одобрен' : '⏳ На проверке';
                 const productType = review.product_type === 'laminate' ? 'laminate' : 'door';
                 const productPage = productType === 'laminate' ? 'laminate-product.html' : 'product.html';
                 
@@ -869,18 +884,19 @@ class UserProfile {
                             </div>
                             <div class="review-rating" title="${review.rating} из 5">${ratingStars}</div>
                         </div>
-                        ${review.pros ? `<div class="review-pros"><strong>Достоинства:</strong> ${this.escapeHtml(review.pros)}</div>` : ''}
-                        ${review.cons ? `<div class="review-cons"><strong>Недостатки:</strong> ${this.escapeHtml(review.cons)}</div>` : ''}
+                        ${review.pros ? `<div class="review-pros"><strong>👍 Достоинства:</strong> ${this.escapeHtml(review.pros)}</div>` : ''}
+                        ${review.cons ? `<div class="review-cons"><strong>👎 Недостатки:</strong> ${this.escapeHtml(review.cons)}</div>` : ''}
                         <div class="review-text">${this.escapeHtml(review.text)}</div>
                         <div class="review-status ${statusClass}">${statusText}</div>
                         ${review.approved ? `
-                            <div style="margin-top: 10px;">
-                                <a href="${productPage}?id=${review.product_id}#reviews" class="btn-review-small" style="background: #3498db;">🔗 К отзыву на сайте</a>
+                            <div class="review-link">
+                                <a href="${productPage}?id=${review.product_id}#reviews" class="btn-review-link">🔗 Посмотреть отзыв на сайте</a>
                             </div>
                         ` : ''}
                     </div>
                 `;
             }).join('');
+            html += `</div>`;
         }
         
         reviewsContainer.innerHTML = html;

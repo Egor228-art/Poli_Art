@@ -9,6 +9,156 @@
     <link rel="stylesheet" href="css/auth.css">
     <script src="js/api-client.js"></script>
     <style>
+/* Стили для отзывов в заказах */
+.order-product-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-review-small {
+    padding: 6px 12px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-review-small:hover {
+    background: #2ecc71;
+    transform: translateY(-1px);
+}
+
+.reviewed-badge {
+    padding: 6px 12px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.review-disabled-badge {
+    padding: 6px 12px;
+    background: #fff3e0;
+    color: #e65100;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.product-link {
+    margin-left: 8px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+/* Стили для списка отзывов пользователя */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+.review-item:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.review-product {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.review-date {
+    font-size: 12px;
+    color: #999;
+}
+
+.review-rating {
+    font-size: 18px;
+    color: #f1c40f;
+    letter-spacing: 2px;
+}
+
+.review-pros {
+    background: #e8f5e9;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.review-cons {
+    background: #ffebee;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.review-text {
+    padding: 10px 0;
+    color: #555;
+    line-height: 1.5;
+}
+
+.review-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.status-approved {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-pending {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.review-link {
+    margin-top: 15px;
+}
+
+.btn-review-link {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.btn-review-link:hover {
+    background: #2980b9;
+}
+
 .address-badge {
     display: inline-block;
     padding: 2px 8px;
