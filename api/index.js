@@ -438,7 +438,85 @@ export default async function handler(req, res) {
             
             return res.json({ success: true });
         }
-        
+
+        // POST /api/user/avatar
+        if (path === '/api/user/avatar' && req.method === 'POST') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+            
+            // Получаем файл из FormData
+            const chunks = [];
+            for await (const chunk of req) {
+                chunks.push(chunk);
+            }
+            const buffer = Buffer.concat(chunks);
+            
+            // Парсим multipart/form-data
+            const boundary = req.headers['content-type'].split('boundary=')[1];
+            if (!boundary) {
+                return res.status(400).json({ error: 'Invalid form data' });
+            }
+            
+            // Простой парсинг (для одного файла)
+            const parts = buffer.toString().split(`--${boundary}`);
+            let fileData = null;
+            let filename = null;
+            
+            for (const part of parts) {
+                if (part.includes('Content-Disposition') && part.includes('filename=')) {
+                    const filenameMatch = part.match(/filename="(.+?)"/);
+                    if (filenameMatch) filename = filenameMatch[1];
+                    
+                    const fileStart = part.indexOf('\r\n\r\n') + 4;
+                    const fileEnd = part.lastIndexOf('\r\n--');
+                    if (fileStart > 0 && fileEnd > fileStart) {
+                        fileData = part.slice(fileStart, fileEnd);
+                    }
+                    break;
+                }
+            }
+            
+            if (!fileData) {
+                return res.status(400).json({ error: 'No file uploaded' });
+            }
+            
+            // Конвертируем в base64 для хранения (простой способ)
+            const base64Data = fileData;
+            
+            // Сохраняем base64 в БД
+            await sql`
+                UPDATE users 
+                SET avatar = ${base64Data}
+                WHERE id = ${decoded.id}
+            `;
+            
+            return res.json({ success: true, avatar: base64Data });
+        }
+
+        // GET /api/user/avatar
+        if (path === '/api/user/avatar' && req.method === 'GET') {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) return res.status(401).json({ error: 'Не авторизован' });
+            
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (!decoded) return res.status(401).json({ error: 'Недействительный токен' });
+            
+            const result = await sql`SELECT avatar FROM users WHERE id = ${decoded.id}`;
+            const avatar = result.rows[0]?.avatar;
+            
+            if (avatar) {
+                res.setHeader('Content-Type', 'image/jpeg');
+                return res.send(Buffer.from(avatar, 'base64'));
+            } else {
+                return res.status(404).json({ error: 'Avatar not found' });
+            }
+        }
+
         // ============ АДМИНКА - СОЗДАНИЕ ТОВАРА ============
         if (path === '/api/admin/product/create' && req.method === 'POST') {
             const authHeader = req.headers.authorization;

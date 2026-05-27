@@ -602,9 +602,9 @@ async function handleAvatarUpload(file) {
 document.addEventListener('DOMContentLoaded', function() {
     const avatarInput = document.getElementById('avatarInput');
     if (avatarInput) {
-        avatarInput.addEventListener('change', (e) => {
+        avatarInput.addEventListener('change', async (e) => {
             if (e.target.files && e.target.files[0]) {
-                handleAvatarUpload(e.target.files[0]);
+                await userProfile.uploadAvatar(e.target.files[0]);
             }
         });
     }

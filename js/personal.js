@@ -1190,6 +1190,79 @@ class UserProfile {
         }
     }
 
+    async uploadAvatar(file) {
+        if (!file) return;
+        
+        // Проверка типа файла
+        if (!file.type.startsWith('image/')) {
+            this.showNotification('Пожалуйста, выберите изображение', 'error');
+            return;
+        }
+        
+        // Проверка размера (максимум 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            this.showNotification('Файл слишком большой (максимум 2MB)', 'error');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch('/api/user/avatar', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                this.showNotification('Аватар успешно обновлен!', 'success');
+                
+                // Обновляем отображение аватара
+                this.updateAvatarDisplay(result.avatar);
+            } else {
+                this.showNotification('Ошибка загрузки аватара', 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            this.showNotification('Ошибка загрузки аватара', 'error');
+        }
+    }
+
+    updateAvatarDisplay(avatarBase64) {
+        const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+        const initials = document.getElementById('avatarInitials');
+        
+        if (avatarPlaceholder) {
+            if (avatarBase64) {
+                avatarPlaceholder.style.backgroundImage = `url(data:image/jpeg;base64,${avatarBase64})`;
+                avatarPlaceholder.style.backgroundSize = 'cover';
+                avatarPlaceholder.style.backgroundPosition = 'center';
+                if (initials) initials.style.display = 'none';
+            } else {
+                // Сброс на инициалы
+                avatarPlaceholder.style.backgroundImage = 'linear-gradient(135deg, #eabb66 0%, #e74c3c 100%)';
+                if (initials) {
+                    initials.style.display = 'flex';
+                    initials.textContent = this.getUserInitials(this.currentUser?.name || 'Пользователь');
+                }
+            }
+        }
+    }
+
+    getUserInitials(name) {
+        if (!name) return '👤';
+        const parts = name.split(' ').filter(p => p.length > 0);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    }
+
     async changePassword() {
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
